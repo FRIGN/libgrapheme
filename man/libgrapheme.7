@@ -1,0 +1,38 @@
+.Dd 2020-03-26
+.Dt LIBGRAPHEME 7
+.Os suckless.org
+.Sh NAME
+.Nm libgrapheme
+.Nd grapheme cluster utility library
+.Sh DESCRIPTION
+.Nm
+is a C library for working with grapheme clusters. What are grapheme
+clusters? In C, one usually uses 8-Bit unsigned integers (chars) to
+store strings, and many people assume that one such char represents
+one visible character in a printed output.
+.Pp
+This is not true and only holds for encodings that map numbers from
+0-255 to characters. Modern Unicode maps numbers ('code points') far
+larger than that to characters. A common encoding to represent such
+code points is UTF-8. A common misunderstanding is that a code
+point represents a single printed character, which is not correct.
+Instead, Unicode has a concept of so called 'grapheme clusters', which
+are a set of one or more code points that in total make up one printed
+character.
+.Pp
+To put it shortly: To count printed characters in a string, it is
+neither enough to just count the chars nor to count the UTF-8 code points.
+Instead, what is necessary is to apply a complex ruleset, specified
+by Unicode, to determine if a set of code points belongs together in the
+form of a grapheme cluster, which then counts as a single character.
+.Pp
+.Nm
+is a suckless response to the bloated ecosystem of grapheme cluster
+handling (e.g. ICU) and provides a simple interface for this complex
+concept. The rules are automatically downloaded from unicode.org
+and parsed and automatic testing is performed based on tests provided
+by Unicode.
+.Sh SEE ALSO
+.Xr grapheme_len 3
+.Sh AUTHORS
+.An Laslo Hunhold Aq Mt dev@frign.de

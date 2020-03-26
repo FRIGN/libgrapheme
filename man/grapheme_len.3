@@ -1,0 +1,18 @@
+.Dd 2020-03-26
+.Dt GRAPHEME_LEN 3
+.Os suckless.org
+.Sh NAME
+.Nm grapheme_len
+.Nd determine grapheme cluster length
+.Sh SYNOPSIS
+.In grapheme.h
+.Ft size_t
+.Fn grapheme_len "const char *"
+.Sh DESCRIPTION
+.Nm
+returns the length (in bytes) of the grapheme cluster beginning at
+the provided char-address.
+.Sh SEE ALSO
+.Xr libgrapheme 7
+.Sh AUTHORS
+.An Laslo Hunhold Aq Mt dev@frign.de
