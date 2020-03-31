@@ -12,6 +12,28 @@
 .Nm
 returns the length (in bytes) of the grapheme cluster beginning at
 the provided char-address.
+.Sh EXAMPLES
+.Bd -literal
+/* cc (-static) -o example example.c -lgrapheme */
+#include <grapheme.h>
+#include <stdio.h>
+
+int
+main(void)
+{
+	char *s = "Tëst 👨\\u200d👩\\u200d👦 🇺🇸 नी நி!";
+	size_t len;
+
+	/* print each grapheme cluster with accompanying byte-length */
+	while (*s != '\\0') {
+		len = grapheme_len(s);
+		printf("%2zu bytes | %.*s\\n", len, (int)len, s, len);
+		s += len;
+	}
+
+	return 0;
+}
+.Ed
 .Sh SEE ALSO
 .Xr libgrapheme 7
 .Sh AUTHORS
