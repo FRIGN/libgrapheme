@@ -7,7 +7,7 @@ include config.mk
 BIN = src/test
 REQ = src/codepoint src/boundary src/grapheme
 GBP_URL = https://www.unicode.org/Public/UCD/latest/ucd/auxiliary/GraphemeBreakProperty.txt
-EMO_URL = https://www.unicode.org/Public/emoji/latest/emoji-data.txt
+EMO_URL = https://www.unicode.org/Public/UCD/latest/ucd/emoji/emoji-data.txt
 GBT_URL = https://www.unicode.org/Public/UCD/latest/ucd/auxiliary/GraphemeBreakTest.txt
 GBP = data/gbp.txt
 EMO = data/emo.txt
