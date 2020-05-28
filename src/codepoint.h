@@ -9,6 +9,6 @@ typedef uint32_t Codepoint;
 
 #define CP_INVALID 0xFFFD
 
-size_t cp_decode(const uint8_t *, Codepoint *);
+size_t grapheme_cp_decode(uint32_t *, const uint8_t *, size_t);
 
 #endif /* CODEPOINT_H */

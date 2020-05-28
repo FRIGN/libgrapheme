@@ -12,20 +12,34 @@ grapheme_len(const char *str)
 	size_t ret, len = 0;
 	int state = 0;
 
+	if (str == NULL) {
+		return 0;
+	}
+
+	/*
+	 * grapheme_cp_decode, when it encounters an unexpected byte,
+	 * does not count it to the error and instead assumes that the
+	 * unexpected byte is the beginning of a new sequence.
+	 * This way, when the string ends with a null byte, we never
+	 * miss it, even if the previous UTF-8 sequence terminates
+	 * unexpectedly, as it would either act as an unexpected byte,
+	 * saved for later, or as a null byte itself, that we can catch.
+	 * We pass 5 to the length, as we will never read beyond
+	 * the null byte for the reasons given above.
+	 */
+
 	/* get first code point */
-	if ((ret = cp_decode((const uint8_t *)str, &cp0)) == 0) {
+	len += grapheme_cp_decode(&cp0, (uint8_t *)str, 5);
+	if (cp0 == CP_INVALID) {
 		return len;
 	}
-	len += ret;
 
 	while (cp0 != 0) {
 		/* get next codepoint */
-		if ((ret = cp_decode((const uint8_t *)(str + len), &cp1)) == 0) {
-			break;
-		}
+		ret = grapheme_cp_decode(&cp1, (uint8_t *)(str + len), 5);
 
-		if (boundary(cp0, cp1, &state)) {
-			/* we have a breakpoint */
+		if (cp1 == CP_INVALID || boundary(cp0, cp1, &state)) {
+			/* we read an invalid cp or have a breakpoint */
 			break;
 		} else {
 			/* we don't have a breakpoint, continue */
