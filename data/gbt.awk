@@ -6,7 +6,7 @@ BEGIN {
 
 	printf("struct test {\n\tCodepoint *cp;\n\tsize_t cplen;\n");
 	printf("\tsize_t *len;\n\tsize_t lenlen;\n\tchar *descr;\n};\n\n");
-	printf("struct test t[] = {\n");
+	printf("static const struct test t[] = {\n");
 }
 
 $0 ~ /^#/ || $0 ~ /^\s*$/ { next }
