@@ -19,25 +19,25 @@ static const struct {
 		/* 0xxxxxxx */
 		.lower = 0x00, /* 00000000 */
 		.upper = 0x7F, /* 01111111 */
-		.mincp = 0,
+		.mincp = (uint32_t)0,
 	},
 	[1] = {
 		/* 110xxxxx */
 		.lower = 0xC0, /* 11000000 */
 		.upper = 0xDF, /* 11011111 */
-		.mincp = 1 << 7, /* [0] has 7 bits capacity */
+		.mincp = (uint32_t)1 << 7, /* [0] has 7 bits capacity */
 	},
 	[2] = {
 		/* 1110xxxx */
 		.lower = 0xE0, /* 11100000 */
 		.upper = 0xEF, /* 11101111 */
-		.mincp = 1 << 11, /* [1] has 5+6=11 bits capacity */
+		.mincp = (uint32_t)1 << 11, /* [1] has 5+6=11 bits capacity */
 	},
 	[3] = {
 		/* 11110xxx */
 		.lower = 0xF0, /* 11110000 */
 		.upper = 0xF7, /* 11110111 */
-		.mincp = 1 << 16, /* [2] has 4+6+6=16 bits capacity */
+		.mincp = (uint32_t)1 << 16, /* [2] has 4+6+6=16 bits capacity */
 	},
 };
 
@@ -103,8 +103,9 @@ grapheme_cp_decode(uint32_t *cp, const uint8_t *s, size_t n)
 		*cp = (*cp << 6) | (s[i] & 0x3F);
 	}
 
-	if (*cp < lut[off].mincp || BETWEEN(*cp, 0xD800, 0xDFFF) ||
-	    *cp > 0x10FFFF) {
+	if (*cp < lut[off].mincp ||
+	    BETWEEN(*cp, UINT32_C(0xD800), UINT32_C(0xDFFF)) ||
+	    *cp > UINT32_C(0x10FFFF)) {
 		/*
 		 * codepoint is overlong encoded in the sequence, is a
 		 * high or low UTF-16 surrogate half (0xD800..0xDFFF) or
