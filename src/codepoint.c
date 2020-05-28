@@ -58,9 +58,9 @@ grapheme_cp_decode(uint32_t *cp, const uint8_t *s, size_t n)
 			/*
 			 * first byte is within the bounds; fill
 			 * p with the the first bits contained in
-			 * the first byte ("upper-lower" is the bitmask)
+			 * the first byte (by subtracting the high bits)
 			 */
-			*cp = s[0] & (lut[off].upper - lut[off].lower);
+			*cp = s[0] - lut[off].lower;
 			break;
 		}
 	}
