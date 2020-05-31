@@ -57,13 +57,13 @@ src/test.c: data/gbt.awk $(GBT) src/test_body.c
 	cat src/test_body.c >> $@
 
 $(GBP):
-	wget -nc -O $@ $(GBP_URL)
+	wget -O $@ $(GBP_URL)
 
 $(EMO):
-	wget -nc -O $@ $(EMO_URL)
+	wget -O $@ $(EMO_URL)
 
 $(GBT):
-	wget -nc -O $@ $(GBT_URL)
+	wget -O $@ $(GBT_URL)
 
 install: all
 	mkdir -p "$(DESTDIR)$(LIBPREFIX)"
