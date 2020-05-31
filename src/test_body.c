@@ -52,8 +52,8 @@ static const struct {
 };
 
 static const struct {
-	uint8_t *arr;     /* byte array */
-	size_t   len;     /* number of bytes in array */
+	uint8_t *arr;     /* UTF-8 byte sequence */
+	size_t   len;     /* length of UTF-8 byte sequence */
 	size_t   exp_len; /* expected length returned */
 	uint32_t exp_cp;  /* expected code point returned */
 } dec_test[] = {
