@@ -95,7 +95,7 @@ static const struct {
 		.arr     = (uint8_t[]){ 0xC3, 0xBF },
 		.len     = 2,
 		.exp_len = 2,
-		.exp_cp  = 0xff,
+		.exp_cp  = 0xFF,
 	},
 	{
 		/* invalid 2-byte sequence (second byte missing)
@@ -135,7 +135,7 @@ static const struct {
 		.arr     = (uint8_t[]){ 0xE0, 0xBF, 0xBF },
 		.len     = 3,
 		.exp_len = 3,
-		.exp_cp  = 0xfff,
+		.exp_cp  = 0xFFF,
 	},
 	{
 		/* invalid 3-byte sequence (second byte missing)
@@ -205,7 +205,7 @@ static const struct {
 		.arr     = (uint8_t[]){ 0xF3, 0xBF, 0xBF, 0xBF },
 		.len     = 4,
 		.exp_len = 4,
-		.exp_cp  = 0xfffff,
+		.exp_cp  = UINT32_C(0xFFFFF),
 	},
 	{
 		/* invalid 4-byte sequence (second byte missing)
