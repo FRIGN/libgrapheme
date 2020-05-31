@@ -55,7 +55,7 @@ static const struct {
 	uint8_t *arr;     /* byte array */
 	size_t   len;     /* number of bytes in array */
 	size_t   exp_len; /* expected length returned */
-	uint32_t exp_cp;  /* expected codepoint returned */
+	uint32_t exp_cp;  /* expected code point returned */
 } dec_test[] = {
 	{
 		/* empty sequence

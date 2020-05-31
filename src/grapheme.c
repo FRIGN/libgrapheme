@@ -35,7 +35,7 @@ grapheme_len(const char *str)
 	}
 
 	while (cp0 != 0) {
-		/* get next codepoint */
+		/* get next code point */
 		ret = grapheme_cp_decode(&cp1, (uint8_t *)(str + len), 5);
 
 		if (cp1 == CP_INVALID || boundary(cp0, cp1, &state)) {

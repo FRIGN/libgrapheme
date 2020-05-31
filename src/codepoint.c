@@ -102,7 +102,7 @@ grapheme_cp_decode(uint32_t *cp, const uint8_t *s, size_t n)
 			return 1 + (i - 1);
 		}
 		/*
-		 * shift codepoint by 6 bits and add the 6 stored bits
+		 * shift code point by 6 bits and add the 6 stored bits
 		 * in s[i] to it using the bitmask 0x3F (00111111)
 		 */
 		*cp = (*cp << 6) | (s[i] & 0x3F);
@@ -112,7 +112,7 @@ grapheme_cp_decode(uint32_t *cp, const uint8_t *s, size_t n)
 	    BETWEEN(*cp, UINT32_C(0xD800), UINT32_C(0xDFFF)) ||
 	    *cp > UINT32_C(0x10FFFF)) {
 		/*
-		 * codepoint is overlong encoded in the sequence, is a
+		 * code point is overlong encoded in the sequence, is a
 		 * high or low UTF-16 surrogate half (0xD800..0xDFFF) or
 		 * not representable in UTF-16 (>0x10FFFF) (RFC-3629
 		 * specifies the latter two conditions)
