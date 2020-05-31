@@ -340,6 +340,7 @@ int main(void)
 			        "Expected (%zx,%u), but got (%zx,%u)\n",
 			        i, dec_test[i].exp_len,
 			        dec_test[i].exp_cp, len, cp);
+			failed++;
 		}
 	}
 	printf("UTF-8 decoder test: Passed %zu out of %zu tests.\n",
