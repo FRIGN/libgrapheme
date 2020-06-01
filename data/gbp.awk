@@ -71,7 +71,7 @@ function mktable(name, array, arrlen) {
 		upper = sprintf("0x%s", upper);
 
 		# print lower bound
-		printf("\t{ %s, ", lower);
+		printf("\t{ UINT32_C(%s), ", lower);
 
 		for (; j < arrlen - 1; j++) {
 			# look ahead and check if we have adjacent arrays
@@ -94,7 +94,7 @@ function mktable(name, array, arrlen) {
 		}
 
 		# print upper bound
-		printf("%s },\n", upper);
+		printf("UINT32_C(%s) },\n", upper);
 	}
 
 	printf("};\n");

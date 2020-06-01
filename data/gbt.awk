@@ -40,7 +40,7 @@ $0 ~ /^#/ || $0 ~ /^\s*$/ { next }
 	# print code points
 	printf("\t{\n\t\t.cp     = (uint32_t[]){ ");
 	for (i = 0; i < ncps; i++) {
-		printf("0x%s", cp[i]);
+		printf("UINT32_C(0x%s)", cp[i]);
 		if (i + 1 < ncps) {
 			printf(", ");
 		}
