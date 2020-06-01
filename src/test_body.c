@@ -308,14 +308,14 @@ int main(void)
 			for (j = 0; j < enc_test[i].exp_len; j++) {
 				fprintf(stderr, "0x%x",
 				        enc_test[i].exp_arr[j]);
-				if (j != enc_test[i].exp_len - 1) {
+				if (j + 1 < enc_test[i].exp_len) {
 					fprintf(stderr, " ");
 				}
 			}
 			fprintf(stderr, "), but got (");
 			for (j = 0; j < len; j++) {
 				fprintf(stderr, "0x%x", arr[j]);
-				if (j != len - 1) {
+				if (j + 1 < len) {
 					fprintf(stderr, " ");
 				}
 			}
