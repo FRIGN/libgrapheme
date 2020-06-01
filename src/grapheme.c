@@ -2,13 +2,12 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include "codepoint.h"
-#include "boundary.h"
+#include "../grapheme.h"
 
 size_t
 grapheme_len(const char *str)
 {
-	Codepoint cp0, cp1;
+	uint32_t cp0, cp1;
 	size_t ret, len = 0;
 	int state = 0;
 
@@ -38,7 +37,7 @@ grapheme_len(const char *str)
 		/* get next code point */
 		ret = grapheme_cp_decode(&cp1, (uint8_t *)(str + len), 5);
 
-		if (cp1 == CP_INVALID || boundary(cp0, cp1, &state)) {
+		if (cp1 == CP_INVALID || grapheme_boundary(cp0, cp1, &state)) {
 			/* we read an invalid cp or have a breakpoint */
 			break;
 		} else {

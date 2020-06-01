@@ -58,7 +58,7 @@ function hextonum(str) {
 }
 
 function mktable(name, array, arrlen) {
-	printf("\nstatic const Codepoint "name"_table[][2] = {\n");
+	printf("static const uint32_t "name"_table[][2] = {\n");
 
 	for (j = 0; j < arrlen; j++) {
 		if (ind = index(array[j], "..")) {

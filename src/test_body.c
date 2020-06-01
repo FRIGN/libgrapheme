@@ -1,10 +1,10 @@
 /* See LICENSE file for copyright and license details. */
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "boundary.h"
-#include "codepoint.h"
+#include "../grapheme.h"
 
 #define LEN(x) (sizeof(x) / sizeof(*x))
 
@@ -350,7 +350,8 @@ int main(void)
 	for (i = 0, failed = 0; i < LEN(t); i++) {
 		for (j = 0, k = 0, state = 0, len = 1; j < t[i].cplen; j++) {
 			if ((j + 1) == t[i].cplen ||
-			    boundary(t[i].cp[j], t[i].cp[j + 1], &state)) {
+			    grapheme_boundary(t[i].cp[j], t[i].cp[j + 1],
+			                      &state)) {
 				/* check if our resulting length matches */
 				if (k == t[i].lenlen || len != t[i].len[k++]) {
 					fprintf(stderr, "Failed \"%s\"\n",

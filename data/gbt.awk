@@ -4,7 +4,7 @@
 BEGIN {
 	FS = " "
 
-	printf("struct test {\n\tCodepoint *cp;\n\tsize_t cplen;\n");
+	printf("struct test {\n\tuint32_t *cp;\n\tsize_t cplen;\n");
 	printf("\tsize_t *len;\n\tsize_t lenlen;\n\tchar *descr;\n};\n\n");
 	printf("static const struct test t[] = {\n");
 }
@@ -38,7 +38,7 @@ $0 ~ /^#/ || $0 ~ /^\s*$/ { next }
 	len[nlens++] = curlen;
 
 	# print code points
-	printf("\t{\n\t\t.cp     = (Codepoint[]){ ");
+	printf("\t{\n\t\t.cp     = (uint32_t[]){ ");
 	for (i = 0; i < ncps; i++) {
 		printf("0x%s", cp[i]);
 		if (i + 1 < ncps) {

@@ -1,5 +1,5 @@
 /* See LICENSE file for copyright and license details. */
-#include "codepoint.h"
+#include "../grapheme.h"
 #include <stdio.h>
 
 #define BETWEEN(c, l, u) (c >= l && c <= u)

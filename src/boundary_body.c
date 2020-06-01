@@ -1,9 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 #include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
-
-#include "codepoint.h"
-#include "boundary.h"
 
 #define LEN(x) (sizeof(x) / sizeof(*x))
 
@@ -15,8 +13,8 @@ enum {
 static int
 cp_cmp(const void *a, const void *b)
 {
-	Codepoint cp = *(Codepoint *)a;
-	Codepoint *range = (Codepoint *)b;
+	uint32_t cp = *(uint32_t *)a;
+	uint32_t *range = (uint32_t *)b;
 
 	return (cp >= range[0] && cp <= range[1]) ? 0 : (cp - range[0]);
 }
@@ -40,7 +38,7 @@ enum property {
 };
 
 struct {
-	const Codepoint (*table)[2];
+	const uint32_t (*table)[2];
 	size_t tablelen;
 } tables[] = {
 	[PROP_CR] = {
@@ -102,7 +100,7 @@ struct {
 };
 
 static int
-is(Codepoint cp[2], char (*props)[2], int index, enum property p)
+is(uint32_t cp[2], char (*props)[2], int index, enum property p)
 {
 	if (props[p][index] == 2) {
 		/* need to determine property */
@@ -119,9 +117,9 @@ is(Codepoint cp[2], char (*props)[2], int index, enum property p)
 #define IS(I, PROP) (is(cp, props, I, PROP))
 
 int
-boundary(Codepoint cp0, Codepoint cp1, int *state)
+grapheme_boundary(uint32_t cp0, uint32_t cp1, int *state)
 {
-	Codepoint cp[2] = { cp0, cp1 };
+	uint32_t cp[2] = { cp0, cp1 };
 	char props[NUM_PROPS][2];
 	size_t i;
 
