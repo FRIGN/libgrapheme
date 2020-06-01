@@ -289,7 +289,8 @@ static const struct {
 	},
 };
 
-int main(void)
+int
+main(void)
 {
 	int state;
 	size_t i, j, k, len, failed;
