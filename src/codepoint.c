@@ -53,7 +53,7 @@ grapheme_cp_decode(uint32_t *cp, const uint8_t *s, size_t n)
 
 	if (n == 0) {
 		/* a sequence must be at least 1 byte long */
-		*cp = CP_INVALID;
+		*cp = GRAPHEME_CP_INVALID;
 		return 1;
 	}
 
@@ -74,7 +74,7 @@ grapheme_cp_decode(uint32_t *cp, const uint8_t *s, size_t n)
 		 * first byte does not match a sequence type;
 		 * set cp as invalid and return 1 byte processed
 		 */
-		*cp = CP_INVALID;
+		*cp = GRAPHEME_CP_INVALID;
 		return 1;
 	}
 	if (1 + off > n) {
@@ -82,7 +82,7 @@ grapheme_cp_decode(uint32_t *cp, const uint8_t *s, size_t n)
 		 * input is not long enough, set cp as invalid and
 		 * return number of bytes needed
 		 */
-		*cp = CP_INVALID;
+		*cp = GRAPHEME_CP_INVALID;
 		return 1 + off;
 	}
 
@@ -98,7 +98,7 @@ grapheme_cp_decode(uint32_t *cp, const uint8_t *s, size_t n)
 			 * unexpected character as recommended since
 			 * Unicode 6 (chapter 3)
 			 */
-			*cp = CP_INVALID;
+			*cp = GRAPHEME_CP_INVALID;
 			return 1 + (i - 1);
 		}
 		/*
@@ -117,7 +117,7 @@ grapheme_cp_decode(uint32_t *cp, const uint8_t *s, size_t n)
 		 * not representable in UTF-16 (>0x10FFFF) (RFC-3629
 		 * specifies the latter two conditions)
 		 */
-		*cp = CP_INVALID;
+		*cp = GRAPHEME_CP_INVALID;
 	}
 
 	return 1 + off;
@@ -135,7 +135,7 @@ grapheme_cp_encode(uint32_t cp, uint8_t *s, size_t n)
 		 * (0xD800..0xDFFF) or not representable in UTF-16
 		 * (>0x10FFFF), which RFC-3629 deems invalid for UTF-8.
 		 */
-		cp = CP_INVALID;
+		cp = GRAPHEME_CP_INVALID;
 	}
 
 	/* determine necessary sequence type */

@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define CP_INVALID UINT32_C(0xFFFD)
+#define GRAPHEME_CP_INVALID UINT32_C(0xFFFD)
 
 int grapheme_boundary(uint32_t, uint32_t, int *);
 

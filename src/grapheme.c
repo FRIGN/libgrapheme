@@ -29,7 +29,7 @@ grapheme_len(const char *str)
 
 	/* get first code point */
 	len += grapheme_cp_decode(&cp0, (uint8_t *)str, 5);
-	if (cp0 == CP_INVALID) {
+	if (cp0 == GRAPHEME_CP_INVALID) {
 		return len;
 	}
 
@@ -37,7 +37,8 @@ grapheme_len(const char *str)
 		/* get next code point */
 		ret = grapheme_cp_decode(&cp1, (uint8_t *)(str + len), 5);
 
-		if (cp1 == CP_INVALID || grapheme_boundary(cp0, cp1, &state)) {
+		if (cp1 == GRAPHEME_CP_INVALID ||
+		    grapheme_boundary(cp0, cp1, &state)) {
 			/* we read an invalid cp or have a breakpoint */
 			break;
 		} else {
