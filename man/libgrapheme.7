@@ -1,38 +1,90 @@
-.Dd 2020-03-26
+.Dd 2020-10-10
 .Dt LIBGRAPHEME 7
 .Os suckless.org
 .Sh NAME
 .Nm libgrapheme
-.Nd grapheme cluster utility library
+.Nd grapheme cluster detection library
+.Sh SYNOPSIS
+.In grapheme.h
 .Sh DESCRIPTION
+The
 .Nm
-is a C library for working with grapheme clusters. What are grapheme
-clusters? In C, one usually uses 8-Bit unsigned integers (chars) to
-store strings, and many people assume that one such char represents
-one visible character in a printed output.
+library provides functions to properly count characters
+.Dq ( grapheme clusters )
+in Unicode strings using the Unicode grapheme
+cluster breaking algorithm (UAX #29).
 .Pp
-This is not true and only holds for encodings that map numbers from
-0-255 to characters. Modern Unicode maps numbers ('code points') far
-larger than that to characters. A common encoding to represent such
-code points is UTF-8. A common misunderstanding is that a code
-point represents a single printed character, which is not correct.
-Instead, Unicode has a concept of so called 'grapheme clusters', which
-are a set of one or more code points that in total make up one printed
-character.
-.Pp
-To put it shortly: To count printed characters in a string, it is
-neither enough to just count the chars nor to count the UTF-8 code points.
-Instead, what is necessary is to apply a complex ruleset, specified
-by Unicode, to determine if a set of code points belongs together in the
-form of a grapheme cluster, which then counts as a single character.
-.Pp
-.Nm
-is a suckless response to the bloated ecosystem of grapheme cluster
-handling (e.g. ICU) and provides a simple interface for this complex
-concept. The rules are automatically downloaded from unicode.org
-and parsed and automatic testing is performed based on tests provided
-by Unicode.
+You can either count the characters in an UTF-8-encoded string (see
+.Xr grapheme_len 3 )
+or determine if a grapheme cluster breaks between two code points (see
+.Xr grapheme_boundary 3 ) ,
+while a safe UTF-8-de/encoder for the latter purpose is provided (see
+.Xr grapheme_cp_decode 3
+and
+.Xr grapheme_cp_encode 3 ) .
 .Sh SEE ALSO
+.Xr grapheme_boundary 3 ,
+.Xr grapheme_cp_decode 3 ,
+.Xr grapheme_cp_encode 3 ,
 .Xr grapheme_len 3
+.Sh STANDARDS
+.Nm
+is compliant with the Unicode 13.0.0 specification.
+.Sh MOTIVATION
+The idea behind every character encoding scheme like ASCII or Unicode
+is to assign numbers to abstract characters. ASCII for instance, which
+comprises the range 0 to 127, assigns the number 65 (0x41) to the
+character
+.Sq A .
+This number is called a
+.Dq code point ,
+and all code points of an encoding make up its so-called
+.Dq code space .
+.Pp
+Unicode's code space is much larger, ranging from 0 to 0x10FFFF, but its
+first 128 code points are identical to ASCII's. The additional code
+points are needed as Unicode's goal is to express all writing systems
+of the world. To give an example, the character
+.Sq \[u00C4]
+is not expressable in ASCII, as it lacks a code point for it. It can be
+expressed in Unicode, though, as the code point 196 (0xC4) has been
+assigned to it.
+.Pp
+At some point, when more and more characters were assigned to code
+points, the Unicode Consortium (that defines the Unicode standard)
+noticed a problem: Many languages have much more complex characters,
+for example
+.Sq \[u01DE]
+(Unicode code point 0x1DE), which is an
+.Sq A
+with an umlaut and a macron, and it gets much more complicated in some
+non-European languages. Instead of assigning a code point to each
+modification of a
+.Dq base character
+(like
+.Sq A
+in this example here), they started introducing modifiers, which are
+code points that would not correspond to characters but would modify a
+preceding
+.Dq base
+character. For example, the code point 0x308 adds an umlaut and the
+code point 0x304 adds a macron, so the code point sequence
+.Dq 0x41 0x308 0x304
+represents the character
+.Sq \[u01DE] ,
+just like the single code point 0x1DE.
+.Pp
+In many applications, it is necessary to count the number of characters
+in a string. This is pretty simple with ASCII-strings, where you just
+count the number of bytes. With Unicode-strings, it is a common mistake
+to simply adapt the ASCII-approach and count the number of code points,
+given, for example, the sequence
+.Dq 0x41 0x308 0x304 ,
+while made up of 3 code points, only represents a single character.
+.Pp
+The proper way to count the number of characters in a Unicode string
+is to apply the Unicode grapheme cluster breaking algorithm (UAX #29)
+that is based on a complex ruleset and determines if a grapheme cluster
+ends or is continued between two code points.
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de
