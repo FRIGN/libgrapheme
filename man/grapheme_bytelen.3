@@ -14,7 +14,7 @@ The
 function computes the length (in bytes) of the grapheme cluster
 (see
 .Xr libgrapheme 7 )
-beginning at the NUL-terminated string
+beginning at the UTF-8-encoded NUL-terminated string
 .Va str .
 .Sh RETURN VALUES
 The
@@ -35,13 +35,41 @@ is
 int
 main(void)
 {
-	char *s = "Tëst 👨\\u200d👩\\u200d👦 🇺🇸 नी நி!";
+	/* UTF-8 encoded input */
+	char *s =
+		"T"
+		"\\xC3\\xAB"         /* U+000EB LATIN SMALL LETTER E
+		                              WITH DIAERESIS */
+		"s"
+		"t"
+		" "
+		"\\xF0\\x9F\\x91\\xA8" /* U+1F468 MAN */
+		"\\xE2\\x80\\x8D"     /* U+0200D ZERO WIDTH JOINER */
+		"\\xF0\\x9F\\x91\\xA9" /* U+1F469 WOMAN */
+		"\\xE2\\x80\\x8D"     /* U+0200D ZERO WIDTH JOINER */
+		"\\xF0\\x9F\\x91\\xA6" /* U+1F466 BOY */
+		" "
+		"\\xF0\\x9F\\x87\\xBA" /* U+1F1FA REGIONAL INDICATOR
+		                              SYMBOL LETTER U */
+		"\\xF0\\x9F\\x87\\xB8" /* U+1F1F8 REGIONAL INDICATOR
+		                              SYMBOL LETTER S */
+		" "
+		"\\xE0\\xA4\\xA8"     /* U+00928 DEVANAGARI LETTER NA */
+		"\\xE0\\xA5\\x80"     /* U+00940 DEVANAGARI VOWEL
+		                              SIGN II */
+		" "
+		"\\xE0\\xAE\\xA8"     /* U+00BA8 TAMIL LETTER NA */
+		"\\xE0\\xAE\\xBF"     /* U+00BBF TAMIL VOWEL SIGN I */
+		"!";
 	size_t len;
+
+	/* print input string */
+	printf("Input: %s\\n", s);
 
 	/* print each grapheme cluster with accompanying byte-length */
 	while (*s != '\\0') {
 		len = grapheme_bytelen(s);
-		printf("%2zu bytes | %.*s\\n", len, (int)len, s, len);
+		printf("%2zu byte(s) | %.*s\\n", len, (int)len, s, len);
 		s += len;
 	}
 
