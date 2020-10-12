@@ -5,7 +5,7 @@
 #include "../grapheme.h"
 
 size_t
-grapheme_len(const char *str)
+grapheme_bytelen(const char *str)
 {
 	uint32_t cp0, cp1;
 	size_t ret, len = 0;

@@ -12,7 +12,7 @@ GBT_URL = https://www.unicode.org/Public/13.0.0/ucd/auxiliary/GraphemeBreakTest.
 GBP = data/gbp.txt
 EMO = data/emo.txt
 GBT = data/gbt.txt
-MAN3 = man/grapheme_len.3
+MAN3 = man/grapheme_bytelen.3
 MAN7 = man/libgrapheme.7
 
 all: libgrapheme.a libgrapheme.so $(BIN)

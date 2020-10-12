@@ -16,9 +16,9 @@ see
 .Sx MOTIVATION )
 using the Unicode grapheme cluster breaking algorithm (UAX #29).
 .Pp
-You can either count the byte-length of the grapheme cluster at the
-beginning of an UTF-8-encoded string (see
-.Xr grapheme_len 3 )
+You can either count the length (in bytes) of the grapheme cluster at
+the beginning of an UTF-8-encoded string (see
+.Xr grapheme_bytelen 3 )
 or determine if a grapheme cluster breaks between two Unicode code
 points (see
 .Xr grapheme_boundary 3 ) ,
@@ -28,9 +28,9 @@ and
 .Xr grapheme_cp_encode 3 ) .
 .Sh SEE ALSO
 .Xr grapheme_boundary 3 ,
+.Xr grapheme_bytelen 3
 .Xr grapheme_cp_decode 3 ,
 .Xr grapheme_cp_encode 3 ,
-.Xr grapheme_len 3
 .Sh STANDARDS
 .Nm
 is compliant with the Unicode 13.0.0 specification.

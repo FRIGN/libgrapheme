@@ -1,17 +1,31 @@
 .Dd 2020-03-26
-.Dt GRAPHEME_LEN 3
+.Dt GRAPHEME_BYTELEN 3
 .Os suckless.org
 .Sh NAME
-.Nm grapheme_len
-.Nd determine grapheme cluster length
+.Nm grapheme_bytelen
+.Nd compute grapheme cluster byte-length
 .Sh SYNOPSIS
 .In grapheme.h
 .Ft size_t
-.Fn grapheme_len "const char *"
+.Fn grapheme_bytelen "const char *str"
 .Sh DESCRIPTION
-.Nm
-returns the length (in bytes) of the grapheme cluster beginning at
-the provided char-address.
+The
+.Fn grapheme_bytelen
+function computes the length (in bytes) of the grapheme cluster
+(see
+.Xr libgrapheme 7 )
+beginning at the NUL-terminated string
+.Va str .
+.Sh RETURN VALUES
+The
+.Fn grapheme_bytelen
+function returns the length (in bytes) of the grapheme cluster beginning
+at
+.Va str
+or 0 if
+.Va str
+is
+.Dv NULL .
 .Sh EXAMPLES
 .Bd -literal
 /* cc (-static) -o example example.c -lgrapheme */
@@ -26,7 +40,7 @@ main(void)
 
 	/* print each grapheme cluster with accompanying byte-length */
 	while (*s != '\\0') {
-		len = grapheme_len(s);
+		len = grapheme_bytelen(s);
 		printf("%2zu bytes | %.*s\\n", len, (int)len, s, len);
 		s += len;
 	}
@@ -36,5 +50,8 @@ main(void)
 .Ed
 .Sh SEE ALSO
 .Xr libgrapheme 7
+.Sh STANDARDS
+.Fn grapheme_bytelen
+is compliant with the Unicode 13.0.0 specification.
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de
