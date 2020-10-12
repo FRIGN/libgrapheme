@@ -3,20 +3,24 @@
 .Os suckless.org
 .Sh NAME
 .Nm libgrapheme
-.Nd grapheme cluster detection library
+.Nd grapheme cluster library
 .Sh SYNOPSIS
 .In grapheme.h
 .Sh DESCRIPTION
 The
 .Nm
-library provides functions to properly count characters
-.Dq ( grapheme clusters )
-in Unicode strings using the Unicode grapheme
-cluster breaking algorithm (UAX #29).
+library provides functions to properly separate a string into
+user-perceived characters
+.Dq ( grapheme clusters ,
+see
+.Sx MOTIVATION )
+using the Unicode grapheme cluster breaking algorithm (UAX #29).
 .Pp
-You can either count the characters in an UTF-8-encoded string (see
+You can either count the byte-length of the grapheme cluster at the
+beginning of an UTF-8-encoded string (see
 .Xr grapheme_len 3 )
-or determine if a grapheme cluster breaks between two code points (see
+or determine if a grapheme cluster breaks between two Unicode code
+points (see
 .Xr grapheme_boundary 3 ) ,
 while a safe UTF-8-de/encoder for the latter purpose is provided (see
 .Xr grapheme_cp_decode 3
@@ -32,9 +36,9 @@ and
 is compliant with the Unicode 13.0.0 specification.
 .Sh MOTIVATION
 The idea behind every character encoding scheme like ASCII or Unicode
-is to assign numbers to abstract characters. ASCII for instance, which
-comprises the range 0 to 127, assigns the number 65 (0x41) to the
-character
+is to express abstract characters (which can be thought of as shapes
+making up a written language). ASCII for instance, which comprises the
+range 0 to 127, assigns the number 65 (0x41) to the abstract character
 .Sq A .
 This number is called a
 .Dq code point ,
@@ -44,47 +48,76 @@ and all code points of an encoding make up its so-called
 Unicode's code space is much larger, ranging from 0 to 0x10FFFF, but its
 first 128 code points are identical to ASCII's. The additional code
 points are needed as Unicode's goal is to express all writing systems
-of the world. To give an example, the character
+of the world. To give an example, the abstract character
 .Sq \[u00C4]
-is not expressable in ASCII, as it lacks a code point for it. It can be
-expressed in Unicode, though, as the code point 196 (0xC4) has been
-assigned to it.
+is not expressable in ASCII, given no ASCII code point has been assigned
+to it. It can be expressed in Unicode, though, with the code point 196
+(0xC4).
 .Pp
-At some point, when more and more characters were assigned to code
-points, the Unicode Consortium (that defines the Unicode standard)
-noticed a problem: Many languages have much more complex characters,
-for example
-.Sq \[u01DE]
-(Unicode code point 0x1DE), which is an
-.Sq A
-with an umlaut and a macron, and it gets much more complicated in some
-non-European languages. Instead of assigning a code point to each
-modification of a
-.Dq base character
-(like
-.Sq A
-in this example here), they started introducing modifiers, which are
-code points that would not correspond to characters but would modify a
-preceding
-.Dq base
-character. For example, the code point 0x308 adds an umlaut and the
-code point 0x304 adds a macron, so the code point sequence
-.Dq 0x41 0x308 0x304
-represents the character
+One may assume that this process is straightfoward, but as more and
+more code points were assigned to abstract characters, the Unicode
+Consortium (that defines the Unicode standard) was facing a problem:
+Many (mostly non-European) languages have such a large amount of
+abstract characters that it would exhaust the available Unicode code
+space if one tried to assign a code point to each abstract character. The
+solution to that problem is best introduced with an example: Consider
+the abstract character
 .Sq \[u01DE] ,
-just like the single code point 0x1DE.
+which is
+.Sq A
+with an umlaut and a macron added to it. In this sense, one can consider
+.Sq \[u01DE]
+as a two-fold modification (namely
+.Dq add umlaut
+and
+.Dq add macron )
+of the
+.Dq base character
+.Sq A .
 .Pp
-In many applications, it is necessary to count the number of characters
-in a string. This is pretty simple with ASCII-strings, where you just
-count the number of bytes. With Unicode-strings, it is a common mistake
-to simply adapt the ASCII-approach and count the number of code points,
-given, for example, the sequence
+The Unicode Consortium adapted this idea by assigning code points to
+modifications. For example, the code point 0x308 represents adding an
+umlaut and 0x304 represents adding a macron, and thus, the code point
+sequence
 .Dq 0x41 0x308 0x304 ,
-while made up of 3 code points, only represents a single character.
+namely the base character
+.Sq A
+followed by the umlaut and macron modifiers, represents the abstract
+character
+.Sq \[u01DE] .
+As a side-note, the single code point 0x1DE was also assigned to
+.Sq \[u01DE] ,
+which is a good example for the fact that there can be multiple
+representations of a single abstract character in Unicode.
 .Pp
-The proper way to count the number of characters in a Unicode string
-is to apply the Unicode grapheme cluster breaking algorithm (UAX #29)
-that is based on a complex ruleset and determines if a grapheme cluster
-ends or is continued between two code points.
+Expressing a single abstract character with multiple code points solved
+the code space exhaustion-problem, and the concept has been greatly
+expanded since its first introduction (emojis, joiners, etc.). A sequence
+(which can also have the length 1) of code points that belong together
+this way and represents an abstract character is called a
+.Dq grapheme cluster .
+.Pp
+In many applications, it is necessary to count the number of
+user-perceived characters, i.e. grapheme clusters, in a string. This is
+pretty simple with ASCII-strings, where you just count the number of
+bytes (as each byte is a code point and each code point is a grapheme
+cluster). With Unicode-strings, it is a common mistake to simply adapt
+the ASCII-approach and count the number of code points. This is wrong,
+as, for example, the sequence
+.Dq 0x41 0x308 0x304 ,
+while made up of 3 code points, is a single grapheme cluster and
+represents the user-perceived character
+.Sq \[u01DE] .
+.Pp
+The proper way to segment a string into user-perceived characters
+is to segment it into its grapheme clusters by applying the Unicode
+grapheme cluster breaking algorithm (UAX #29). It is based on a complex
+ruleset and lookup-tables and determines if a grapheme cluster ends or
+is continued between two code points. Libraries like ICU, which also
+offer this functionality, are often bloated, not correct, difficult to
+use or not statically linkable. The motivation behind
+.Nm
+is to make grapheme cluster handling suck less and abide the UNIX
+philosophy.
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de
