@@ -97,7 +97,7 @@ expanded since its first introduction (emojis, joiners, etc.). A sequence
 this way and represents an abstract character is called a
 .Dq grapheme cluster .
 .Pp
-In many applications, it is necessary to count the number of
+In many applications it is necessary to count the number of
 user-perceived characters, i.e. grapheme clusters, in a string. This is
 pretty simple with ASCII-strings, where you just count the number of
 bytes (as each byte is a code point and each code point is a grapheme
@@ -117,7 +117,7 @@ is continued between two code points. Libraries like ICU, which also
 offer this functionality, are often bloated, not correct, difficult to
 use or not statically linkable. The motivation behind
 .Nm
-is to make grapheme cluster handling suck less and abide the UNIX
+is to make grapheme cluster handling suck less and abide by the UNIX
 philosophy.
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de
