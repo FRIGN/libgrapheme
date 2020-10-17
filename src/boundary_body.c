@@ -10,37 +10,27 @@ enum {
 	GRAPHEME_STATE_EMOJI  = 1 << 1, /* within emoji modifier or zwj sequence */
 };
 
-static int
-cp_cmp(const void *a, const void *b)
-{
-	uint32_t cp = *(uint32_t *)a;
-	uint32_t *range = (uint32_t *)b;
-
-	return (cp >= range[0] && cp <= range[1]) ? 0 : (cp - range[0]);
-}
-
-enum property {
-	PROP_CR,           /* carriage return */
-	PROP_LF,           /* line feed */
-	PROP_CONTROL,      /* control character */
-	PROP_EXTEND,       /* grapheme extender (TODO Emoji_Modifier=Yes) */
-	PROP_ZWJ,          /* zero width joiner */
-	PROP_RI,           /* regional indicator */
-	PROP_PREPEND,      /* prepend character */
-	PROP_SPACINGMARK,  /* spacing mark */
-	PROP_L,            /* hangul syllable type L */
-	PROP_V,            /* hangul syllable type V */
-	PROP_T,            /* hangul syllable type T */
-	PROP_LV,           /* hangul syllable type LV */
-	PROP_LVT,          /* hangul syllable type LVT */
-	PROP_EXTPICT,      /* extended pictographic */
-	NUM_PROPS,
+enum cp_property {
+	PROP_CR,          /* carriage return */
+	PROP_LF,          /* line feed */
+	PROP_CONTROL,     /* control character */
+	PROP_EXTEND,      /* grapheme extender (TODO Emoji_Modifier=Yes) */
+	PROP_ZWJ,         /* zero width joiner */
+	PROP_RI,          /* regional indicator */
+	PROP_PREPEND,     /* prepend character */
+	PROP_SPACINGMARK, /* spacing mark */
+	PROP_L,           /* hangul syllable type L */
+	PROP_V,           /* hangul syllable type V */
+	PROP_T,           /* hangul syllable type T */
+	PROP_LV,          /* hangul syllable type LV */
+	PROP_LVT,         /* hangul syllable type LVT */
+	PROP_EXTPICT,     /* extended pictographic */
 };
 
 struct {
 	const uint32_t (*table)[2];
 	size_t tablelen;
-} tables[] = {
+} cp_property_tables[] = {
 	[PROP_CR] = {
 		.table    = cr_table,
 		.tablelen = LEN(cr_table),
@@ -99,128 +89,186 @@ struct {
 	},
 };
 
-static int
-is(uint32_t cp[2], char (*props)[2], int index, enum property p)
-{
-	if (props[p][index] == 2) {
-		/* need to determine property */
-		props[p][index] = (bsearch(&(cp[index]),
-			tables[p].table,
-			tables[p].tablelen,
-			sizeof(*(tables[p].table)),
-			cp_cmp) == NULL) ? 0 : 1;
-	}
+struct cp_properties {
+	uint32_t cp;
+	int_least16_t determined;
+	int_least16_t state;
+};
 
-	return props[p][index];
+static int
+cp_cmp(const void *a, const void *b)
+{
+	uint32_t cp = *(uint32_t *)a;
+	uint32_t *range = (uint32_t *)b;
+
+	return (cp >= range[0] && cp <= range[1]) ? 0 : (cp - range[0]);
 }
 
-#define IS(I, PROP) (is(cp, props, I, PROP))
+static int
+has_property(struct cp_properties *props, enum cp_property p)
+{
+	if (!(props->determined & (1 << p))) {
+		/* not determined yet, do a lookup and set the state */
+		if (bsearch(&props->cp, cp_property_tables[p].table,
+		            cp_property_tables[p].tablelen,
+		            sizeof(*cp_property_tables[p].table),
+			    cp_cmp)) {
+			props->state |= (1 << p);
+		} else {
+			props->state &= ~(1 << p);
+		}
+
+		/* now it's determined */
+		props->determined |= (1 << p);
+	}
+
+	return (props->state & (1 << p));
+}
 
 int
-grapheme_boundary(uint32_t cp0, uint32_t cp1, int *state)
+grapheme_boundary(uint32_t a, uint32_t b, int *state)
 {
-	uint32_t cp[2] = { cp0, cp1 };
-	char props[NUM_PROPS][2];
-	size_t i;
+	struct cp_properties props[] = {
+		{
+			.cp = a,
+		},
+		{
+			.cp = b,
+		},
+	};
+	int s;
 
-	if ((cp0 >= 0x20 && cp0 <= 0x7E) &&
-	    (cp1 >= 0x20 && cp1 <= 0x7E)) {
-		/* skip printable ascii */
+	/* skip printable ASCII */
+	if ((a >= 0x20 && a <= 0x7E) &&
+	    (b >= 0x20 && b <= 0x7E)) {
 		return 1;
 	}
 
-	/* set all properties to undetermined (2) */
-	for (i = 0; i < NUM_PROPS; i++) {
-		props[i][0] = props[i][1] = 2;
-	}
+	/* set internal state based on given state-pointer */
+	s = (state != NULL) ? *state : 0;
 
-	/* http://unicode.org/reports/tr29/#Grapheme_Cluster_Boundary_Rules */
+	/*
+	 * Apply grapheme cluster breaking algorithm (UAX #29), see
+	 * http://unicode.org/reports/tr29/#Grapheme_Cluster_Boundary_Rules
+	 */
 
-	/* update state machine */
-	if (IS(1, PROP_RI)) {
-		if (IS(0, PROP_RI)) {
+	/*
+	 * update state
+	 */
+	if (has_property(&props[1], PROP_RI)) {
+		if (has_property(&props[0], PROP_RI)) {
 			/* one more RI is on the left side of the seam */
-			*state ^= GRAPHEME_STATE_RI_ODD;
+			s ^= GRAPHEME_STATE_RI_ODD;
 		} else {
 			/* an RI appeared on the right side but the left
 			   side is not an RI, reset state (0 is even) */
-			*state &= ~GRAPHEME_STATE_RI_ODD;
+			s &= ~GRAPHEME_STATE_RI_ODD;
 		}
 	}
 	if (!(*state & GRAPHEME_STATE_EMOJI) &&
-	    ((IS(0, PROP_EXTPICT) && IS(1, PROP_ZWJ)) ||
-             (IS(0, PROP_EXTPICT) && IS(1, PROP_EXTEND)))) {
-		*state |= GRAPHEME_STATE_EMOJI;
+	    ((has_property(&props[0], PROP_EXTPICT) &&
+	      has_property(&props[1], PROP_ZWJ)) ||
+             (has_property(&props[0], PROP_EXTPICT) &&
+	      has_property(&props[1], PROP_EXTEND)))) {
+		s |= GRAPHEME_STATE_EMOJI;
 	} else if ((*state & GRAPHEME_STATE_EMOJI) &&
-	           (
-	            (IS(0, PROP_ZWJ)     && IS(1, PROP_EXTPICT)) ||
-	            (IS(0, PROP_EXTEND)  && IS(1, PROP_EXTEND)) ||
-	            (IS(0, PROP_EXTEND)  && IS(1, PROP_ZWJ)) ||
-	            (IS(0, PROP_EXTPICT) && IS(1, PROP_ZWJ)) ||
-	            (IS(0, PROP_EXTPICT) && IS(1, PROP_EXTEND))
-		   )
-	          ) {
+	           ((has_property(&props[0], PROP_ZWJ) &&
+		     has_property(&props[1], PROP_EXTPICT)) ||
+	            (has_property(&props[0], PROP_EXTEND) &&
+		     has_property(&props[1], PROP_EXTEND)) ||
+	            (has_property(&props[0], PROP_EXTEND) &&
+		     has_property(&props[1], PROP_ZWJ)) ||
+	            (has_property(&props[0], PROP_EXTPICT) &&
+		     has_property(&props[1], PROP_ZWJ)) ||
+	            (has_property(&props[0], PROP_EXTPICT) &&
+		     has_property(&props[1], PROP_EXTEND)))) {
 		/* GRAPHEME_STATE_EMOJI remains */
 	} else {
-		*state &= ~GRAPHEME_STATE_EMOJI;
+		s &= ~GRAPHEME_STATE_EMOJI;
 	}
 
+	/* write updated state to state-pointer, if given */
+	if (state != NULL) {
+		*state = s;
+	}
+
+	/*
+	 * apply rules
+	 */
+
+	/* skip GB1 and GB2, as they are never satisfied here */
+
 	/* GB3 */
-	if (IS(0, PROP_CR) && IS(1, PROP_LF)) {
+	if (has_property(&props[0], PROP_CR) &&
+	    has_property(&props[1], PROP_LF)) {
 		return 0;
 	}
 
 	/* GB4 */
-	if (IS(0, PROP_CONTROL) || IS(0, PROP_CR) || IS(0, PROP_LF)) {
+	if (has_property(&props[0], PROP_CONTROL) ||
+	    has_property(&props[0], PROP_CR) ||
+	    has_property(&props[0], PROP_LF)) {
 		return 1;
 	}
 
 	/* GB5 */
-	if (IS(1, PROP_CONTROL) || IS(1, PROP_CR) || IS(1, PROP_LF)) {
+	if (has_property(&props[1], PROP_CONTROL) ||
+	    has_property(&props[1], PROP_CR) ||
+	    has_property(&props[1], PROP_LF)) {
 		return 1;
 	}
 
 	/* GB6 */
-	if (IS(0, PROP_L) && (IS(1, PROP_L)  || IS(1, PROP_V) ||
-	                      IS(1, PROP_LV) || IS(1, PROP_LVT))) {
+	if (has_property(&props[0], PROP_L) &&
+	    (has_property(&props[1], PROP_L) ||
+	     has_property(&props[1], PROP_V) ||
+	     has_property(&props[1], PROP_LV) ||
+	     has_property(&props[1], PROP_LVT))) {
 		return 0;
 	}
 
 	/* GB7 */
-	if ((IS(0, PROP_LV) || IS(0, PROP_V)) && (IS(1, PROP_V) ||
-	                                          IS(1, PROP_T))) {
+	if ((has_property(&props[0], PROP_LV) ||
+	     has_property(&props[0], PROP_V)) &&
+	    (has_property(&props[1], PROP_V) ||
+	     has_property(&props[1], PROP_T))) {
 		return 0;
 	}
 
 	/* GB8 */
-	if ((IS(0, PROP_LVT) || IS(0, PROP_T)) && IS(1, PROP_T)) {
+	if ((has_property(&props[0], PROP_LVT) ||
+	     has_property(&props[0], PROP_T)) &&
+	    has_property(&props[1], PROP_T)) {
 		return 0;
 	}
 
 	/* GB9 */
-	if (IS(1, PROP_EXTEND) || IS(1, PROP_ZWJ)) {
+	if (has_property(&props[1], PROP_EXTEND) ||
+	    has_property(&props[1], PROP_ZWJ)) {
 		return 0;
 	}
 
 	/* GB9a */
-	if (IS(1, PROP_SPACINGMARK)) {
+	if (has_property(&props[1], PROP_SPACINGMARK)) {
 		return 0;
 	}
 
 	/* GB9b */
-	if (IS(0, PROP_PREPEND)) {
+	if (has_property(&props[0], PROP_PREPEND)) {
 		return 0;
 	}
 
 	/* GB11 */
-	if ((*state & GRAPHEME_STATE_EMOJI) && IS(0, PROP_ZWJ) &&
-	    IS(1, PROP_EXTPICT)) {
+	if ((s & GRAPHEME_STATE_EMOJI) &&
+	    has_property(&props[0], PROP_ZWJ) &&
+	    has_property(&props[1], PROP_EXTPICT)) {
 		return 0;
 	}
 
 	/* GB12/GB13 */
-	if (IS(0, PROP_RI) && IS(1, PROP_RI) &&
-	    (*state & GRAPHEME_STATE_RI_ODD)) {
+	if (has_property(&props[0], PROP_RI) &&
+	    has_property(&props[1], PROP_RI) &&
+	    (s & GRAPHEME_STATE_RI_ODD)) {
 		return 0;
 	}
 
