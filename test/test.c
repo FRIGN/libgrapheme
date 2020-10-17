@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "../grapheme.h"
+#include "../data/gbt.h"
 
 #define LEN(x) (sizeof(x) / sizeof(*x))
 

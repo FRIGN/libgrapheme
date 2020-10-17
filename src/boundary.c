@@ -3,6 +3,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "../data/emo.h"
+#include "../data/gbp.h"
+
 #define LEN(x) (sizeof(x) / sizeof(*x))
 
 enum {
