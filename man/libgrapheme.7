@@ -98,12 +98,13 @@ this way and represents an abstract character is called a
 .Dq grapheme cluster .
 .Pp
 In many applications it is necessary to count the number of
-user-perceived characters, i.e. grapheme clusters, in a string. This is
-pretty simple with ASCII-strings, where you just count the number of
-bytes (as each byte is a code point and each code point is a grapheme
-cluster). With Unicode-strings, it is a common mistake to simply adapt
-the ASCII-approach and count the number of code points. This is wrong,
-as, for example, the sequence
+user-perceived characters, i.e. grapheme clusters, in a string. A good
+example for this is a terminal text editor, which needs to properly align
+characters on a grid. This is pretty simple with ASCII-strings, where you
+just count the number of bytes (as each byte is a code point and each
+code point is a grapheme cluster). With Unicode-strings, it is a common
+mistake to simply adapt the ASCII-approach and count the number of code
+points. This is wrong, as, for example, the sequence
 .Dq 0x41 0x308 0x304 ,
 while made up of 3 code points, is a single grapheme cluster and
 represents the user-perceived character
