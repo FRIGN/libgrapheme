@@ -31,9 +31,9 @@ test/utf8-decode.o: test/utf8-decode.c config.mk grapheme.h
 data/gbp: data/gbp.o data/util.o
 data/emo: data/emo.o data/util.o
 data/gbt: data/gbt.o data/util.o
-test/grapheme_break: test/grapheme_break.o $(LIB:=.o)
-test/utf8-encode: test/utf8-encode.o $(LIB:=.o)
-test/utf8-decode: test/utf8-decode.o $(LIB:=.o)
+test/grapheme_break: test/grapheme_break.o libgrapheme.a
+test/utf8-encode: test/utf8-encode.o libgrapheme.a
+test/utf8-decode: test/utf8-decode.o libgrapheme.a
 
 data/gbp.txt:
 	wget -O $@ https://www.unicode.org/Public/13.0.0/ucd/auxiliary/GraphemeBreakProperty.txt
@@ -51,7 +51,7 @@ $(DATA):
 	$(CC) -o $@ $(LDFLAGS) $@.o data/util.o
 
 $(TEST):
-	$(CC) -o $@ $(LDFLAGS) $@.o $(LIB:=.o)
+	$(CC) -o $@ $(LDFLAGS) $@.o libgrapheme.a
 
 .c.o:
 	$(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $<
