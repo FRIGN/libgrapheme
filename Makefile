@@ -11,7 +11,7 @@ DATA = data/gbp data/emo data/gbt
 MAN3 = man/grapheme_bytelen.3
 MAN7 = man/libgrapheme.7
 
-all: libgrapheme.a libgrapheme.so $(TEST)
+all: libgrapheme.a libgrapheme.so
 
 data/gbp.h: data/gbp.txt data/gbp
 data/emo.h: data/emo.txt data/emo
