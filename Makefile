@@ -5,7 +5,7 @@
 include config.mk
 
 LIB = src/boundary src/codepoint src/grapheme
-TEST = test/test
+TEST = test/grapheme_break test/utf8-decode test/utf8-encode
 DATA = data/gbp data/emo data/gbt
 
 MAN3 = man/grapheme_bytelen.3
@@ -24,12 +24,16 @@ data/util.o: data/util.c config.mk data/util.h
 src/boundary.o: src/boundary.c config.mk data/emo.h data/gbp.h grapheme.h
 src/codepoint.o: src/codepoint.c config.mk grapheme.h
 src/grapheme.o: src/grapheme.c config.mk grapheme.h
-test/test.o: test/test.c config.mk data/gbt.h grapheme.h
+test/grapheme_break.o: test/grapheme_break.c config.mk data/gbt.h grapheme.h
+test/utf8-encode.o: test/utf8-encode.c config.mk grapheme.h
+test/utf8-decode.o: test/utf8-decode.c config.mk grapheme.h
 
 data/gbp: data/gbp.o data/util.o
 data/emo: data/emo.o data/util.o
 data/gbt: data/gbt.o data/util.o
-test/test: test/test.o $(LIB:=.o)
+test/grapheme_break: test/grapheme_break.o $(LIB:=.o)
+test/utf8-encode: test/utf8-encode.o $(LIB:=.o)
+test/utf8-decode: test/utf8-decode.o $(LIB:=.o)
 
 data/gbp.txt:
 	wget -O $@ https://www.unicode.org/Public/13.0.0/ucd/auxiliary/GraphemeBreakProperty.txt

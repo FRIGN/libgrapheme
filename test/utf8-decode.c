@@ -5,52 +5,8 @@
 #include <string.h>
 
 #include "../grapheme.h"
-#include "../data/gbt.h"
 
 #define LEN(x) (sizeof(x) / sizeof(*x))
-
-static const struct {
-	uint32_t cp;      /* input code point */
-	uint8_t *exp_arr; /* expected UTF-8 byte sequence */
-	size_t   exp_len; /* expected length of UTF-8 sequence */
-} enc_test[] = {
-	{
-		/* invalid code point (UTF-16 surrogate half) */
-		.cp      = UINT32_C(0xD800),
-		.exp_arr = (uint8_t[]){ 0xEF, 0xBF, 0xBD },
-		.exp_len = 3,
-	},
-	{
-		/* invalid code point (UTF-16-unrepresentable) */
-		.cp      = UINT32_C(0x110000),
-		.exp_arr = (uint8_t[]){ 0xEF, 0xBF, 0xBD },
-		.exp_len = 3,
-	},
-	{
-		/* code point encoded to a 1-byte sequence */
-		.cp      = 0x01,
-		.exp_arr = (uint8_t[]){ 0x01 },
-		.exp_len = 1,
-	},
-	{
-		/* code point encoded to a 2-byte sequence */
-		.cp      = 0xFF,
-		.exp_arr = (uint8_t[]){ 0xC3, 0xBF },
-		.exp_len = 2,
-	},
-	{
-		/* code point encoded to a 3-byte sequence */
-		.cp      = 0xFFF,
-		.exp_arr = (uint8_t[]){ 0xE0, 0xBF, 0xBF },
-		.exp_len = 3,
-	},
-	{
-		/* code point encoded to a 4-byte sequence */
-		.cp      = UINT32_C(0xFFFFF),
-		.exp_arr = (uint8_t[]){ 0xF3, 0xBF, 0xBF, 0xBF },
-		.exp_len = 4,
-	},
-};
 
 static const struct {
 	uint8_t *arr;     /* UTF-8 byte sequence */
@@ -293,40 +249,7 @@ static const struct {
 int
 main(void)
 {
-	int state;
-	size_t i, j, k, len, failed;
-
-	/* UTF-8 encoder test */
-	for (i = 0, failed = 0; i < LEN(enc_test); i++) {
-		uint8_t arr[4];
-		size_t len;
-
-		len = grapheme_cp_encode(enc_test[i].cp, arr, LEN(arr));
-
-		if (len != enc_test[i].exp_len ||
-		    memcmp(arr, enc_test[i].exp_arr, len)) {
-			fprintf(stderr, "Failed UTF-8-encoder test %zu: "
-			        "Expected (", i);
-			for (j = 0; j < enc_test[i].exp_len; j++) {
-				fprintf(stderr, "0x%x",
-				        enc_test[i].exp_arr[j]);
-				if (j + 1 < enc_test[i].exp_len) {
-					fprintf(stderr, " ");
-				}
-			}
-			fprintf(stderr, "), but got (");
-			for (j = 0; j < len; j++) {
-				fprintf(stderr, "0x%x", arr[j]);
-				if (j + 1 < len) {
-					fprintf(stderr, " ");
-				}
-			}
-			fprintf(stderr, ")\n");
-			failed++;
-		}
-	}
-	printf("UTF-8 encoder test: Passed %zu out of %zu tests.\n",
-	       LEN(enc_test) - failed, LEN(enc_test));
+	size_t i, failed;
 
 	/* UTF-8 decoder test */
 	for (i = 0, failed = 0; i < LEN(dec_test); i++) {
@@ -347,28 +270,6 @@ main(void)
 	}
 	printf("UTF-8 decoder test: Passed %zu out of %zu tests.\n",
 	       LEN(dec_test) - failed, LEN(dec_test));
-
-	/* grapheme break test */
-	for (i = 0, failed = 0; i < LEN(t); i++) {
-		for (j = 0, k = 0, state = 0, len = 1; j < t[i].cplen; j++) {
-			if ((j + 1) == t[i].cplen ||
-			    grapheme_boundary(t[i].cp[j], t[i].cp[j + 1],
-			                      &state)) {
-				/* check if our resulting length matches */
-				if (k == t[i].lenlen || len != t[i].len[k++]) {
-					fprintf(stderr, "Failed \"%s\"\n",
-					        t[i].descr);
-					failed++;
-					break;
-				}
-				len = 1;
-			} else {
-				len++;
-			}
-		}
-	}
-	printf("Grapheme break test: Passed %zu out of %zu tests.\n",
-	       LEN(t) - failed, LEN(t));
 
 	return (failed > 0) ? 1 : 0;
 }
