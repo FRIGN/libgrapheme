@@ -5,43 +5,43 @@
 include config.mk
 
 LIB = src/boundary src/codepoint src/grapheme
-TEST = test/grapheme_break test/utf8-decode test/utf8-encode
-DATA = data/gbp data/emo data/gbt
+TEST = test/grapheme_boundary test/utf8-decode test/utf8-encode
+DATA = data/emoji data/grapheme_boundary data/grapheme_boundary_test
 
 MAN3 = man/grapheme_bytelen.3
 MAN7 = man/libgrapheme.7
 
 all: libgrapheme.a libgrapheme.so
 
-data/gbp.h: data/gbp.txt data/gbp
-data/emo.h: data/emo.txt data/emo
-data/gbt.h: data/gbt.txt data/gbt
+data/emoji.h: data/emoji.txt data/emoji
+data/grapheme_boundary.h: data/grapheme_boundary.txt data/grapheme_boundary
+data/grapheme_boundary_test.h: data/grapheme_boundary_test.txt data/grapheme_boundary_test
 
-data/gbp.o: data/gbp.c config.mk data/util.h
-data/emo.o: data/emo.c config.mk data/util.h
-data/gbt.o: data/gbt.c config.mk data/util.h
+data/emoji.o: data/emoji.c config.mk data/util.h
+data/grapheme_boundary.o: data/grapheme_boundary.c config.mk data/util.h
+data/grapheme_boundary_test.o: data/grapheme_boundary_test.c config.mk data/util.h
 data/util.o: data/util.c config.mk data/util.h
-src/boundary.o: src/boundary.c config.mk data/emo.h data/gbp.h grapheme.h
+src/boundary.o: src/boundary.c config.mk data/emoji.h data/grapheme_boundary.h grapheme.h
 src/codepoint.o: src/codepoint.c config.mk grapheme.h
 src/grapheme.o: src/grapheme.c config.mk grapheme.h
-test/grapheme_break.o: test/grapheme_break.c config.mk data/gbt.h grapheme.h
+test/grapheme_boundary.o: test/grapheme_boundary.c config.mk data/grapheme_boundary_test.h grapheme.h
 test/utf8-encode.o: test/utf8-encode.c config.mk grapheme.h
 test/utf8-decode.o: test/utf8-decode.c config.mk grapheme.h
 
-data/gbp: data/gbp.o data/util.o
-data/emo: data/emo.o data/util.o
-data/gbt: data/gbt.o data/util.o
-test/grapheme_break: test/grapheme_break.o libgrapheme.a
+data/emoji: data/emoji.o data/util.o
+data/grapheme_boundary: data/grapheme_boundary.o data/util.o
+data/grapheme_boundary_test: data/grapheme_boundary_test.o data/util.o
+test/grapheme_boundary: test/grapheme_boundary.o libgrapheme.a
 test/utf8-encode: test/utf8-encode.o libgrapheme.a
 test/utf8-decode: test/utf8-decode.o libgrapheme.a
 
-data/gbp.txt:
-	wget -O $@ https://www.unicode.org/Public/13.0.0/ucd/auxiliary/GraphemeBreakProperty.txt
-
-data/emo.txt:
+data/emoji.txt:
 	wget -O $@ https://www.unicode.org/Public/13.0.0/ucd/emoji/emoji-data.txt
 
-data/gbt.txt:
+data/grapheme_boundary.txt:
+	wget -O $@ https://www.unicode.org/Public/13.0.0/ucd/auxiliary/GraphemeBreakProperty.txt
+
+data/grapheme_boundary_test.txt:
 	wget -O $@ https://www.unicode.org/Public/13.0.0/ucd/auxiliary/GraphemeBreakTest.txt
 
 $(DATA:=.h):

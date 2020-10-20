@@ -3,8 +3,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "../data/emo.h"
-#include "../data/gbp.h"
+#include "../data/emoji.h"
+#include "../data/grapheme_boundary.h"
 
 #define LEN(x) (sizeof(x) / sizeof(*x))
 

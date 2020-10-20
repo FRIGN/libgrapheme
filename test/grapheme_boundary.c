@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "../grapheme.h"
-#include "../data/gbt.h"
+#include "../data/grapheme_boundary_test.h"
 
 #define LEN(x) (sizeof(x) / sizeof(*x))
 
