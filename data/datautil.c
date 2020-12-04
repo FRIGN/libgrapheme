@@ -5,7 +5,7 @@
 #include <string.h>
 #include <errno.h>
 
-#include "util.h"
+#include "datautil.h"
 
 void
 parse_input(int (*process_line)(char **, size_t, char *))

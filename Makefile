@@ -4,7 +4,7 @@
 
 include config.mk
 
-LIB = src/boundary src/codepoint src/grapheme
+LIB = src/boundary src/codepoint src/grapheme src/util
 TEST = test/grapheme_boundary test/utf8-decode test/utf8-encode
 DATA = data/emoji data/grapheme_boundary data/grapheme_boundary_test
 
@@ -17,20 +17,21 @@ data/emoji.h: data/emoji.txt data/emoji
 data/grapheme_boundary.h: data/grapheme_boundary.txt data/grapheme_boundary
 data/grapheme_boundary_test.h: data/grapheme_boundary_test.txt data/grapheme_boundary_test
 
-data/emoji.o: data/emoji.c config.mk data/util.h
-data/grapheme_boundary.o: data/grapheme_boundary.c config.mk data/util.h
-data/grapheme_boundary_test.o: data/grapheme_boundary_test.c config.mk data/util.h
-data/util.o: data/util.c config.mk data/util.h
+data/emoji.o: data/emoji.c config.mk data/datautil.h
+data/grapheme_boundary.o: data/grapheme_boundary.c config.mk data/datautil.h
+data/grapheme_boundary_test.o: data/grapheme_boundary_test.c config.mk data/datautil.h
+data/datautil.o: data/datautil.c config.mk data/datautil.h
 src/boundary.o: src/boundary.c config.mk data/emoji.h data/grapheme_boundary.h grapheme.h
 src/codepoint.o: src/codepoint.c config.mk grapheme.h
 src/grapheme.o: src/grapheme.c config.mk grapheme.h
+src/util.o: src/util.c config.mk src/util.h
 test/grapheme_boundary.o: test/grapheme_boundary.c config.mk data/grapheme_boundary_test.h grapheme.h
 test/utf8-encode.o: test/utf8-encode.c config.mk grapheme.h
 test/utf8-decode.o: test/utf8-decode.c config.mk grapheme.h
 
-data/emoji: data/emoji.o data/util.o
-data/grapheme_boundary: data/grapheme_boundary.o data/util.o
-data/grapheme_boundary_test: data/grapheme_boundary_test.o data/util.o
+data/emoji: data/emoji.o data/datautil.o
+data/grapheme_boundary: data/grapheme_boundary.o data/datautil.o
+data/grapheme_boundary_test: data/grapheme_boundary_test.o data/datautil.o
 test/grapheme_boundary: test/grapheme_boundary.o libgrapheme.a
 test/utf8-encode: test/utf8-encode.o libgrapheme.a
 test/utf8-decode: test/utf8-decode.o libgrapheme.a
@@ -48,7 +49,7 @@ $(DATA:=.h):
 	$(@:.h=) < $(@:.h=.txt) > $@
 
 $(DATA):
-	$(CC) -o $@ $(LDFLAGS) $@.o data/util.o
+	$(CC) -o $@ $(LDFLAGS) $@.o data/datautil.o
 
 $(TEST):
 	$(CC) -o $@ $(LDFLAGS) $@.o libgrapheme.a
@@ -85,7 +86,7 @@ uninstall:
 	rm -f "$(DESTDIR)$(INCPREFIX)/grapheme.h"
 
 clean:
-	rm -f $(DATA:=.h) $(DATA:=.o) data/util.o $(LIB:=.o) $(TEST:=.o) $(DATA) $(TEST) libgrapheme.a libgrapheme.so
+	rm -f $(DATA:=.h) $(DATA:=.o) data/datautil.o $(LIB:=.o) $(TEST:=.o) $(DATA) $(TEST) libgrapheme.a libgrapheme.so
 
 clean-data:
 	rm -f $(DATA:=.txt)

@@ -5,7 +5,7 @@
 #include <string.h>
 #include <errno.h>
 
-#include "util.h"
+#include "datautil.h"
 
 struct break_test {
 	uint32_t *cp;
