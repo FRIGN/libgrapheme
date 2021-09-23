@@ -37,13 +37,13 @@ test/utf8-encode: test/utf8-encode.o libgrapheme.a
 test/utf8-decode: test/utf8-decode.o libgrapheme.a
 
 data/emoji.txt:
-	wget -O $@ https://www.unicode.org/Public/13.0.0/ucd/emoji/emoji-data.txt
+	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/emoji/emoji-data.txt
 
 data/grapheme_boundary.txt:
-	wget -O $@ https://www.unicode.org/Public/13.0.0/ucd/auxiliary/GraphemeBreakProperty.txt
+	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/GraphemeBreakProperty.txt
 
 data/grapheme_boundary_test.txt:
-	wget -O $@ https://www.unicode.org/Public/13.0.0/ucd/auxiliary/GraphemeBreakTest.txt
+	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/GraphemeBreakTest.txt
 
 $(DATA:=.h):
 	$(@:.h=) < $(@:.h=.txt) > $@
