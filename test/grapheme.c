@@ -19,9 +19,9 @@ main(void)
 	for (i = 0, failed = 0; i < LEN(grapheme_test); i++) {
 		for (j = 0, k = 0, state = 0, len = 1; j < grapheme_test[i].cplen; j++) {
 			if ((j + 1) == grapheme_test[i].cplen ||
-			    grapheme_boundary(grapheme_test[i].cp[j],
-			                      grapheme_test[i].cp[j + 1],
-			                      &state)) {
+			    lg_grapheme_isbreak(grapheme_test[i].cp[j],
+			                        grapheme_test[i].cp[j + 1],
+			                        &state)) {
 				/* check if our resulting length matches */
 				if (k == grapheme_test[i].lenlen ||
 				    len != grapheme_test[i].len[k++]) {

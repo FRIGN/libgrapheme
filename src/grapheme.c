@@ -11,7 +11,7 @@ enum {
 };
 
 int
-grapheme_boundary(uint32_t a, uint32_t b, int *state)
+lg_grapheme_isbreak(uint32_t a, uint32_t b, int *state)
 {
 	struct heisenstate prop[2] = { 0 };
 	int s;
@@ -155,7 +155,7 @@ grapheme_boundary(uint32_t a, uint32_t b, int *state)
 }
 
 size_t
-grapheme_bytelen(const char *str)
+lg_grapheme_nextbreak(const char *str)
 {
 	uint32_t cp0, cp1;
 	size_t ret, len = 0;
@@ -166,7 +166,7 @@ grapheme_bytelen(const char *str)
 	}
 
 	/*
-	 * grapheme_cp_decode, when it encounters an unexpected byte,
+	 * lg_utf8_decode, when it encounters an unexpected byte,
 	 * does not count it to the error and instead assumes that the
 	 * unexpected byte is the beginning of a new sequence.
 	 * This way, when the string ends with a null byte, we never
@@ -178,17 +178,17 @@ grapheme_bytelen(const char *str)
 	 */
 
 	/* get first code point */
-	len += grapheme_cp_decode(&cp0, (uint8_t *)str, 5);
-	if (cp0 == GRAPHEME_CP_INVALID) {
+	len += lg_utf8_decode(&cp0, (uint8_t *)str, 5);
+	if (cp0 == LG_CODEPOINT_INVALID) {
 		return len;
 	}
 
 	while (cp0 != 0) {
 		/* get next code point */
-		ret = grapheme_cp_decode(&cp1, (uint8_t *)(str + len), 5);
+		ret = lg_utf8_decode(&cp1, (uint8_t *)(str + len), 5);
 
-		if (cp1 == GRAPHEME_CP_INVALID ||
-		    grapheme_boundary(cp0, cp1, &state)) {
+		if (cp1 == LG_CODEPOINT_INVALID ||
+		    lg_grapheme_isbreak(cp0, cp1, &state)) {
 			/* we read an invalid cp or have a breakpoint */
 			break;
 		} else {

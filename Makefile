@@ -9,7 +9,7 @@ DATA =\
 	data/GraphemeBreakProperty.txt\
 	data/GraphemeBreakTest.txt
 GEN = gen/grapheme gen/grapheme-test
-LIB = src/codepoint src/grapheme src/util
+LIB = src/grapheme src/utf8 src/util
 TEST = test/grapheme test/utf8-decode test/utf8-encode
 
 MAN3 = man/grapheme_bytelen.3
@@ -20,7 +20,7 @@ all: libgrapheme.a libgrapheme.so
 gen/grapheme.o: gen/grapheme.c config.mk gen/util.h
 gen/grapheme-test.o: gen/grapheme-test.c config.mk gen/util.h
 gen/util.o: gen/util.c config.mk gen/util.h
-src/codepoint.o: src/codepoint.c config.mk grapheme.h
+src/utf8.o: src/utf8.c config.mk grapheme.h
 src/grapheme.o: src/grapheme.c config.mk gen/grapheme.h grapheme.h src/util.h
 src/util.o: src/util.c config.mk src/util.h
 test/grapheme.o: test/grapheme.c config.mk gen/grapheme-test.h grapheme.h
