@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "../grapheme.h"
-#include "../data/grapheme_boundary_test.h"
+#include "../gen/grapheme-test.h"
 
 #define LEN(x) (sizeof(x) / sizeof(*x))
 
@@ -16,15 +16,17 @@ main(void)
 	size_t i, j, k, len, failed;
 
 	/* grapheme break test */
-	for (i = 0, failed = 0; i < LEN(t); i++) {
-		for (j = 0, k = 0, state = 0, len = 1; j < t[i].cplen; j++) {
-			if ((j + 1) == t[i].cplen ||
-			    grapheme_boundary(t[i].cp[j], t[i].cp[j + 1],
+	for (i = 0, failed = 0; i < LEN(grapheme_test); i++) {
+		for (j = 0, k = 0, state = 0, len = 1; j < grapheme_test[i].cplen; j++) {
+			if ((j + 1) == grapheme_test[i].cplen ||
+			    grapheme_boundary(grapheme_test[i].cp[j],
+			                      grapheme_test[i].cp[j + 1],
 			                      &state)) {
 				/* check if our resulting length matches */
-				if (k == t[i].lenlen || len != t[i].len[k++]) {
+				if (k == grapheme_test[i].lenlen ||
+				    len != grapheme_test[i].len[k++]) {
 					fprintf(stderr, "Failed \"%s\"\n",
-					        t[i].descr);
+					        grapheme_test[i].descr);
 					failed++;
 					break;
 				}
@@ -35,7 +37,7 @@ main(void)
 		}
 	}
 	printf("Grapheme break test: Passed %zu out of %zu tests.\n",
-	       LEN(t) - failed, LEN(t));
+	       LEN(grapheme_test) - failed, LEN(grapheme_test));
 
 	return (failed > 0) ? 1 : 0;
 }

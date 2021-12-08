@@ -4,52 +4,52 @@
 
 include config.mk
 
-LIB = src/boundary src/codepoint src/grapheme src/util
-TEST = test/grapheme_boundary test/utf8-decode test/utf8-encode
-DATA = data/emoji data/grapheme_boundary data/grapheme_boundary_test
+DATA =\
+	data/emoji-data.txt\
+	data/GraphemeBreakProperty.txt\
+	data/GraphemeBreakTest.txt
+GEN = gen/grapheme gen/grapheme-test
+LIB = src/codepoint src/grapheme src/util
+TEST = test/grapheme test/utf8-decode test/utf8-encode
 
 MAN3 = man/grapheme_bytelen.3
 MAN7 = man/libgrapheme.7
 
 all: libgrapheme.a libgrapheme.so
 
-data/emoji.h: data/emoji.txt data/emoji
-data/grapheme_boundary.h: data/grapheme_boundary.txt data/grapheme_boundary
-data/grapheme_boundary_test.h: data/grapheme_boundary_test.txt data/grapheme_boundary_test
-
-data/emoji.o: data/emoji.c config.mk data/datautil.h
-data/grapheme_boundary.o: data/grapheme_boundary.c config.mk data/datautil.h
-data/grapheme_boundary_test.o: data/grapheme_boundary_test.c config.mk data/datautil.h
-data/datautil.o: data/datautil.c config.mk data/datautil.h
-src/boundary.o: src/boundary.c config.mk data/emoji.h data/grapheme_boundary.h grapheme.h
+gen/grapheme.o: gen/grapheme.c config.mk gen/util.h
+gen/grapheme-test.o: gen/grapheme-test.c config.mk gen/util.h
+gen/util.o: gen/util.c config.mk gen/util.h
 src/codepoint.o: src/codepoint.c config.mk grapheme.h
-src/grapheme.o: src/grapheme.c config.mk grapheme.h
+src/grapheme.o: src/grapheme.c config.mk gen/grapheme.h grapheme.h src/util.h
 src/util.o: src/util.c config.mk src/util.h
-test/grapheme_boundary.o: test/grapheme_boundary.c config.mk data/grapheme_boundary_test.h grapheme.h
+test/grapheme.o: test/grapheme.c config.mk gen/grapheme-test.h grapheme.h
 test/utf8-encode.o: test/utf8-encode.c config.mk grapheme.h
 test/utf8-decode.o: test/utf8-decode.c config.mk grapheme.h
 
-data/emoji: data/emoji.o data/datautil.o
-data/grapheme_boundary: data/grapheme_boundary.o data/datautil.o
-data/grapheme_boundary_test: data/grapheme_boundary_test.o data/datautil.o
-test/grapheme_boundary: test/grapheme_boundary.o libgrapheme.a
+gen/grapheme: gen/grapheme.o gen/util.o
+gen/grapheme-test: gen/grapheme-test.o gen/util.o
+test/grapheme: test/grapheme.o libgrapheme.a
 test/utf8-encode: test/utf8-encode.o libgrapheme.a
 test/utf8-decode: test/utf8-decode.o libgrapheme.a
 
-data/emoji.txt:
+gen/grapheme.h: data/emoji-data.txt data/GraphemeBreakProperty.txt gen/grapheme
+gen/grapheme-test.h: data/GraphemeBreakTest.txt gen/grapheme-test
+
+data/emoji-data.txt:
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/emoji/emoji-data.txt
 
-data/grapheme_boundary.txt:
+data/GraphemeBreakProperty.txt:
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/GraphemeBreakProperty.txt
 
-data/grapheme_boundary_test.txt:
+data/GraphemeBreakTest.txt:
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/GraphemeBreakTest.txt
 
-$(DATA:=.h):
-	$(@:.h=) < $(@:.h=.txt) > $@
+$(GEN):
+	$(CC) -o $@ $(LDFLAGS) $@.o gen/util.o
 
-$(DATA):
-	$(CC) -o $@ $(LDFLAGS) $@.o data/datautil.o
+$(GEN:=.h):
+	$(@:.h=) > $@
 
 $(TEST):
 	$(CC) -o $@ $(LDFLAGS) $@.o libgrapheme.a
@@ -86,7 +86,7 @@ uninstall:
 	rm -f "$(DESTDIR)$(INCPREFIX)/grapheme.h"
 
 clean:
-	rm -f $(DATA:=.h) $(DATA:=.o) data/datautil.o $(LIB:=.o) $(TEST:=.o) $(DATA) $(TEST) libgrapheme.a libgrapheme.so
+	rm -f $(GEN:=.h) $(GEN:=.o) $(GEN) gen/util.o $(LIB:=.o) $(TEST:=.o) $(TEST) libgrapheme.a libgrapheme.so
 
 clean-data:
-	rm -f $(DATA:=.txt)
+	rm -f $(DATA)

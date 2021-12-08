@@ -17,13 +17,16 @@ struct range_list {
 	size_t len;
 };
 
-/* 16-slot (0,...,15) optionally undetermined binary state */
+/* 64-slot (0,...,63) optionally undetermined binary state */
 struct heisenstate {
-	uint_least16_t determined;
-	uint_least16_t state;
+	uint_least64_t determined;
+	uint_least64_t state;
 };
 
 int heisenstate_get(struct heisenstate *, int);
 int heisenstate_set(struct heisenstate *, int, int);
+
+int has_property(uint32_t, struct heisenstate *,
+                 const struct range_list *, int);
 
 #endif /* UTIL_H */
