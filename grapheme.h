@@ -7,7 +7,7 @@
 
 #define LG_CODEPOINT_INVALID UINT32_C(0xFFFD)
 
-size_t lg_utf8_decode(uint32_t *, const uint8_t *, size_t);
+size_t lg_utf8_decode(const uint8_t *, size_t, uint32_t *);
 size_t lg_utf8_encode(uint32_t, uint8_t *, size_t);
 
 size_t lg_grapheme_nextbreak(const char *);

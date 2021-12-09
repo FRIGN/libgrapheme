@@ -256,8 +256,8 @@ main(void)
 		size_t len;
 		uint32_t cp;
 
-		len = lg_utf8_decode(&cp, dec_test[i].arr,
-		                         dec_test[i].len);
+		len = lg_utf8_decode(dec_test[i].arr,
+		                     dec_test[i].len, &cp);
 
 		if (len != dec_test[i].exp_len ||
 		    cp != dec_test[i].exp_cp) {

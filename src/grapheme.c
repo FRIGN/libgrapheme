@@ -178,14 +178,14 @@ lg_grapheme_nextbreak(const char *str)
 	 */
 
 	/* get first code point */
-	len += lg_utf8_decode(&cp0, (uint8_t *)str, 5);
+	len += lg_utf8_decode((uint8_t *)str, 5, &cp0);
 	if (cp0 == LG_CODEPOINT_INVALID) {
 		return len;
 	}
 
 	while (cp0 != 0) {
 		/* get next code point */
-		ret = lg_utf8_decode(&cp1, (uint8_t *)(str + len), 5);
+		ret = lg_utf8_decode((uint8_t *)(str + len), 5, &cp1);
 
 		if (cp1 == LG_CODEPOINT_INVALID ||
 		    lg_grapheme_isbreak(cp0, cp1, &state)) {

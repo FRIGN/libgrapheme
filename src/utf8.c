@@ -47,7 +47,7 @@ static const struct {
 };
 
 size_t
-lg_utf8_decode(uint32_t *cp, const uint8_t *s, size_t n)
+lg_utf8_decode(const uint8_t *s, size_t n, uint32_t *cp)
 {
 	size_t off, i;
 
