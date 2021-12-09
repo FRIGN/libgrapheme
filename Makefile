@@ -10,7 +10,7 @@ DATA =\
 	data/GraphemeBreakTest.txt
 GEN = gen/grapheme gen/grapheme-test
 LIB = src/grapheme src/utf8 src/util
-TEST = test/grapheme test/utf8-decode test/utf8-encode
+TEST = test/grapheme test/grapheme-performance test/utf8-decode test/utf8-encode
 
 MAN3 = man/grapheme_bytelen.3
 MAN7 = man/libgrapheme.7
@@ -24,12 +24,14 @@ src/utf8.o: src/utf8.c config.mk grapheme.h
 src/grapheme.o: src/grapheme.c config.mk gen/grapheme.h grapheme.h src/util.h
 src/util.o: src/util.c config.mk src/util.h
 test/grapheme.o: test/grapheme.c config.mk gen/grapheme-test.h grapheme.h
+test/grapheme-performance.o: test/grapheme-performance.c config.mk gen/grapheme-test.h grapheme.h
 test/utf8-encode.o: test/utf8-encode.c config.mk grapheme.h
 test/utf8-decode.o: test/utf8-decode.c config.mk grapheme.h
 
 gen/grapheme: gen/grapheme.o gen/util.o
 gen/grapheme-test: gen/grapheme-test.o gen/util.o
 test/grapheme: test/grapheme.o libgrapheme.a
+test/grapheme-performance: test/grapheme-performance.o libgrapheme.a
 test/utf8-encode: test/utf8-encode.o libgrapheme.a
 test/utf8-decode: test/utf8-decode.o libgrapheme.a
 
