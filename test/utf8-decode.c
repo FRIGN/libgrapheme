@@ -6,7 +6,7 @@
 
 #include "../grapheme.h"
 
-#define LEN(x) (sizeof(x) / sizeof(*x))
+#define LEN(x) (sizeof(x) / sizeof(*(x)))
 
 static const struct {
 	uint8_t *arr;     /* UTF-8 byte sequence */

@@ -1,9 +1,10 @@
 /* See LICENSE file for copyright and license details. */
-#include "../grapheme.h"
 #include <stdio.h>
 
+#include "../grapheme.h"
+#include "util.h"
+
 #define BETWEEN(c, l, u) (c >= l && c <= u)
-#define LEN(x) (sizeof(x) / sizeof(*x))
 
 /* lookup-table for the types of sequence first bytes */
 static const struct {

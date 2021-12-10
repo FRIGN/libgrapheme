@@ -5,7 +5,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define LEN(x) (sizeof (x) / sizeof *(x))
+#include "../grapheme.h"
+
+#define LEN(x) (sizeof(x) / sizeof(*(x)))
 
 struct range {
 	uint32_t lower;
@@ -17,16 +19,10 @@ struct range_list {
 	size_t len;
 };
 
-/* 64-slot (0,...,63) optionally undetermined binary state */
-struct heisenstate {
-	uint_least64_t determined;
-	uint_least64_t state;
-};
+int heisenstate_get(struct lg_internal_heisenstate *, int);
+int heisenstate_set(struct lg_internal_heisenstate *, int, int);
 
-int heisenstate_get(struct heisenstate *, int);
-int heisenstate_set(struct heisenstate *, int, int);
-
-int has_property(uint32_t, struct heisenstate *,
+int has_property(uint32_t, struct lg_internal_heisenstate *,
                  const struct range_list *, int);
 
 #endif /* UTIL_H */

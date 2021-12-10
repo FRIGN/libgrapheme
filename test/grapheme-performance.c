@@ -2,12 +2,13 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #include "../grapheme.h"
 #include "../gen/grapheme-test.h"
 
-#define LEN(x) (sizeof(x) / sizeof(*x))
+#define LEN(x) (sizeof(x) / sizeof(*(x)))
 #define NUM_ITERATIONS 10000
 
 int64_t time_diff(struct timespec *a, struct timespec *b)
@@ -22,7 +23,7 @@ main(void)
 	struct timespec start, end;
 	size_t i, j, bufsiz, off;
 	uint32_t *buf;
-	int state;
+	LG_SEGMENTATION_STATE state;
 	double cp_per_sec;
 
 	/* allocate and generate buffer */
@@ -46,6 +47,7 @@ main(void)
 
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	for (i = 0; i < NUM_ITERATIONS; i++) {
+		memset(&state, 0, sizeof(state));
 		for (j = 0; j < bufsiz - 1; j++) {
 			(void)lg_grapheme_isbreak(buf[j], buf[j+1], &state);
 		}

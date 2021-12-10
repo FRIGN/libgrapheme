@@ -1,29 +1,35 @@
 /* See LICENSE file for copyright and license details. */
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../gen/grapheme.h"
 #include "../grapheme.h"
+#include "util.h"
 
 enum {
-	GRAPHEME_STATE_RI_ODD = 1 << 0, /* odd number of RI's before the seam */
-	GRAPHEME_STATE_EMOJI  = 1 << 1, /* within emoji modifier or zwj sequence */
+	GRAPHEME_FLAG_RI_ODD = 1 << 0, /* odd number of RI's before the seam */
+	GRAPHEME_FLAG_EMOJI  = 1 << 1, /* within emoji modifier or zwj sequence */
 };
 
 int
-lg_grapheme_isbreak(uint32_t a, uint32_t b, int *state)
+lg_grapheme_isbreak(uint32_t a, uint32_t b, LG_SEGMENTATION_STATE *state)
 {
-	struct heisenstate prop[2] = { 0 };
-	int s;
+	struct lg_internal_heisenstate *p[2] = { 0 };
+	int ret = 1, flags = 0;
+
+	/* set state depending on state pointer */
+	if (state != NULL) {
+		p[0] = &(state->a);
+		p[1] = &(state->b);
+		flags = state->flags;
+	}
 
 	/* skip printable ASCII */
 	if ((a >= 0x20 && a <= 0x7E) &&
 	    (b >= 0x20 && b <= 0x7E)) {
-		return 1;
+		goto hasbreak;
 	}
-
-	/* set internal state based on given state-pointer */
-	s = (state != NULL) ? *state : 0;
 
 	/*
 	 * Apply grapheme cluster breaking algorithm (UAX #29), see
@@ -31,43 +37,43 @@ lg_grapheme_isbreak(uint32_t a, uint32_t b, int *state)
 	 */
 
 	/*
-	 * update state
+	 * update flags, if state-pointer given
 	 */
-	if (has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_REGIONAL_INDICATOR)) {
-		if (has_property(a, &prop[0], grapheme_prop, GRAPHEME_PROP_REGIONAL_INDICATOR)) {
-			/* one more RI is on the left side of the seam */
-			s ^= GRAPHEME_STATE_RI_ODD;
+	if (has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_REGIONAL_INDICATOR)) {
+		if (has_property(a, p[0], grapheme_prop, GRAPHEME_PROP_REGIONAL_INDICATOR)) {
+			/* one more RI is on the left side of the seam, flip state */
+			flags ^= GRAPHEME_FLAG_RI_ODD;
 		} else {
 			/* an RI appeared on the right side but the left
-			   side is not an RI, reset state (0 is even) */
-			s &= ~GRAPHEME_STATE_RI_ODD;
+			   side is not an RI, reset state (number 0 is even) */
+			flags &= ~GRAPHEME_FLAG_RI_ODD;
 		}
 	}
-	if (!(*state & GRAPHEME_STATE_EMOJI) &&
-	    ((has_property(a, &prop[0], grapheme_prop, GRAPHEME_PROP_EXTENDED_PICTOGRAPHIC) &&
-	      has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_ZWJ)) ||
-             (has_property(a, &prop[0], grapheme_prop, GRAPHEME_PROP_EXTENDED_PICTOGRAPHIC) &&
-	      has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_EXTEND)))) {
-		s |= GRAPHEME_STATE_EMOJI;
-	} else if ((*state & GRAPHEME_STATE_EMOJI) &&
-	           ((has_property(a, &prop[0], grapheme_prop, GRAPHEME_PROP_ZWJ) &&
-		     has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_EXTENDED_PICTOGRAPHIC)) ||
-	            (has_property(a, &prop[0], grapheme_prop, GRAPHEME_PROP_EXTEND) &&
-		     has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_EXTEND)) ||
-	            (has_property(a, &prop[0], grapheme_prop, GRAPHEME_PROP_EXTEND) &&
-		     has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_ZWJ)) ||
-	            (has_property(a, &prop[0], grapheme_prop, GRAPHEME_PROP_EXTENDED_PICTOGRAPHIC) &&
-		     has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_ZWJ)) ||
-	            (has_property(a, &prop[0], grapheme_prop, GRAPHEME_PROP_EXTENDED_PICTOGRAPHIC) &&
-		     has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_EXTEND)))) {
-		/* GRAPHEME_STATE_EMOJI remains */
+	if (!(flags & GRAPHEME_FLAG_EMOJI) &&
+	    ((has_property(a, p[0], grapheme_prop, GRAPHEME_PROP_EXTENDED_PICTOGRAPHIC) &&
+	      has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_ZWJ)) ||
+             (has_property(a, p[0], grapheme_prop, GRAPHEME_PROP_EXTENDED_PICTOGRAPHIC) &&
+	      has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_EXTEND)))) {
+		flags |= GRAPHEME_FLAG_EMOJI;
+	} else if ((flags & GRAPHEME_FLAG_EMOJI) &&
+	           ((has_property(a, p[0], grapheme_prop, GRAPHEME_PROP_ZWJ) &&
+		     has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_EXTENDED_PICTOGRAPHIC)) ||
+	            (has_property(a, p[0], grapheme_prop, GRAPHEME_PROP_EXTEND) &&
+		     has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_EXTEND)) ||
+	            (has_property(a, p[0], grapheme_prop, GRAPHEME_PROP_EXTEND) &&
+		     has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_ZWJ)) ||
+	            (has_property(a, p[0], grapheme_prop, GRAPHEME_PROP_EXTENDED_PICTOGRAPHIC) &&
+		     has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_ZWJ)) ||
+	            (has_property(a, p[0], grapheme_prop, GRAPHEME_PROP_EXTENDED_PICTOGRAPHIC) &&
+		     has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_EXTEND)))) {
+		/* GRAPHEME_FLAG_EMOJI remains */
 	} else {
-		s &= ~GRAPHEME_STATE_EMOJI;
+		flags &= ~GRAPHEME_FLAG_EMOJI;
 	}
 
-	/* write updated state to state-pointer, if given */
+	/* write updated flags to state, if given */
 	if (state != NULL) {
-		*state = s;
+		state->flags = flags;
 	}
 
 	/*
@@ -77,81 +83,97 @@ lg_grapheme_isbreak(uint32_t a, uint32_t b, int *state)
 	/* skip GB1 and GB2, as they are never satisfied here */
 
 	/* GB3 */
-	if (has_property(a, &prop[0], grapheme_prop, GRAPHEME_PROP_CR) &&
-	    has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_LF)) {
-		return 0;
+	if (has_property(a, p[0], grapheme_prop, GRAPHEME_PROP_CR) &&
+	    has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_LF)) {
+		goto nobreak;
 	}
 
 	/* GB4 */
-	if (has_property(a, &prop[0], grapheme_prop, GRAPHEME_PROP_CONTROL) ||
-	    has_property(a, &prop[0], grapheme_prop, GRAPHEME_PROP_CR) ||
-	    has_property(a, &prop[0], grapheme_prop, GRAPHEME_PROP_LF)) {
-		return 1;
+	if (has_property(a, p[0], grapheme_prop, GRAPHEME_PROP_CONTROL) ||
+	    has_property(a, p[0], grapheme_prop, GRAPHEME_PROP_CR) ||
+	    has_property(a, p[0], grapheme_prop, GRAPHEME_PROP_LF)) {
+		goto hasbreak;
 	}
 
 	/* GB5 */
-	if (has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_CONTROL) ||
-	    has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_CR) ||
-	    has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_LF)) {
-		return 1;
+	if (has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_CONTROL) ||
+	    has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_CR) ||
+	    has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_LF)) {
+		goto hasbreak;
 	}
 
 	/* GB6 */
-	if (has_property(a, &prop[0], grapheme_prop, GRAPHEME_PROP_HANGUL_L) &&
-	    (has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_HANGUL_L) ||
-	     has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_HANGUL_V) ||
-	     has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_HANGUL_LV) ||
-	     has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_HANGUL_LVT))) {
-		return 0;
+	if (has_property(a, p[0], grapheme_prop, GRAPHEME_PROP_HANGUL_L) &&
+	    (has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_HANGUL_L) ||
+	     has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_HANGUL_V) ||
+	     has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_HANGUL_LV) ||
+
+	     has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_HANGUL_LVT))) {
+		goto nobreak;
 	}
 
 	/* GB7 */
-	if ((has_property(a, &prop[0], grapheme_prop, GRAPHEME_PROP_HANGUL_LV) ||
-	     has_property(a, &prop[0], grapheme_prop, GRAPHEME_PROP_HANGUL_V)) &&
-	    (has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_HANGUL_V) ||
-	     has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_HANGUL_T))) {
-		return 0;
+	if ((has_property(a, p[0], grapheme_prop, GRAPHEME_PROP_HANGUL_LV) ||
+	     has_property(a, p[0], grapheme_prop, GRAPHEME_PROP_HANGUL_V)) &&
+	    (has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_HANGUL_V) ||
+	     has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_HANGUL_T))) {
+		goto nobreak;
 	}
 
 	/* GB8 */
-	if ((has_property(a, &prop[0], grapheme_prop, GRAPHEME_PROP_HANGUL_LVT) ||
-	     has_property(a, &prop[0], grapheme_prop, GRAPHEME_PROP_HANGUL_T)) &&
-	    has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_HANGUL_T)) {
-		return 0;
+	if ((has_property(a, p[0], grapheme_prop, GRAPHEME_PROP_HANGUL_LVT) ||
+	     has_property(a, p[0], grapheme_prop, GRAPHEME_PROP_HANGUL_T)) &&
+	    has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_HANGUL_T)) {
+		goto nobreak;
 	}
 
 	/* GB9 */
-	if (has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_EXTEND) ||
-	    has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_ZWJ)) {
-		return 0;
+	if (has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_EXTEND) ||
+	    has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_ZWJ)) {
+		goto nobreak;
 	}
 
 	/* GB9a */
-	if (has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_SPACINGMARK)) {
-		return 0;
+	if (has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_SPACINGMARK)) {
+		goto nobreak;
 	}
 
 	/* GB9b */
-	if (has_property(a, &prop[0], grapheme_prop, GRAPHEME_PROP_PREPEND)) {
-		return 0;
+	if (has_property(a, p[0], grapheme_prop, GRAPHEME_PROP_PREPEND)) {
+		goto nobreak;
 	}
 
 	/* GB11 */
-	if ((s & GRAPHEME_STATE_EMOJI) &&
-	    has_property(a, &prop[0], grapheme_prop, GRAPHEME_PROP_ZWJ) &&
-	    has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_EXTENDED_PICTOGRAPHIC)) {
-		return 0;
+	if ((flags & GRAPHEME_FLAG_EMOJI) &&
+	    has_property(a, p[0], grapheme_prop, GRAPHEME_PROP_ZWJ) &&
+	    has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_EXTENDED_PICTOGRAPHIC)) {
+		goto nobreak;
 	}
 
 	/* GB12/GB13 */
-	if (has_property(a, &prop[0], grapheme_prop, GRAPHEME_PROP_REGIONAL_INDICATOR) &&
-	    has_property(b, &prop[1], grapheme_prop, GRAPHEME_PROP_REGIONAL_INDICATOR) &&
-	    (s & GRAPHEME_STATE_RI_ODD)) {
-		return 0;
+	if (has_property(a, p[0], grapheme_prop, GRAPHEME_PROP_REGIONAL_INDICATOR) &&
+	    has_property(b, p[1], grapheme_prop, GRAPHEME_PROP_REGIONAL_INDICATOR) &&
+	    (flags & GRAPHEME_FLAG_RI_ODD)) {
+		goto nobreak;
 	}
 
 	/* GB999 */
-	return 1;
+	goto hasbreak;
+nobreak:
+	ret = 0;
+hasbreak:
+	if (state != NULL) {
+		/* move b-state to a-state, discard b-state */
+		memcpy(&(state->a), &(state->b), sizeof(state->a));
+		memset(&(state->b), 0, sizeof(state->b));
+
+		/* reset flags */
+		if (ret == 1) {
+			state->flags = 0;
+		}
+	}
+
+	return ret;
 }
 
 size_t
@@ -159,7 +181,7 @@ lg_grapheme_nextbreak(const char *str)
 {
 	uint32_t cp0, cp1;
 	size_t ret, len = 0;
-	int state = 0;
+	LG_SEGMENTATION_STATE state = { 0 };
 
 	if (str == NULL) {
 		return 0;
