@@ -8,8 +8,8 @@
 #define LEN(x) (sizeof (x) / sizeof *(x))
 
 struct range {
-	uint32_t lower;
-	uint32_t upper;
+	uint_least32_t lower;
+	uint_least32_t upper;
 };
 
 struct property {
@@ -21,7 +21,7 @@ struct property {
 };
 
 struct segment_test {
-	uint32_t *cp;
+	uint_least32_t *cp;
 	size_t cplen;
 	size_t *len;
 	size_t lenlen;

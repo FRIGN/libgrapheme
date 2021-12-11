@@ -13,7 +13,7 @@ enum {
 };
 
 int
-lg_grapheme_isbreak(uint32_t a, uint32_t b, LG_SEGMENTATION_STATE *state)
+lg_grapheme_isbreak(uint_least32_t a, uint_least32_t b, LG_SEGMENTATION_STATE *state)
 {
 	struct lg_internal_heisenstate *p[2] = { 0 };
 	int ret = 1, flags = 0;
@@ -179,7 +179,7 @@ hasbreak:
 size_t
 lg_grapheme_nextbreak(const char *str)
 {
-	uint32_t cp0, cp1;
+	uint_least32_t cp0, cp1;
 	size_t ret, len = 0;
 	LG_SEGMENTATION_STATE state = { 0 };
 
@@ -200,14 +200,14 @@ lg_grapheme_nextbreak(const char *str)
 	 */
 
 	/* get first code point */
-	len += lg_utf8_decode((uint8_t *)str, 5, &cp0);
+	len += lg_utf8_decode(str, 5, &cp0);
 	if (cp0 == LG_CODEPOINT_INVALID) {
 		return len;
 	}
 
 	while (cp0 != 0) {
 		/* get next code point */
-		ret = lg_utf8_decode((uint8_t *)(str + len), 5, &cp1);
+		ret = lg_utf8_decode(str + len, 5, &cp1);
 
 		if (cp1 == LG_CODEPOINT_INVALID ||
 		    lg_grapheme_isbreak(cp0, cp1, &state)) {

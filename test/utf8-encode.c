@@ -9,44 +9,66 @@
 #define LEN(x) (sizeof(x) / sizeof(*(x)))
 
 static const struct {
-	uint32_t cp;      /* input code point */
-	uint8_t *exp_arr; /* expected UTF-8 byte sequence */
-	size_t   exp_len; /* expected length of UTF-8 sequence */
+	uint_least32_t cp;      /* input code point */
+	char          *exp_arr; /* expected UTF-8 byte sequence */
+	size_t         exp_len; /* expected length of UTF-8 sequence */
 } enc_test[] = {
 	{
 		/* invalid code point (UTF-16 surrogate half) */
 		.cp      = UINT32_C(0xD800),
-		.exp_arr = (uint8_t[]){ 0xEF, 0xBF, 0xBD },
+		.exp_arr = (char[]){
+			(unsigned char)0xEF,
+			(unsigned char)0xBF,
+			(unsigned char)0xBD,
+		},
 		.exp_len = 3,
 	},
 	{
 		/* invalid code point (UTF-16-unrepresentable) */
 		.cp      = UINT32_C(0x110000),
-		.exp_arr = (uint8_t[]){ 0xEF, 0xBF, 0xBD },
+		.exp_arr = (char[]){
+			(unsigned char)0xEF,
+			(unsigned char)0xBF,
+			(unsigned char)0xBD,
+		},
 		.exp_len = 3,
 	},
 	{
 		/* code point encoded to a 1-byte sequence */
 		.cp      = 0x01,
-		.exp_arr = (uint8_t[]){ 0x01 },
+		.exp_arr = (char[]){
+			(unsigned char)0x01
+		},
 		.exp_len = 1,
 	},
 	{
 		/* code point encoded to a 2-byte sequence */
 		.cp      = 0xFF,
-		.exp_arr = (uint8_t[]){ 0xC3, 0xBF },
+		.exp_arr = (char[]){
+			(unsigned char)0xC3,
+			(unsigned char)0xBF,
+		},
 		.exp_len = 2,
 	},
 	{
 		/* code point encoded to a 3-byte sequence */
 		.cp      = 0xFFF,
-		.exp_arr = (uint8_t[]){ 0xE0, 0xBF, 0xBF },
+		.exp_arr = (char[]){
+			(unsigned char)0xE0,
+			(unsigned char)0xBF,
+			(unsigned char)0xBF,
+		},
 		.exp_len = 3,
 	},
 	{
 		/* code point encoded to a 4-byte sequence */
 		.cp      = UINT32_C(0xFFFFF),
-		.exp_arr = (uint8_t[]){ 0xF3, 0xBF, 0xBF, 0xBF },
+		.exp_arr = (char[]){
+			(unsigned char)0xF3,
+			(unsigned char)0xBF,
+			(unsigned char)0xBF,
+			(unsigned char)0xBF,
+		},
 		.exp_len = 4,
 	},
 };
@@ -58,7 +80,7 @@ main(void)
 
 	/* UTF-8 encoder test */
 	for (i = 0, failed = 0; i < LEN(enc_test); i++) {
-		uint8_t arr[4];
+		char arr[4];
 		size_t len;
 
 		len = lg_utf8_encode(enc_test[i].cp, arr, LEN(arr));

@@ -10,8 +10,8 @@
 #define LEN(x) (sizeof(x) / sizeof(*(x)))
 
 struct range {
-	uint32_t lower;
-	uint32_t upper;
+	uint_least32_t lower;
+	uint_least32_t upper;
 };
 
 struct range_list {
@@ -22,7 +22,7 @@ struct range_list {
 int heisenstate_get(struct lg_internal_heisenstate *, int);
 int heisenstate_set(struct lg_internal_heisenstate *, int, int);
 
-int has_property(uint32_t, struct lg_internal_heisenstate *,
+int has_property(uint_least32_t, struct lg_internal_heisenstate *,
                  const struct range_list *, int);
 
 #endif /* UTIL_H */
