@@ -177,7 +177,7 @@ hasbreak:
 }
 
 size_t
-lg_grapheme_nextbreak(const char *str)
+lg_grapheme_nextbreak(const uint8_t *str)
 {
 	uint_least32_t cp0, cp1;
 	size_t ret, len = 0;
