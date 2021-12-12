@@ -20,31 +20,42 @@ struct segment_test_payload
 };
 
 static int
-valid_hexstring(const char *str)
+hextocp(const char *str, size_t len, uint_least32_t *cp)
 {
-	const char *p = str;
+	size_t i;
+	int off;
+	char relative;
 
-	while ((*p >= '0' && *p <= '9') ||
-	       (*p >= 'a' && *p <= 'f') ||
-	       (*p >= 'A' && *p <= 'F')) {
-		p++;
-	}
-
-	if (*p != '\0') {
-		fprintf(stderr, "valid_hexstring: Invalid code point range '%s'\n", str);
-		return 0;
-	}
-
-	return 1;
-}
-
-static int
-cp_parse(const char *str, uint_least32_t *cp)
-{
-	if (!valid_hexstring(str)) {
+	/* the maximum valid codepoint is 0x10FFFF */
+	if (len > 6) {
+		fprintf(stderr, "hextocp: '%.*s' is too long.\n", (int)len, str);
 		return 1;
 	}
-	*cp = strtol(str, NULL, 16);
+
+	for (i = 0, *cp = 0; i < len; i++) {
+		if (str[i] >= '0' && str[i] <= '9') {
+			relative = '0';
+			off = 0;
+		} else if (str[i] >= 'a' && str[i] <= 'f') {
+			relative = 'a';
+			off = 10;
+		} else if (str[i] >= 'A' && str[i] <= 'F') {
+			relative = 'A';
+			off = 10;
+		} else {
+			fprintf(stderr, "hextocp: '%.*s' is not hexadecimal.\n",
+			        (int)len, str);
+			return 1;
+		}
+
+		*cp += ((uint_least32_t)1 << (4 * (len - i - 1))) *
+		       (uint_least32_t)(str[i] - relative + off);
+	}
+
+	if (*cp > 0x10ffff) {
+		fprintf(stderr, "hextocp: '%.*s' is too large.\n", (int)len, str);
+		return 1;
+	}
 
 	return 0;
 }
@@ -56,19 +67,16 @@ range_parse(const char *str, struct range *range)
 
 	if ((p = strstr(str, "..")) == NULL) {
 		/* input has the form "XXXXXX" */
-		if (!valid_hexstring(str)) {
+		if (hextocp(str, strlen(str), &range->lower)) {
 			return 1;
 		}
-		range->lower = range->upper = strtol(str, NULL, 16);
+		range->upper = range->lower;
 	} else {
 		/* input has the form "XXXXXX..XXXXXX" */
-		*p = '\0';
-		p += 2;
-		if (!valid_hexstring(str) || !valid_hexstring(p)) {
+		if (hextocp(str, (size_t)(p - str), &range->lower) ||
+		    hextocp(p + 2, strlen(p + 2), &range->upper)) {
 			return 1;
 		}
-		range->lower = strtol(str, NULL, 16);
-		range->upper = strtol(p, NULL, 16);
 	}
 
 	return 0;
@@ -308,7 +316,7 @@ segment_test_callback(char *fname, char **field, size_t nfields, char *comment, 
 				fprintf(stderr, "realloc: %s\n", strerror(errno));
 				return 1;
 			}
-			if (cp_parse(token, &t->cp[t->cplen - 1])) {
+			if (hextocp(token, strlen(token), &t->cp[t->cplen - 1])) {
 				return 1;
 			}
 			if (t->lenlen > 0) {
