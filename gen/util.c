@@ -74,7 +74,7 @@ range_parse(const char *str, struct range *range)
 	return 0;
 }
 
-void
+static void
 range_list_append(struct range **range, size_t *nranges, const struct range *new)
 {
 	if (*nranges > 0 && (*range)[*nranges - 1].upper == new->lower) {
@@ -91,7 +91,8 @@ range_list_append(struct range **range, size_t *nranges, const struct range *new
 	}
 }
 
-void parse_file_with_callback(char *fname, int (*callback)(char *, char **, size_t, char *, void *), void *payload)
+static void
+parse_file_with_callback(char *fname, int (*callback)(char *, char **, size_t, char *, void *), void *payload)
 {
 	FILE *fp;
 	char *line = NULL, **field = NULL, *comment;
@@ -175,7 +176,7 @@ void parse_file_with_callback(char *fname, int (*callback)(char *, char **, size
 	}
 }
 
-int
+static int
 property_list_callback(char *fname, char **field, size_t nfields, char *comment, void *payload)
 {
 	struct property *prop = ((struct property_list_payload *)payload)->prop;
@@ -252,7 +253,7 @@ property_list_print(const struct property *prop, size_t numprops,
 	printf("};\n");
 }
 
-int
+static int
 segment_test_callback(char *fname, char **field, size_t nfields, char *comment, void *payload)
 {
 	struct segment_test *t, **test = ((struct segment_test_payload *)payload)->st;
