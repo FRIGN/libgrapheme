@@ -2,6 +2,7 @@
 #ifndef GRAPHEME_H
 #define GRAPHEME_H
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -20,7 +21,7 @@ typedef struct lg_internal_segmentation_state {
 
 size_t lg_grapheme_nextbreak(const uint8_t *);
 
-int lg_grapheme_isbreak(uint_least32_t, uint_least32_t, LG_SEGMENTATION_STATE *);
+bool lg_grapheme_isbreak(uint_least32_t, uint_least32_t, LG_SEGMENTATION_STATE *);
 
 size_t lg_utf8_decode(const uint8_t *, size_t, uint_least32_t *);
 size_t lg_utf8_encode(uint_least32_t, uint8_t *, size_t);

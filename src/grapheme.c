@@ -1,4 +1,5 @@
 /* See LICENSE file for copyright and license details. */
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,11 +13,12 @@ enum {
 	GRAPHEME_FLAG_EMOJI  = 1 << 1, /* within emoji modifier or zwj sequence */
 };
 
-int
+bool
 lg_grapheme_isbreak(uint_least32_t a, uint_least32_t b, LG_SEGMENTATION_STATE *state)
 {
 	struct lg_internal_heisenstate *p[2] = { 0 };
-	int ret = 1, flags = 0;
+	int flags = 0;
+	bool isbreak = true;
 
 	/* set state depending on state pointer */
 	if (state != NULL) {
@@ -160,7 +162,7 @@ lg_grapheme_isbreak(uint_least32_t a, uint_least32_t b, LG_SEGMENTATION_STATE *s
 	/* GB999 */
 	goto hasbreak;
 nobreak:
-	ret = 0;
+	isbreak = false;
 hasbreak:
 	if (state != NULL) {
 		/* move b-state to a-state, discard b-state */
@@ -168,12 +170,12 @@ hasbreak:
 		memset(&(state->b), 0, sizeof(state->b));
 
 		/* reset flags */
-		if (ret == 1) {
+		if (isbreak) {
 			state->flags = 0;
 		}
 	}
 
-	return ret;
+	return isbreak;
 }
 
 size_t
