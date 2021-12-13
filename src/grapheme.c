@@ -17,7 +17,7 @@ bool
 lg_grapheme_isbreak(uint_least32_t a, uint_least32_t b, LG_SEGMENTATION_STATE *state)
 {
 	struct lg_internal_heisenstate *p[2] = { 0 };
-	int flags = 0;
+	uint_least16_t flags = 0;
 	bool isbreak = true;
 
 	/* set state depending on state pointer */

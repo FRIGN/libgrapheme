@@ -161,7 +161,7 @@ lg_utf8_encode(uint_least32_t cp, uint8_t *s, size_t n)
 	 * We do not overwrite the mask because we guaranteed earlier
 	 * that there are no bits higher than the mask allows.
 	 */
-	s[0] = lut[off].lower | (cp >> (6 * off));
+	s[0] = lut[off].lower | (uint8_t)(cp >> (6 * off));
 
 	for (i = 1; i <= off; i++) {
 		/*
