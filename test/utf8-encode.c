@@ -52,9 +52,11 @@ static const struct {
 };
 
 int
-main(void)
+main(int argc, char *argv[])
 {
 	size_t i, j, failed;
+
+	(void)argc;
 
 	/* UTF-8 encoder test */
 	for (i = 0, failed = 0; i < LEN(enc_test); i++) {
@@ -65,8 +67,8 @@ main(void)
 
 		if (len != enc_test[i].exp_len ||
 		    memcmp(arr, enc_test[i].exp_arr, len)) {
-			fprintf(stderr, "Failed UTF-8-encoder test %zu: "
-			        "Expected (", i);
+			fprintf(stderr, "%s, Failed test %zu: "
+			        "Expected (", argv[0], i);
 			for (j = 0; j < enc_test[i].exp_len; j++) {
 				fprintf(stderr, "0x%x",
 				        enc_test[i].exp_arr[j]);
@@ -81,11 +83,11 @@ main(void)
 					fprintf(stderr, " ");
 				}
 			}
-			fprintf(stderr, ")\n");
+			fprintf(stderr, ").\n");
 			failed++;
 		}
 	}
-	printf("UTF-8 encoder test: Passed %zu out of %zu tests.\n",
+	printf("%s: %zu/%zu tests passed.\n", argv[0],
 	       LEN(enc_test) - failed, LEN(enc_test));
 
 	return (failed > 0) ? 1 : 0;

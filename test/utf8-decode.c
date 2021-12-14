@@ -247,9 +247,11 @@ static const struct {
 };
 
 int
-main(void)
+main(int argc, char *argv[])
 {
 	size_t i, failed;
+
+	(void)argc;
 
 	/* UTF-8 decoder test */
 	for (i = 0, failed = 0; i < LEN(dec_test); i++) {
@@ -261,14 +263,14 @@ main(void)
 
 		if (len != dec_test[i].exp_len ||
 		    cp != dec_test[i].exp_cp) {
-			fprintf(stderr, "Failed UTF-8-decoder test %zu: "
-			        "Expected (%zx,%u), but got (%zx,%u)\n",
-			        i, dec_test[i].exp_len,
+			fprintf(stderr, "%s: Failed test %zu: "
+			        "Expected (%zx,%u), but got (%zx,%u).\n",
+			        argv[0], i, dec_test[i].exp_len,
 			        dec_test[i].exp_cp, len, cp);
 			failed++;
 		}
 	}
-	printf("UTF-8 decoder test: Passed %zu out of %zu tests.\n",
+	printf("%s: %zu/%zu tests passed.\n", argv[0],
 	       LEN(dec_test) - failed, LEN(dec_test));
 
 	return (failed > 0) ? 1 : 0;

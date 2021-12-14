@@ -10,10 +10,12 @@
 #define LEN(x) (sizeof(x) / sizeof(*(x)))
 
 int
-main(void)
+main(int argc, char *argv[])
 {
 	LG_SEGMENTATION_STATE state;
 	size_t i, j, k, len, failed;
+
+	(void)argc;
 
 	/* grapheme break test */
 	for (i = 0, failed = 0; i < LEN(grapheme_test); i++) {
@@ -26,8 +28,8 @@ main(void)
 				/* check if our resulting length matches */
 				if (k == grapheme_test[i].lenlen ||
 				    len != grapheme_test[i].len[k++]) {
-					fprintf(stderr, "Failed \"%s\"\n",
-					        grapheme_test[i].descr);
+					fprintf(stderr, "%s: Failed test \"%s\".\n",
+					        argv[0], grapheme_test[i].descr);
 					failed++;
 					break;
 				}
@@ -37,7 +39,7 @@ main(void)
 			}
 		}
 	}
-	printf("Grapheme break test: Passed %zu out of %zu tests.\n",
+	printf("%s: %zu/%zu tests passed.\n", argv[0],
 	       LEN(grapheme_test) - failed, LEN(grapheme_test));
 
 	return (failed > 0) ? 1 : 0;

@@ -19,7 +19,7 @@ time_diff(struct timespec *a, struct timespec *b)
 }
 
 int
-main(void)
+main(int argc, char *argv[])
 {
 	struct timespec start, end;
 	size_t i, j, bufsiz, off;
@@ -27,12 +27,14 @@ main(void)
 	LG_SEGMENTATION_STATE state;
 	double cp_per_sec;
 
+	(void)argc;
+
 	/* allocate and generate buffer */
 	for (i = 0, bufsiz = 0; i < LEN(grapheme_test); i++) {
 		bufsiz += grapheme_test[i].cplen;
 	}
 	if (!(buf = calloc(bufsiz, sizeof(*buf)))) {
-		fprintf(stderr, "calloc: Out of memory.\n");
+		fprintf(stderr, "%s: calloc: Out of memory.\n", argv[0]);
 		return 1;
 	}
 	for (i = 0, off = 0; i < LEN(grapheme_test); i++) {
@@ -43,7 +45,7 @@ main(void)
 	}
 
 	/* run test */
-	printf("Grapheme break performance test: ");
+	printf("%s: Running benchmark ", argv[0]);
 	fflush(stdout);
 
 	clock_gettime(CLOCK_MONOTONIC, &start);

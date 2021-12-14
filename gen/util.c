@@ -91,7 +91,7 @@ range_list_append(struct range **range, size_t *nranges, const struct range *new
 	} else {
 		/* need to append new entry */
 		if ((*range = realloc(*range, (++(*nranges)) * sizeof(**range))) == NULL) {
-			fprintf(stderr, "realloc: %s\n", strerror(errno));
+			fprintf(stderr, "range_list_append: realloc: %s.\n", strerror(errno));
 			exit(1);
 		}
 		(*range)[*nranges - 1].lower = new->lower;
@@ -109,7 +109,7 @@ parse_file_with_callback(char *fname, int (*callback)(char *, char **, size_t, c
 
 	/* open file */
 	if (!(fp = fopen(fname, "r"))) {
-		fprintf(stderr, "fopen '%s': %s\n", fname,
+		fprintf(stderr, "parse_file_with_callback: fopen '%s': %s.\n", fname,
 		        strerror(errno));
 		exit(1);
 	}
@@ -132,7 +132,7 @@ parse_file_with_callback(char *fname, int (*callback)(char *, char **, size_t, c
 			if (++nfields > fieldbufsize) {
 				if ((field = realloc(field, nfields *
                                      sizeof(*field))) == NULL) {
-					fprintf(stderr, "realloc: %s\n", strerror(errno));
+					fprintf(stderr, "parse_file_with_callback: realloc: %s.\n", strerror(errno));
 					exit(1);
 				}
 				fieldbufsize = nfields;
@@ -291,7 +291,7 @@ segment_test_callback(char *fname, char **field, size_t nfields, char *comment, 
 
 	/* append new testcase and initialize with zeroes */
 	if ((*test = realloc(*test, ++(*ntests) * sizeof(**test))) == NULL) {
-		fprintf(stderr, "realloc: %s\n", strerror(errno));
+		fprintf(stderr, "segment_test_callback: realloc: %s.\n", strerror(errno));
 		return 1;
 	}
 	t = &(*test)[*ntests - 1];
@@ -310,7 +310,7 @@ segment_test_callback(char *fname, char **field, size_t nfields, char *comment, 
 				 */
 				if ((t->len = realloc(t->len,
 				     ++t->lenlen * sizeof(*t->len))) == NULL) {
-					fprintf(stderr, "realloc: %s\n",
+					fprintf(stderr, "segment_test_callback: realloc: %s.\n",
 					        strerror(errno));
 					return 1;
 				}
@@ -320,7 +320,7 @@ segment_test_callback(char *fname, char **field, size_t nfields, char *comment, 
 				 * '×' indicates a non-breakpoint, do nothing
 				 */
 			} else {
-				fprintf(stderr, "malformed delimiter '%s'\n",
+				fprintf(stderr, "segment_test_callback: Malformed delimiter '%s'.\n",
 				        token);
 				return 1;
 			}
@@ -328,7 +328,7 @@ segment_test_callback(char *fname, char **field, size_t nfields, char *comment, 
 			/* add code point to cp-array */
 			if ((t->cp = realloc(t->cp, ++t->cplen *
 			                     sizeof(*t->cp))) == NULL) {
-				fprintf(stderr, "realloc: %s\n", strerror(errno));
+				fprintf(stderr, "segment_test_callback: realloc: %s.\n", strerror(errno));
 				return 1;
 			}
 			if (hextocp(token, strlen(token), &t->cp[t->cplen - 1])) {
@@ -346,7 +346,7 @@ segment_test_callback(char *fname, char **field, size_t nfields, char *comment, 
 
 	/* store comment */
 	if (((*test)[*ntests - 1].descr = strdup(comment)) == NULL) {
-		fprintf(stderr, "strdup: %s\n", strerror(errno));
+		fprintf(stderr, "segment_test_callback: strdup: %s.\n", strerror(errno));
 		return 1;
 	}
 
