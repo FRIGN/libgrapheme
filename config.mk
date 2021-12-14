@@ -11,7 +11,7 @@ MANPREFIX = $(PREFIX)/share/man
 
 # flags
 CPPFLAGS = -D_DEFAULT_SOURCE
-CFLAGS   = -std=c99 -pedantic -Wall -Wextra -Os -fPIC
+CFLAGS   = -std=c99 -Os -fPIC -Wall -Wextra -Wpedantic
 LDFLAGS  = -s
 
 # tools
