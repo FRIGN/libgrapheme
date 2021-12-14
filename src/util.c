@@ -27,11 +27,11 @@ heisenstate_set(struct lg_internal_heisenstate *h, int slot, int state)
 		/* no state given or slot out of range */
 		return 1;
 	} else {
-		h->determined |= (1 << slot);
+		h->determined |= (UINT64_C(1) << slot);
 		if (state) {
-			h->state |= (1 << slot);
+			h->state |= (UINT64_C(1) << slot);
 		} else {
-			h->state &= ~(1 << slot);
+			h->state &= ~(UINT64_C(1) << slot);
 		}
 	}
 
