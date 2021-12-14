@@ -9,7 +9,7 @@
 #include "../gen/grapheme-test.h"
 
 #define LEN(x) (sizeof(x) / sizeof(*(x)))
-#define NUM_ITERATIONS 10000
+#define NUM_ITERATIONS 1000
 
 static double
 time_diff(struct timespec *a, struct timespec *b)
