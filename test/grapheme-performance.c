@@ -11,11 +11,11 @@
 #define LEN(x) (sizeof(x) / sizeof(*(x)))
 #define NUM_ITERATIONS 10000
 
-static int64_t
+static double
 time_diff(struct timespec *a, struct timespec *b)
 {
-	return ((b->tv_sec * 1000000000) + b->tv_nsec) -
-	       ((a->tv_sec * 1000000000) + a->tv_nsec);
+	return (double)(b->tv_sec - a->tv_sec) +
+	       (double)(b->tv_nsec - a->tv_nsec) * 1E-9;
 }
 
 int
@@ -58,8 +58,9 @@ main(void)
 		}
 	}
 	clock_gettime(CLOCK_MONOTONIC, &end);
-	cp_per_sec = ((double)NUM_ITERATIONS * (double)bufsiz) /
-	             (time_diff(&start, &end) / 1000000000);
+
+	cp_per_sec = (double)(NUM_ITERATIONS * bufsiz) /
+	             time_diff(&start, &end);
 
 	printf(" %.2e CP/s\n", cp_per_sec);
 
