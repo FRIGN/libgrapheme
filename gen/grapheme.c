@@ -87,6 +87,7 @@ main(int argc, char *argv[])
 	property_list_parse(segment_property, LEN(segment_property));
 	property_list_print(segment_property, LEN(segment_property),
 	                    "grapheme_prop", argv[0]);
+	property_list_free(segment_property, LEN(segment_property));
 
 	return 0;
 }

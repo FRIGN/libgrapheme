@@ -182,6 +182,9 @@ parse_file_with_callback(char *fname, int (*callback)(char *, char **, size_t, c
 			exit(1);
 		}
 	}
+
+	free(line);
+	free(field);
 }
 
 static int
@@ -259,6 +262,18 @@ property_list_print(const struct property *prop, size_t numprops,
 		printf("\t\t},\n\t\t.len = %zu,\n\t},\n", prop[i].tablelen);
 	}
 	printf("};\n");
+}
+
+void
+property_list_free(struct property *prop, size_t numprops)
+{
+	size_t i;
+
+	for (i = 0; i < numprops; i++) {
+		free(prop[i].table);
+		prop[i].table = NULL;
+		prop[i].tablelen = 0;
+	}
 }
 
 static int
@@ -349,7 +364,7 @@ segment_test_list_parse(char *fname, struct segment_test **st, size_t *numsegtes
 }
 
 void
-segment_test_list_print(struct segment_test *st, size_t numsegtests,
+segment_test_list_print(const struct segment_test *st, size_t numsegtests,
                         const char *identifier, const char *progname)
 {
 	size_t i, j;
@@ -390,4 +405,10 @@ segment_test_list_print(struct segment_test *st, size_t numsegtests,
 	printf("};\n");
 }
 
+void
+segment_test_list_free(struct segment_test *st, size_t numsegtests)
+{
+	(void)numsegtests;
 
+	free(st);
+}

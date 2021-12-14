@@ -30,8 +30,10 @@ struct segment_test {
 
 void property_list_parse(struct property *, size_t);
 void property_list_print(const struct property *, size_t, const char *, const char *);
+void property_list_free(struct property *, size_t);
 
 void segment_test_list_parse(char *, struct segment_test **, size_t *);
-void segment_test_list_print(struct segment_test *, size_t, const char *, const char *);
+void segment_test_list_print(const struct segment_test *, size_t, const char *, const char *);
+void segment_test_list_free(struct segment_test *, size_t);
 
 #endif /* UTIL_H */
