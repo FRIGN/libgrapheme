@@ -21,7 +21,7 @@ static const struct {
 		 */
 		.arr     = NULL,
 		.len     = 0,
-		.exp_len = 1,
+		.exp_len = 0,
 		.exp_cp  = LG_CODEPOINT_INVALID,
 	},
 	{
