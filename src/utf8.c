@@ -52,10 +52,10 @@ lg_utf8_decode(const uint8_t *s, size_t n, uint_least32_t *cp)
 {
 	size_t off, i;
 
-	if (n == 0) {
+	if (s == NULL || n == 0) {
 		/* a sequence must be at least 1 byte long */
 		*cp = LG_CODEPOINT_INVALID;
-		return 1;
+		return 0;
 	}
 
 	/* identify sequence type with the first byte */
@@ -145,8 +145,12 @@ lg_utf8_encode(uint_least32_t cp, uint8_t *s, size_t n)
 			break;
 		}
 	}
-	if (1 + off > n) {
-		/* specified buffer is too small to store sequence */
+	if (1 + off > n || s == NULL || n == 0) {
+		/*
+		 * specified buffer is too small to store sequence or
+		 * the caller just wanted to know how many bytes the
+		 * codepoint needs by passing a NULL-buffer.
+		 */
 		return 1 + off;
 	}
 
