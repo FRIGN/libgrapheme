@@ -41,10 +41,16 @@ heisenstate_set(struct lg_internal_heisenstate *h, int slot, int state)
 static int
 cp_cmp(const void *a, const void *b)
 {
-	uint_least32_t cp = *(const uint_least32_t *)a;
+	const uint_least32_t cp = *(const uint_least32_t *)a;
 	const uint_least32_t *range = (const uint_least32_t *)b;
 
-	return (cp >= range[0] && cp <= range[1]) ? 0 : (int)(cp - range[0]);
+	if (cp < range[0]) {
+		return -1;
+	} else if (cp > range[1]) {
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 int
