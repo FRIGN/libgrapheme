@@ -1,0 +1,79 @@
+.Dd 2021-12-15
+.Dt LG_GRAPHEME_ISBREAK 3
+.Os suckless.org
+.Sh NAME
+.Nm lg_grapheme_isbreak
+.Nd test for a grapheme cluster break between two code points
+.Sh SYNOPSIS
+.In grapheme.h
+.Ft size_t
+.Fn lg_grapheme_isbreak "uint_least32_t a, uint_least32_t b, LG_SEGMENTATION_STATE *state"
+.Sh DESCRIPTION
+The
+.Fn lg_grapheme_isbreak
+function determines if there is a grapheme cluster break (see
+.Xr libgrapheme 7 )
+between the two code points
+.Va a
+and
+.Va b .
+By specification this decision depends on a
+.Va state
+that can at most be completely reset after detecting a break and must
+be reset every time one deviates from sequential processing.
+.Pp
+If
+.Va state
+is
+.Dv NULL
+.Fn lg_grapheme_isbreak
+behaves as if it was called with a fully reset state.
+.Sh RETURN VALUES
+.Fn lg_grapheme_isbreak
+returns
+.Va true
+if there is a grapheme cluster break between the code points
+.Va a
+and
+.Va b
+and
+.Va false
+if there is not.
+.Sh EXAMPLES
+.Bd -literal
+/* cc (-static) -o example example.c -lgrapheme */
+#include <grapheme.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main(void)
+{
+	LG_SEGMENTATION_STATE state = { 0 };
+	uint_least32_t s1[] = ..., s2[] = ...; /* two input arrays */
+	size_t i;
+
+	for (i = 0; i + 1 < sizeof(s1) / sizeof(*s1); i++) {
+		if (lg_grapheme_isbreak(s[i], s[i + 1], &state)) {
+			printf("break in s1 at offset %zu\n", i);
+		}
+	}
+	memset(&state, 0, sizeof(state)); /* reset state */
+	for (i = 0; i + 1 < sizeof(s2) / sizeof(*s2); i++) {
+		if (lg_grapheme_isbreak(s[i], s[i + 1], &state)) {
+			printf("break in s2 at offset %zu\n", i);
+		}
+	}
+
+	return 0;
+}
+.Ed
+.Sh SEE ALSO
+.Xr lg_grapheme_nextbreak 3 ,
+.Xr libgrapheme 7
+.Sh STANDARDS
+.Fn lg_grapheme_isbreak
+is compliant with the Unicode 14.0.0 specification.
+.Sh AUTHORS
+.An Laslo Hunhold Aq Mt dev@frign.de

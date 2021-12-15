@@ -1,39 +1,27 @@
-.Dd 2020-10-12
+.Dd 2021-12-15
 .Dt LIBGRAPHEME 7
 .Os suckless.org
 .Sh NAME
 .Nm libgrapheme
-.Nd grapheme cluster library
+.Nd unicode library
 .Sh SYNOPSIS
 .In grapheme.h
 .Sh DESCRIPTION
 The
 .Nm
-library provides functions to properly separate a string into
-user-perceived characters
+library provides functions to properly handle user-perceived characters
 .Dq ( grapheme clusters ,
 see
 .Sx MOTIVATION )
-using the Unicode grapheme cluster breaking algorithm (UAX #29).
-.Pp
-You can either count the length (in bytes) of the grapheme cluster at
-the beginning of an UTF-8-encoded string (see
-.Xr grapheme_bytelen 3 )
-or determine if a grapheme cluster breaks between two Unicode code
-points (see
-.Xr grapheme_boundary 3 ) ,
-while a safe UTF-8-de/encoder for the latter purpose is provided (see
-.Xr grapheme_cp_decode 3
-and
-.Xr grapheme_cp_encode 3 ) .
+according to the Unicode specification.
 .Sh SEE ALSO
-.Xr grapheme_boundary 3 ,
-.Xr grapheme_bytelen 3
-.Xr grapheme_cp_decode 3 ,
-.Xr grapheme_cp_encode 3 ,
+.Xr lg_grapheme_isbreak 3 ,
+.Xr lg_grapheme_nextbreak 3 ,
+.Xr lg_utf8_decode 3 ,
+.Xr lg_utf8_encode 3
 .Sh STANDARDS
 .Nm
-is compliant with the Unicode 13.0.0 specification.
+is compliant with the Unicode 14.0.0 specification.
 .Sh MOTIVATION
 The idea behind every character encoding scheme like ASCII or Unicode
 is to express abstract characters (which can be thought of as shapes
@@ -118,7 +106,7 @@ is continued between two code points. Libraries like ICU, which also
 offer this functionality, are often bloated, not correct, difficult to
 use or not statically linkable. The motivation behind
 .Nm
-is to make grapheme cluster handling suck less and abide by the UNIX
+is to make unicode handling suck less and abide by the UNIX
 philosophy.
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de

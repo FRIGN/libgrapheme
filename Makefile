@@ -12,7 +12,7 @@ GEN = gen/grapheme gen/grapheme-test
 LIB = src/grapheme src/utf8 src/util
 TEST = test/grapheme test/grapheme-performance test/utf8-decode test/utf8-encode
 
-MAN3 = man/grapheme_bytelen.3
+MAN3 = man/lg_grapheme_isbreak.3 man/lg_grapheme_nextbreak.3
 MAN7 = man/libgrapheme.7
 
 all: libgrapheme.a libgrapheme.so

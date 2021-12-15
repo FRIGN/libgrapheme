@@ -1,0 +1,70 @@
+.Dd 2021-12-15
+.Dt LG_GRAPHEME_NEXTBREAK 3
+.Os suckless.org
+.Sh NAME
+.Nm lg_grapheme_nextbreak
+.Nd determine byte-offset to next grapheme cluster break
+.Sh SYNOPSIS
+.In grapheme.h
+.Ft size_t
+.Fn lg_grapheme_nextbreak "const uint8_t *str"
+.Sh DESCRIPTION
+.Fn lg_grapheme_nextbreak
+computes the offset (in bytes) to the next grapheme
+cluster break (see
+.Xr libgrapheme 7 )
+in the UTF-8-encoded NUL-terminated string
+.Va str .
+If a grapheme cluster begins at
+.Va str
+this offset is equal to the length of said grapheme cluster.
+.Pp
+For non-UTF-8 input data
+.Xr lg_grapheme_isbreak 3
+can be used instead.
+.Sh RETURN VALUES
+.Fn lg_grapheme_nextbreak
+returns the offset (in bytes) to the next grapheme cluster
+break in
+.Va str
+or 0 if
+.Va str
+is
+.Dv NULL .
+.Sh EXAMPLES
+.Bd -literal
+/* cc (-static) -o example example.c -lgrapheme */
+#include <grapheme.h>
+#include <stdint.h>
+#include <stdio.h>
+
+int
+main(void)
+{
+	/* UTF-8 encoded input */
+	char *s = "T\\xC3\\xABst \\xF0\\x9F\\x91\\xA8\\xE2\\x80\\x8D\\xF0"
+	          "\\x9F\\x91\\xA9\\xE2\\x80\\x8D\\xF0\\x9F\\x91\\xA6 \\xF0"
+	          "\\x9F\\x87\\xBA\\xF0\\x9F\\x87\\xB8 \\xE0\\xA4\\xA8\\xE0"
+	          "\\xA5\\x80 \\xE0\\xAE\\xA8\\xE0\\xAE\\xBF!";
+	size_t len;
+
+	printf("Input: \\"%s\\"\\n", s);
+
+	/* print each grapheme cluster with byte-length */
+	for (; *s != '\\0';) {
+		len = lg_grapheme_nextbreak((uint8_t *)s);
+		printf("%2zu bytes | %.*s\\n", len, (int)len, s, len);
+		s += len;
+	}
+
+	return 0;
+}
+.Ed
+.Sh SEE ALSO
+.Xr lg_grapheme_isbreak 3 ,
+.Xr libgrapheme 7
+.Sh STANDARDS
+.Fn lg_grapheme_nextbreak
+is compliant with the Unicode 14.0.0 specification.
+.Sh AUTHORS
+.An Laslo Hunhold Aq Mt dev@frign.de
