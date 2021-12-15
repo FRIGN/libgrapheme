@@ -8,11 +8,21 @@ DATA =\
 	data/emoji-data.txt\
 	data/GraphemeBreakProperty.txt\
 	data/GraphemeBreakTest.txt
-GEN = gen/grapheme gen/grapheme-test
-LIB = src/grapheme src/utf8 src/util
-TEST = test/grapheme test/grapheme-performance test/utf8-decode test/utf8-encode
-
-MAN3 = man/lg_grapheme_isbreak.3 man/lg_grapheme_nextbreak.3
+GEN =\
+	gen/grapheme\
+	gen/grapheme-test
+SRC =\
+	src/grapheme\
+	src/utf8\
+	src/util
+TEST =\
+	test/grapheme\
+	test/grapheme-performance\
+	test/utf8-decode\
+	test/utf8-encode
+MAN3 =\
+	man/lg_grapheme_isbreak.3\
+	man/lg_grapheme_nextbreak.3
 MAN7 = man/libgrapheme.7
 
 all: libgrapheme.a libgrapheme.so
@@ -20,20 +30,21 @@ all: libgrapheme.a libgrapheme.so
 gen/grapheme.o: gen/grapheme.c config.mk gen/util.h
 gen/grapheme-test.o: gen/grapheme-test.c config.mk gen/util.h
 gen/util.o: gen/util.c config.mk gen/util.h
-src/utf8.o: src/utf8.c config.mk grapheme.h
 src/grapheme.o: src/grapheme.c config.mk gen/grapheme.h grapheme.h src/util.h
-src/util.o: src/util.c config.mk src/util.h
-test/grapheme.o: test/grapheme.c config.mk gen/grapheme-test.h grapheme.h
-test/grapheme-performance.o: test/grapheme-performance.c config.mk gen/grapheme-test.h grapheme.h
-test/utf8-encode.o: test/utf8-encode.c config.mk grapheme.h
-test/utf8-decode.o: test/utf8-decode.c config.mk grapheme.h
+src/utf8.o: src/utf8.c config.mk grapheme.h
+src/util.o: src/util.c config.mk grapheme.h src/util.h
+test/grapheme.o: test/grapheme.c config.mk gen/grapheme-test.h grapheme.h test/util.h
+test/grapheme-performance.o: test/grapheme-performance.c config.mk gen/grapheme-test.h grapheme.h test/util.h
+test/utf8-encode.o: test/utf8-encode.c config.mk grapheme.h test/util.h
+test/utf8-decode.o: test/utf8-decode.c config.mk grapheme.h test/util.h
+test/util.o: test/util.c config.mk test/util.h
 
 gen/grapheme: gen/grapheme.o gen/util.o
 gen/grapheme-test: gen/grapheme-test.o gen/util.o
-test/grapheme: test/grapheme.o libgrapheme.a
-test/grapheme-performance: test/grapheme-performance.o libgrapheme.a
-test/utf8-encode: test/utf8-encode.o libgrapheme.a
-test/utf8-decode: test/utf8-decode.o libgrapheme.a
+test/grapheme: test/grapheme.o test/util.o libgrapheme.a
+test/grapheme-performance: test/grapheme-performance.o test/util.o libgrapheme.a
+test/utf8-encode: test/utf8-encode.o test/util.o libgrapheme.a
+test/utf8-decode: test/utf8-decode.o test/util.o libgrapheme.a
 
 gen/grapheme.h: data/emoji-data.txt data/GraphemeBreakProperty.txt gen/grapheme
 gen/grapheme-test.h: data/GraphemeBreakTest.txt gen/grapheme-test
@@ -54,16 +65,16 @@ $(GEN:=.h):
 	$(@:.h=) > $@
 
 $(TEST):
-	$(CC) -o $@ $(LDFLAGS) $@.o libgrapheme.a
+	$(CC) -o $@ $(LDFLAGS) $@.o test/util.o libgrapheme.a
 
 .c.o:
 	$(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $<
 
-libgrapheme.a: $(LIB:=.o)
+libgrapheme.a: $(SRC:=.o)
 	$(AR) rc $@ $?
 	$(RANLIB) $@
 
-libgrapheme.so: $(LIB:=.o)
+libgrapheme.so: $(SRC:=.o)
 	$(CC) -o $@ -shared $?
 
 test: $(TEST)
@@ -88,7 +99,23 @@ uninstall:
 	rm -f "$(DESTDIR)$(INCPREFIX)/grapheme.h"
 
 clean:
-	rm -f $(GEN:=.h) $(GEN:=.o) $(GEN) gen/util.o $(LIB:=.o) $(TEST:=.o) $(TEST) libgrapheme.a libgrapheme.so
+	rm -f $(GEN:=.h) $(GEN:=.o) $(GEN) gen/util.o $(SRC:=.o) src/util.o \
+		$(TEST:=.o) test/util.o $(TEST) libgrapheme.a libgrapheme.so
 
 clean-data:
 	rm -f $(DATA)
+
+dist:
+	mkdir libgrapheme-$(VERSION) libgrapheme-$(VERSION)/data\
+		libgrapheme-$(VERSION)/gen libgrapheme-$(VERSION)/man\
+		libgrapheme-$(VERSION)/src libgrapheme-$(VERSION)/test
+	cp config.mk grapheme.h LICENSE Makefile libgrapheme-$(VERSION)
+	cp $(DATA) libgrapheme-$(VERSION)/data
+	cp $(GEN:=.c) gen/util.c gen/util.h libgrapheme-$(VERSION)/gen
+	cp $(MAN3) $(MAN7) libgrapheme-$(VERSION)/man
+	cp $(SRC:=.c) src/util.h libgrapheme-$(VERSION)/src
+	cp $(TEST:=.c) test/util.c test/util.h libgrapheme-$(VERSION)/test
+	tar -cf libgrapheme-$(VERSION).tar libgrapheme-$(VERSION)
+	rm -rf libgrapheme-$(VERSION)
+
+.PHONY: all test install uninstall clean dist

@@ -6,8 +6,7 @@
 
 #include "../grapheme.h"
 #include "../gen/grapheme-test.h"
-
-#define LEN(x) (sizeof(x) / sizeof(*(x)))
+#include "util.h"
 
 int
 main(int argc, char *argv[])

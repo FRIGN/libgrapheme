@@ -7,16 +7,9 @@
 
 #include "../grapheme.h"
 #include "../gen/grapheme-test.h"
+#include "util.h"
 
-#define LEN(x) (sizeof(x) / sizeof(*(x)))
 #define NUM_ITERATIONS 1000
-
-static double
-time_diff(struct timespec *a, struct timespec *b)
-{
-	return (double)(b->tv_sec - a->tv_sec) +
-	       (double)(b->tv_nsec - a->tv_nsec) * 1E-9;
-}
 
 int
 main(int argc, char *argv[])

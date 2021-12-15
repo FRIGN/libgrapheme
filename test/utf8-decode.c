@@ -5,8 +5,7 @@
 #include <string.h>
 
 #include "../grapheme.h"
-
-#define LEN(x) (sizeof(x) / sizeof(*(x)))
+#include "util.h"
 
 static const struct {
 	uint8_t       *arr;     /* UTF-8 byte sequence */
