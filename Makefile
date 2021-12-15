@@ -7,22 +7,27 @@ include config.mk
 DATA =\
 	data/emoji-data.txt\
 	data/GraphemeBreakProperty.txt\
-	data/GraphemeBreakTest.txt
+	data/GraphemeBreakTest.txt\
+
 GEN =\
 	gen/grapheme\
-	gen/grapheme-test
+	gen/grapheme-test\
+
 SRC =\
 	src/grapheme\
 	src/utf8\
-	src/util
+	src/util\
+
 TEST =\
 	test/grapheme\
 	test/grapheme-performance\
 	test/utf8-decode\
-	test/utf8-encode
+	test/utf8-encode\
+
 MAN3 =\
 	man/lg_grapheme_isbreak.3\
-	man/lg_grapheme_nextbreak.3
+	man/lg_grapheme_nextbreak.3\
+
 MAN7 = man/libgrapheme.7
 
 all: libgrapheme.a libgrapheme.so
@@ -99,16 +104,14 @@ uninstall:
 	rm -f "$(DESTDIR)$(INCPREFIX)/grapheme.h"
 
 clean:
-	rm -f $(GEN:=.h) $(GEN:=.o) $(GEN) gen/util.o $(SRC:=.o) src/util.o \
-		$(TEST:=.o) test/util.o $(TEST) libgrapheme.a libgrapheme.so
+	rm -f $(GEN:=.h) $(GEN:=.o) gen/util.o $(GEN) $(SRC:=.o) src/util.o $(TEST:=.o) test/util.o $(TEST) libgrapheme.a libgrapheme.so
 
 clean-data:
 	rm -f $(DATA)
 
 dist:
-	mkdir libgrapheme-$(VERSION) libgrapheme-$(VERSION)/data\
-		libgrapheme-$(VERSION)/gen libgrapheme-$(VERSION)/man\
-		libgrapheme-$(VERSION)/src libgrapheme-$(VERSION)/test
+	mkdir libgrapheme-$(VERSION)
+	for m in data gen man src test; do mkdir libgrapheme-$(VERSION)/$$m; done
 	cp config.mk grapheme.h LICENSE Makefile libgrapheme-$(VERSION)
 	cp $(DATA) libgrapheme-$(VERSION)/data
 	cp $(GEN:=.c) gen/util.c gen/util.h libgrapheme-$(VERSION)/gen
