@@ -60,14 +60,14 @@ lg_utf8_decode(const char *s, size_t n, uint_least32_t *cp)
 
 	/* identify sequence type with the first byte */
 	for (off = 0; off < LEN(lut); off++) {
-		if (BETWEEN(((unsigned char *)s)[0], lut[off].lower,
+		if (BETWEEN(((const unsigned char *)s)[0], lut[off].lower,
 		            lut[off].upper)) {
 			/*
 			 * first byte is within the bounds; fill
 			 * p with the the first bits contained in
 			 * the first byte (by subtracting the high bits)
 			 */
-			*cp = ((unsigned char *)s)[0] - lut[off].lower;
+			*cp = ((const unsigned char *)s)[0] - lut[off].lower;
 			break;
 		}
 	}
@@ -96,7 +96,7 @@ lg_utf8_decode(const char *s, size_t n, uint_least32_t *cp)
 	 * (i.e. between 0x80 (10000000) and 0xBF (10111111))
 	 */
 	for (i = 1; i <= off; i++) {
-		if(!BETWEEN(((unsigned char *)s)[i], 0x80, 0xBF)) {
+		if(!BETWEEN(((const unsigned char *)s)[i], 0x80, 0xBF)) {
 			/*
 			 * byte does not match format; return
 			 * number of bytes processed excluding the
@@ -114,7 +114,7 @@ lg_utf8_decode(const char *s, size_t n, uint_least32_t *cp)
 		 * shift code point by 6 bits and add the 6 stored bits
 		 * in s[i] to it using the bitmask 0x3F (00111111)
 		 */
-		*cp = (*cp << 6) | (((unsigned char *)s)[i] & 0x3F);
+		*cp = (*cp << 6) | (((const unsigned char *)s)[i] & 0x3F);
 	}
 
 	if (*cp < lut[off].mincp ||
