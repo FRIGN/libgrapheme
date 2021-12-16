@@ -19,11 +19,11 @@ typedef struct lg_internal_segmentation_state {
 
 #define LG_CODEPOINT_INVALID UINT32_C(0xFFFD)
 
-size_t lg_grapheme_nextbreak(const uint8_t *);
+size_t lg_grapheme_nextbreak(const char *);
 
 bool lg_grapheme_isbreak(uint_least32_t, uint_least32_t, LG_SEGMENTATION_STATE *);
 
-size_t lg_utf8_decode(const uint8_t *, size_t, uint_least32_t *);
-size_t lg_utf8_encode(uint_least32_t, uint8_t *, size_t);
+size_t lg_utf8_decode(const char *, size_t, uint_least32_t *);
+size_t lg_utf8_encode(uint_least32_t, char *, size_t);
 
 #endif /* GRAPHEME_H */

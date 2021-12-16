@@ -7,7 +7,7 @@
 .Sh SYNOPSIS
 .In grapheme.h
 .Ft size_t
-.Fn lg_grapheme_nextbreak "const uint8_t *str"
+.Fn lg_grapheme_nextbreak "const char *str"
 .Sh DESCRIPTION
 .Fn lg_grapheme_nextbreak
 computes the offset (in bytes) to the next grapheme
@@ -52,7 +52,7 @@ main(void)
 
 	/* print each grapheme cluster with byte-length */
 	for (; *s != '\\0';) {
-		len = lg_grapheme_nextbreak((uint8_t *)s);
+		len = lg_grapheme_nextbreak(s);
 		printf("%2zu bytes | %.*s\\n", len, (int)len, s, len);
 		s += len;
 	}

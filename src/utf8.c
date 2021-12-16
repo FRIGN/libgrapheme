@@ -48,7 +48,7 @@ static const struct {
 };
 
 size_t
-lg_utf8_decode(const uint8_t *s, size_t n, uint_least32_t *cp)
+lg_utf8_decode(const char *s, size_t n, uint_least32_t *cp)
 {
 	size_t off, i;
 
@@ -60,13 +60,14 @@ lg_utf8_decode(const uint8_t *s, size_t n, uint_least32_t *cp)
 
 	/* identify sequence type with the first byte */
 	for (off = 0; off < LEN(lut); off++) {
-		if (BETWEEN(s[0], lut[off].lower, lut[off].upper)) {
+		if (BETWEEN(((unsigned char *)s)[0], lut[off].lower,
+		            lut[off].upper)) {
 			/*
 			 * first byte is within the bounds; fill
 			 * p with the the first bits contained in
 			 * the first byte (by subtracting the high bits)
 			 */
-			*cp = s[0] - lut[off].lower;
+			*cp = ((unsigned char *)s)[0] - lut[off].lower;
 			break;
 		}
 	}
@@ -74,6 +75,9 @@ lg_utf8_decode(const uint8_t *s, size_t n, uint_least32_t *cp)
 		/*
 		 * first byte does not match a sequence type;
 		 * set cp as invalid and return 1 byte processed
+		 *
+		 * this also includes the cases where bits higher than
+		 * the 8th are set on systems with CHAR_BIT > 8
 		 */
 		*cp = LG_CODEPOINT_INVALID;
 		return 1;
@@ -92,12 +96,16 @@ lg_utf8_decode(const uint8_t *s, size_t n, uint_least32_t *cp)
 	 * (i.e. between 0x80 (10000000) and 0xBF (10111111))
 	 */
 	for (i = 1; i <= off; i++) {
-		if(!BETWEEN(s[i], 0x80, 0xBF)) {
+		if(!BETWEEN(((unsigned char *)s)[i], 0x80, 0xBF)) {
 			/*
 			 * byte does not match format; return
 			 * number of bytes processed excluding the
 			 * unexpected character as recommended since
 			 * Unicode 6 (chapter 3)
+			 *
+			 * this also includes the cases where bits
+			 * higher than the 8th are set on systems
+			 * with CHAR_BIT > 8
 			 */
 			*cp = LG_CODEPOINT_INVALID;
 			return 1 + (i - 1);
@@ -106,7 +114,7 @@ lg_utf8_decode(const uint8_t *s, size_t n, uint_least32_t *cp)
 		 * shift code point by 6 bits and add the 6 stored bits
 		 * in s[i] to it using the bitmask 0x3F (00111111)
 		 */
-		*cp = (*cp << 6) | (s[i] & 0x3F);
+		*cp = (*cp << 6) | (((unsigned char *)s)[i] & 0x3F);
 	}
 
 	if (*cp < lut[off].mincp ||
@@ -125,7 +133,7 @@ lg_utf8_decode(const uint8_t *s, size_t n, uint_least32_t *cp)
 }
 
 size_t
-lg_utf8_encode(uint_least32_t cp, uint8_t *s, size_t n)
+lg_utf8_encode(uint_least32_t cp, char *s, size_t n)
 {
 	size_t off, i;
 
@@ -165,7 +173,7 @@ lg_utf8_encode(uint_least32_t cp, uint8_t *s, size_t n)
 	 * We do not overwrite the mask because we guaranteed earlier
 	 * that there are no bits higher than the mask allows.
 	 */
-	s[0] = lut[off].lower | (uint8_t)(cp >> (6 * off));
+	((unsigned char *)s)[0] = lut[off].lower | (uint8_t)(cp >> (6 * off));
 
 	for (i = 1; i <= off; i++) {
 		/*
@@ -174,7 +182,8 @@ lg_utf8_encode(uint_least32_t cp, uint8_t *s, size_t n)
 		 * extract from the properly-shifted value using the
 		 * mask 00111111 (0x3F)
 		 */
-		s[i] = 0x80 | ((cp >> (6 * (off - i))) & 0x3F);
+		((unsigned char *)s)[i] = 0x80 |
+		                          ((cp >> (6 * (off - i))) & 0x3F);
 	}
 
 	return 1 + off;
