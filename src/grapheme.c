@@ -203,7 +203,7 @@ lg_grapheme_nextbreak(const char *str)
 
 	/* get first code point */
 	len += lg_utf8_decode(str, 5, &cp0);
-	if (cp0 == LG_CODEPOINT_INVALID) {
+	if (cp0 == LG_INVALID_CODE_POINT) {
 		return len;
 	}
 
@@ -211,7 +211,7 @@ lg_grapheme_nextbreak(const char *str)
 		/* get next code point */
 		ret = lg_utf8_decode(str + len, 5, &cp1);
 
-		if (cp1 == LG_CODEPOINT_INVALID ||
+		if (cp1 == LG_INVALID_CODE_POINT ||
 		    lg_grapheme_isbreak(cp0, cp1, &state)) {
 			/* we read an invalid cp or have a breakpoint */
 			break;

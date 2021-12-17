@@ -17,7 +17,7 @@ typedef struct lg_internal_segmentation_state {
 	uint_least16_t flags;
 } LG_SEGMENTATION_STATE;
 
-#define LG_CODEPOINT_INVALID UINT32_C(0xFFFD)
+#define LG_INVALID_CODE_POINT UINT32_C(0xFFFD)
 
 size_t lg_grapheme_nextbreak(const char *);
 

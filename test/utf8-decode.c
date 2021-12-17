@@ -21,7 +21,7 @@ static const struct {
 		.arr     = NULL,
 		.len     = 0,
 		.exp_len = 0,
-		.exp_cp  = LG_CODEPOINT_INVALID,
+		.exp_cp  = LG_INVALID_CODE_POINT,
 	},
 	{
 		/* invalid lead byte
@@ -31,7 +31,7 @@ static const struct {
 		.arr     = (char *)(unsigned char[]){ 0xFD },
 		.len     = 1,
 		.exp_len = 1,
-		.exp_cp  = LG_CODEPOINT_INVALID,
+		.exp_cp  = LG_INVALID_CODE_POINT,
 	},
 	{
 		/* valid 1-byte sequence
@@ -61,7 +61,7 @@ static const struct {
 		.arr     = (char *)(unsigned char[]){ 0xC3 },
 		.len     = 1,
 		.exp_len = 2,
-		.exp_cp  = LG_CODEPOINT_INVALID,
+		.exp_cp  = LG_INVALID_CODE_POINT,
 	},
 	{
 		/* invalid 2-byte sequence (second byte malformed)
@@ -71,7 +71,7 @@ static const struct {
 		.arr     = (char *)(unsigned char[]){ 0xC3, 0xFF },
 		.len     = 2,
 		.exp_len = 1,
-		.exp_cp  = LG_CODEPOINT_INVALID,
+		.exp_cp  = LG_INVALID_CODE_POINT,
 	},
 	{
 		/* invalid 2-byte sequence (overlong encoded)
@@ -81,7 +81,7 @@ static const struct {
 		.arr     = (char *)(unsigned char[]){ 0xC1, 0xBF },
 		.len     = 2,
 		.exp_len = 2,
-		.exp_cp  = LG_CODEPOINT_INVALID,
+		.exp_cp  = LG_INVALID_CODE_POINT,
 	},
 	{
 		/* valid 3-byte sequence
@@ -101,7 +101,7 @@ static const struct {
 		.arr     = (char *)(unsigned char[]){ 0xE0 },
 		.len     = 1,
 		.exp_len = 3,
-		.exp_cp  = LG_CODEPOINT_INVALID,
+		.exp_cp  = LG_INVALID_CODE_POINT,
 	},
 	{
 		/* invalid 3-byte sequence (second byte malformed)
@@ -111,7 +111,7 @@ static const struct {
 		.arr     = (char *)(unsigned char[]){ 0xE0, 0x7F, 0xBF },
 		.len     = 3,
 		.exp_len = 1,
-		.exp_cp  = LG_CODEPOINT_INVALID,
+		.exp_cp  = LG_INVALID_CODE_POINT,
 	},
 	{
 		/* invalid 3-byte sequence (third byte missing)
@@ -121,7 +121,7 @@ static const struct {
 		.arr     = (char *)(unsigned char[]){ 0xE0, 0xBF },
 		.len     = 2,
 		.exp_len = 3,
-		.exp_cp  = LG_CODEPOINT_INVALID,
+		.exp_cp  = LG_INVALID_CODE_POINT,
 	},
 	{
 		/* invalid 3-byte sequence (third byte malformed)
@@ -131,7 +131,7 @@ static const struct {
 		.arr     = (char *)(unsigned char[]){ 0xE0, 0xBF, 0x7F },
 		.len     = 3,
 		.exp_len = 2,
-		.exp_cp  = LG_CODEPOINT_INVALID,
+		.exp_cp  = LG_INVALID_CODE_POINT,
 	},
 	{
 		/* invalid 3-byte sequence (overlong encoded)
@@ -141,7 +141,7 @@ static const struct {
 		.arr     = (char *)(unsigned char[]){ 0xE0, 0x9F, 0xBF },
 		.len     = 3,
 		.exp_len = 3,
-		.exp_cp  = LG_CODEPOINT_INVALID,
+		.exp_cp  = LG_INVALID_CODE_POINT,
 	},
 	{
 		/* invalid 3-byte sequence (UTF-16 surrogate half)
@@ -151,7 +151,7 @@ static const struct {
 		.arr     = (char *)(unsigned char[]){ 0xED, 0xA0, 0x80 },
 		.len     = 3,
 		.exp_len = 3,
-		.exp_cp  = LG_CODEPOINT_INVALID,
+		.exp_cp  = LG_INVALID_CODE_POINT,
 	},
 	{
 		/* valid 4-byte sequence
@@ -171,7 +171,7 @@ static const struct {
 		.arr     = (char *)(unsigned char[]){ 0xF3 },
 		.len     = 1,
 		.exp_len = 4,
-		.exp_cp  = LG_CODEPOINT_INVALID,
+		.exp_cp  = LG_INVALID_CODE_POINT,
 	},
 	{
 		/* invalid 4-byte sequence (second byte malformed)
@@ -181,7 +181,7 @@ static const struct {
 		.arr     = (char *)(unsigned char[]){ 0xF3, 0x7F, 0xBF, 0xBF },
 		.len     = 4,
 		.exp_len = 1,
-		.exp_cp  = LG_CODEPOINT_INVALID,
+		.exp_cp  = LG_INVALID_CODE_POINT,
 	},
 	{
 		/* invalid 4-byte sequence (third byte missing)
@@ -191,7 +191,7 @@ static const struct {
 		.arr     = (char *)(unsigned char[]){ 0xF3, 0xBF },
 		.len     = 2,
 		.exp_len = 4,
-		.exp_cp  = LG_CODEPOINT_INVALID,
+		.exp_cp  = LG_INVALID_CODE_POINT,
 	},
 	{
 		/* invalid 4-byte sequence (third byte malformed)
@@ -201,7 +201,7 @@ static const struct {
 		.arr     = (char *)(unsigned char[]){ 0xF3, 0xBF, 0x7F, 0xBF },
 		.len     = 4,
 		.exp_len = 2,
-		.exp_cp  = LG_CODEPOINT_INVALID,
+		.exp_cp  = LG_INVALID_CODE_POINT,
 	},
 	{
 		/* invalid 4-byte sequence (fourth byte missing)
@@ -211,7 +211,7 @@ static const struct {
 		.arr     = (char *)(unsigned char[]){ 0xF3, 0xBF, 0xBF },
 		.len     = 3,
 		.exp_len = 4,
-		.exp_cp  = LG_CODEPOINT_INVALID,
+		.exp_cp  = LG_INVALID_CODE_POINT,
 	},
 	{
 		/* invalid 4-byte sequence (fourth byte malformed)
@@ -221,7 +221,7 @@ static const struct {
 		.arr     = (char *)(unsigned char[]){ 0xF3, 0xBF, 0xBF, 0x7F },
 		.len     = 4,
 		.exp_len = 3,
-		.exp_cp  = LG_CODEPOINT_INVALID,
+		.exp_cp  = LG_INVALID_CODE_POINT,
 	},
 	{
 		/* invalid 4-byte sequence (overlong encoded)
@@ -231,7 +231,7 @@ static const struct {
 		.arr     = (char *)(unsigned char[]){ 0xF0, 0x80, 0x81, 0xBF },
 		.len     = 4,
 		.exp_len = 4,
-		.exp_cp  = LG_CODEPOINT_INVALID,
+		.exp_cp  = LG_INVALID_CODE_POINT,
 	},
 	{
 		/* invalid 4-byte sequence (UTF-16-unrepresentable)
@@ -241,7 +241,7 @@ static const struct {
 		.arr     = (char *)(unsigned char[]){ 0xF4, 0x90, 0x80, 0x80 },
 		.len     = 4,
 		.exp_len = 4,
-		.exp_cp  = LG_CODEPOINT_INVALID,
+		.exp_cp  = LG_INVALID_CODE_POINT,
 	},
 };
 

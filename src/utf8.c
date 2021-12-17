@@ -54,7 +54,7 @@ lg_utf8_decode(const char *s, size_t n, uint_least32_t *cp)
 
 	if (s == NULL || n == 0) {
 		/* a sequence must be at least 1 byte long */
-		*cp = LG_CODEPOINT_INVALID;
+		*cp = LG_INVALID_CODE_POINT;
 		return 0;
 	}
 
@@ -79,7 +79,7 @@ lg_utf8_decode(const char *s, size_t n, uint_least32_t *cp)
 		 * this also includes the cases where bits higher than
 		 * the 8th are set on systems with CHAR_BIT > 8
 		 */
-		*cp = LG_CODEPOINT_INVALID;
+		*cp = LG_INVALID_CODE_POINT;
 		return 1;
 	}
 	if (1 + off > n) {
@@ -87,7 +87,7 @@ lg_utf8_decode(const char *s, size_t n, uint_least32_t *cp)
 		 * input is not long enough, set cp as invalid and
 		 * return number of bytes needed
 		 */
-		*cp = LG_CODEPOINT_INVALID;
+		*cp = LG_INVALID_CODE_POINT;
 		return 1 + off;
 	}
 
@@ -107,7 +107,7 @@ lg_utf8_decode(const char *s, size_t n, uint_least32_t *cp)
 			 * higher than the 8th are set on systems
 			 * with CHAR_BIT > 8
 			 */
-			*cp = LG_CODEPOINT_INVALID;
+			*cp = LG_INVALID_CODE_POINT;
 			return 1 + (i - 1);
 		}
 		/*
@@ -126,7 +126,7 @@ lg_utf8_decode(const char *s, size_t n, uint_least32_t *cp)
 		 * not representable in UTF-16 (>0x10FFFF) (RFC-3629
 		 * specifies the latter two conditions)
 		 */
-		*cp = LG_CODEPOINT_INVALID;
+		*cp = LG_INVALID_CODE_POINT;
 	}
 
 	return 1 + off;
@@ -144,7 +144,7 @@ lg_utf8_encode(uint_least32_t cp, char *s, size_t n)
 		 * (0xD800..0xDFFF) or not representable in UTF-16
 		 * (>0x10FFFF), which RFC-3629 deems invalid for UTF-8.
 		 */
-		cp = LG_CODEPOINT_INVALID;
+		cp = LG_INVALID_CODE_POINT;
 	}
 
 	/* determine necessary sequence type */
