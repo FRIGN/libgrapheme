@@ -1,4 +1,4 @@
-.Dd 2021-12-15
+.Dd 2021-12-18
 .Dt LG_GRAPHEME_NEXTBREAK 3
 .Os suckless.org
 .Sh NAME
@@ -9,8 +9,9 @@
 .Ft size_t
 .Fn lg_grapheme_nextbreak "const char *str"
 .Sh DESCRIPTION
+The
 .Fn lg_grapheme_nextbreak
-computes the offset (in bytes) to the next grapheme
+function computes the offset (in bytes) to the next grapheme
 cluster break (see
 .Xr libgrapheme 7 )
 in the UTF-8-encoded NUL-terminated string
@@ -23,8 +24,9 @@ For non-UTF-8 input data
 .Xr lg_grapheme_isbreak 3
 can be used instead.
 .Sh RETURN VALUES
+The
 .Fn lg_grapheme_nextbreak
-returns the offset (in bytes) to the next grapheme cluster
+function returns the offset (in bytes) to the next grapheme cluster
 break in
 .Va str
 or 0 if

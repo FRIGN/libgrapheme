@@ -1,4 +1,4 @@
-.Dd 2021-12-15
+.Dd 2021-12-18
 .Dt LG_GRAPHEME_ISBREAK 3
 .Os suckless.org
 .Sh NAME
@@ -7,16 +7,16 @@
 .Sh SYNOPSIS
 .In grapheme.h
 .Ft size_t
-.Fn lg_grapheme_isbreak "uint_least32_t a, uint_least32_t b, LG_SEGMENTATION_STATE *state"
+.Fn lg_grapheme_isbreak "uint_least32_t cp1" "uint_least32_t cp2" "LG_SEGMENTATION_STATE *state"
 .Sh DESCRIPTION
 The
 .Fn lg_grapheme_isbreak
 function determines if there is a grapheme cluster break (see
 .Xr libgrapheme 7 )
 between the two code points
-.Va a
+.Va cp1
 and
-.Va b .
+.Va cp2 .
 By specification this decision depends on a
 .Va state
 that can at most be completely reset after detecting a break and must
@@ -29,13 +29,14 @@ is
 .Fn lg_grapheme_isbreak
 behaves as if it was called with a fully reset state.
 .Sh RETURN VALUES
+The
 .Fn lg_grapheme_isbreak
-returns
+function returns
 .Va true
 if there is a grapheme cluster break between the code points
-.Va a
+.Va cp1
 and
-.Va b
+.Va cp2
 and
 .Va false
 if there is not.
