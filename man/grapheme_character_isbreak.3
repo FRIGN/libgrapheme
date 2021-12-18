@@ -1,16 +1,16 @@
 .Dd 2021-12-18
-.Dt LG_GRAPHEME_ISBREAK 3
+.Dt GRAPHEME_CHARACTER_ISBREAK 3
 .Os suckless.org
 .Sh NAME
-.Nm lg_grapheme_isbreak
+.Nm grapheme_character_isbreak
 .Nd test for a grapheme cluster break between two code points
 .Sh SYNOPSIS
 .In grapheme.h
 .Ft size_t
-.Fn lg_grapheme_isbreak "uint_least32_t cp1" "uint_least32_t cp2" "LG_SEGMENTATION_STATE *state"
+.Fn grapheme_character_isbreak "uint_least32_t cp1" "uint_least32_t cp2" "GRAPHEME_SEGMENTATION_STATE *state"
 .Sh DESCRIPTION
 The
-.Fn lg_grapheme_isbreak
+.Fn grapheme_character_isbreak
 function determines if there is a grapheme cluster break (see
 .Xr libgrapheme 7 )
 between the two code points
@@ -26,11 +26,11 @@ If
 .Va state
 is
 .Dv NULL
-.Fn lg_grapheme_isbreak
+.Fn grapheme_character_isbreak
 behaves as if it was called with a fully reset state.
 .Sh RETURN VALUES
 The
-.Fn lg_grapheme_isbreak
+.Fn grapheme_character_isbreak
 function returns
 .Va true
 if there is a grapheme cluster break between the code points
@@ -51,18 +51,18 @@ if there is not.
 int
 main(void)
 {
-	LG_SEGMENTATION_STATE state = { 0 };
+	GRAPHEME_SEGMENTATION_STATE state = { 0 };
 	uint_least32_t s1[] = ..., s2[] = ...; /* two input arrays */
 	size_t i;
 
 	for (i = 0; i + 1 < sizeof(s1) / sizeof(*s1); i++) {
-		if (lg_grapheme_isbreak(s[i], s[i + 1], &state)) {
+		if (grapheme_character_isbreak(s[i], s[i + 1], &state)) {
 			printf("break in s1 at offset %zu\n", i);
 		}
 	}
 	memset(&state, 0, sizeof(state)); /* reset state */
 	for (i = 0; i + 1 < sizeof(s2) / sizeof(*s2); i++) {
-		if (lg_grapheme_isbreak(s[i], s[i + 1], &state)) {
+		if (grapheme_character_isbreak(s[i], s[i + 1], &state)) {
 			printf("break in s2 at offset %zu\n", i);
 		}
 	}
@@ -71,10 +71,10 @@ main(void)
 }
 .Ed
 .Sh SEE ALSO
-.Xr lg_grapheme_nextbreak 3 ,
+.Xr grapheme_character_nextbreak 3 ,
 .Xr libgrapheme 7
 .Sh STANDARDS
-.Fn lg_grapheme_isbreak
+.Fn grapheme_character_isbreak
 is compliant with the Unicode 14.0.0 specification.
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de

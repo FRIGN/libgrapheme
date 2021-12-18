@@ -11,7 +11,7 @@
 int
 main(int argc, char *argv[])
 {
-	LG_SEGMENTATION_STATE state;
+	GRAPHEME_SEGMENTATION_STATE state;
 	size_t i, j, k, len, failed;
 
 	(void)argc;
@@ -21,9 +21,9 @@ main(int argc, char *argv[])
 		memset(&state, 0, sizeof(state));
 		for (j = 0, k = 0, len = 1; j < character_test[i].cplen; j++) {
 			if ((j + 1) == character_test[i].cplen ||
-			    lg_character_isbreak(character_test[i].cp[j],
-			                         character_test[i].cp[j + 1],
-			                         &state)) {
+			    grapheme_character_isbreak(character_test[i].cp[j],
+			                               character_test[i].cp[j + 1],
+			                               &state)) {
 				/* check if our resulting length matches */
 				if (k == character_test[i].lenlen ||
 				    len != character_test[i].len[k++]) {

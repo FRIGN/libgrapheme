@@ -19,10 +19,10 @@ struct range_list {
 	size_t len;
 };
 
-int heisenstate_get(struct lg_internal_heisenstate *, int);
-int heisenstate_set(struct lg_internal_heisenstate *, int, int);
+int heisenstate_get(struct grapheme_internal_heisenstate *, int);
+int heisenstate_set(struct grapheme_internal_heisenstate *, int, int);
 
-int has_property(uint_least32_t, struct lg_internal_heisenstate *,
+int has_property(uint_least32_t, struct grapheme_internal_heisenstate *,
                  const struct range_list *, int);
 
 #endif /* UTIL_H */

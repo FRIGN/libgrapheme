@@ -14,9 +14,10 @@ enum {
 };
 
 bool
-lg_character_isbreak(uint_least32_t a, uint_least32_t b, LG_SEGMENTATION_STATE *state)
+grapheme_character_isbreak(uint_least32_t a, uint_least32_t b,
+                           GRAPHEME_SEGMENTATION_STATE *state)
 {
-	struct lg_internal_heisenstate *p[2] = { 0 };
+	struct grapheme_internal_heisenstate *p[2] = { 0 };
 	uint_least16_t flags = 0;
 	bool isbreak = true;
 
@@ -179,18 +180,18 @@ hasbreak:
 }
 
 size_t
-lg_character_nextbreak(const char *str)
+grapheme_character_nextbreak(const char *str)
 {
 	uint_least32_t cp0, cp1;
 	size_t ret, len = 0;
-	LG_SEGMENTATION_STATE state = { 0 };
+	GRAPHEME_SEGMENTATION_STATE state = { 0 };
 
 	if (str == NULL) {
 		return 0;
 	}
 
 	/*
-	 * lg_utf8_decode, when it encounters an unexpected byte,
+	 * grapheme_utf8_decode, when it encounters an unexpected byte,
 	 * does not count it to the error and instead assumes that the
 	 * unexpected byte is the beginning of a new sequence.
 	 * This way, when the string ends with a null byte, we never
@@ -202,17 +203,17 @@ lg_character_nextbreak(const char *str)
 	 */
 
 	/* get first code point */
-	len += lg_utf8_decode(str, (size_t)-1, &cp0);
-	if (cp0 == LG_INVALID_CODE_POINT) {
+	len += grapheme_utf8_decode(str, (size_t)-1, &cp0);
+	if (cp0 == GRAPHEME_INVALID_CODE_POINT) {
 		return len;
 	}
 
 	while (cp0 != 0) {
 		/* get next code point */
-		ret = lg_utf8_decode(str + len, (size_t)-1, &cp1);
+		ret = grapheme_utf8_decode(str + len, (size_t)-1, &cp1);
 
-		if (cp1 == LG_INVALID_CODE_POINT ||
-		    lg_character_isbreak(cp0, cp1, &state)) {
+		if (cp1 == GRAPHEME_INVALID_CODE_POINT ||
+		    grapheme_character_isbreak(cp0, cp1, &state)) {
 			/* we read an invalid cp or have a breakpoint */
 			break;
 		} else {

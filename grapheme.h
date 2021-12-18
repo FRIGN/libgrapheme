@@ -6,24 +6,25 @@
 #include <stddef.h>
 #include <stdint.h>
 
-struct lg_internal_heisenstate {
+struct grapheme_internal_heisenstate {
 	uint_least64_t determined;
 	uint_least64_t state;
 };
 
-typedef struct lg_internal_segmentation_state {
-	struct lg_internal_heisenstate a;
-	struct lg_internal_heisenstate b;
+typedef struct grapheme_internal_segmentation_state {
+	struct grapheme_internal_heisenstate a;
+	struct grapheme_internal_heisenstate b;
 	uint_least16_t flags;
-} LG_SEGMENTATION_STATE;
+} GRAPHEME_SEGMENTATION_STATE;
 
-#define LG_INVALID_CODE_POINT UINT32_C(0xFFFD)
+#define GRAPHEME_INVALID_CODE_POINT UINT32_C(0xFFFD)
 
-size_t lg_character_nextbreak(const char *);
+size_t grapheme_character_nextbreak(const char *);
 
-bool lg_character_isbreak(uint_least32_t, uint_least32_t, LG_SEGMENTATION_STATE *);
+bool grapheme_character_isbreak(uint_least32_t, uint_least32_t,
+                                GRAPHEME_SEGMENTATION_STATE *);
 
-size_t lg_utf8_decode(const char *, size_t, uint_least32_t *);
-size_t lg_utf8_encode(uint_least32_t, char *, size_t);
+size_t grapheme_utf8_decode(const char *, size_t, uint_least32_t *);
+size_t grapheme_utf8_encode(uint_least32_t, char *, size_t);
 
 #endif /* GRAPHEME_H */

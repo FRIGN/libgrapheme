@@ -48,13 +48,13 @@ static const struct {
 };
 
 size_t
-lg_utf8_decode(const char *s, size_t n, uint_least32_t *cp)
+grapheme_utf8_decode(const char *s, size_t n, uint_least32_t *cp)
 {
 	size_t off, i;
 
 	if (s == NULL || n == 0) {
 		/* a sequence must be at least 1 byte long */
-		*cp = LG_INVALID_CODE_POINT;
+		*cp = GRAPHEME_INVALID_CODE_POINT;
 		return 0;
 	}
 
@@ -79,14 +79,14 @@ lg_utf8_decode(const char *s, size_t n, uint_least32_t *cp)
 		 * this also includes the cases where bits higher than
 		 * the 8th are set on systems with CHAR_BIT > 8
 		 */
-		*cp = LG_INVALID_CODE_POINT;
+		*cp = GRAPHEME_INVALID_CODE_POINT;
 		return 1;
 	}
 	if (1 + off > n) {
 		/*
 		 * input is not long enough, set cp as invalid
 		 */
-		*cp = LG_INVALID_CODE_POINT;
+		*cp = GRAPHEME_INVALID_CODE_POINT;
 
 		/*
 		 * count the following continuation bytes, but nothing
@@ -125,7 +125,7 @@ lg_utf8_decode(const char *s, size_t n, uint_least32_t *cp)
 			 * higher than the 8th are set on systems
 			 * with CHAR_BIT > 8
 			 */
-			*cp = LG_INVALID_CODE_POINT;
+			*cp = GRAPHEME_INVALID_CODE_POINT;
 			return 1 + (i - 1);
 		}
 		/*
@@ -144,14 +144,14 @@ lg_utf8_decode(const char *s, size_t n, uint_least32_t *cp)
 		 * not representable in UTF-16 (>0x10FFFF) (RFC-3629
 		 * specifies the latter two conditions)
 		 */
-		*cp = LG_INVALID_CODE_POINT;
+		*cp = GRAPHEME_INVALID_CODE_POINT;
 	}
 
 	return 1 + off;
 }
 
 size_t
-lg_utf8_encode(uint_least32_t cp, char *s, size_t n)
+grapheme_utf8_encode(uint_least32_t cp, char *s, size_t n)
 {
 	size_t off, i;
 
@@ -162,7 +162,7 @@ lg_utf8_encode(uint_least32_t cp, char *s, size_t n)
 		 * (0xD800..0xDFFF) or not representable in UTF-16
 		 * (>0x10FFFF), which RFC-3629 deems invalid for UTF-8.
 		 */
-		cp = LG_INVALID_CODE_POINT;
+		cp = GRAPHEME_INVALID_CODE_POINT;
 	}
 
 	/* determine necessary sequence type */

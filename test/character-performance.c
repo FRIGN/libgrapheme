@@ -17,7 +17,7 @@ main(int argc, char *argv[])
 	struct timespec start, end;
 	size_t i, j, bufsiz, off;
 	uint32_t *buf;
-	LG_SEGMENTATION_STATE state;
+	GRAPHEME_SEGMENTATION_STATE state;
 	double cp_per_sec;
 
 	(void)argc;
@@ -45,7 +45,7 @@ main(int argc, char *argv[])
 	for (i = 0; i < NUM_ITERATIONS; i++) {
 		memset(&state, 0, sizeof(state));
 		for (j = 0; j < bufsiz - 1; j++) {
-			(void)lg_character_isbreak(buf[j], buf[j+1], &state);
+			(void)grapheme_character_isbreak(buf[j], buf[j+1], &state);
 		}
 		if (i % (NUM_ITERATIONS / 10) == 0) {
 			printf(".");

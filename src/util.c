@@ -8,7 +8,7 @@
 /* 64-slot (0,...,63) optionally undetermined binary state */
 
 int
-heisenstate_get(struct lg_internal_heisenstate *h, int slot)
+heisenstate_get(struct grapheme_internal_heisenstate *h, int slot)
 {
 	if (h == NULL || slot >= 64 || slot < 0 ||
 	    !(h->determined & (1 << slot))) {
@@ -21,7 +21,7 @@ heisenstate_get(struct lg_internal_heisenstate *h, int slot)
 }
 
 int
-heisenstate_set(struct lg_internal_heisenstate *h, int slot, int state)
+heisenstate_set(struct grapheme_internal_heisenstate *h, int slot, int state)
 {
 	if (h == NULL || slot >= 64 || slot < 0) {
 		/* no state given or slot out of range */
@@ -54,7 +54,7 @@ cp_cmp(const void *a, const void *b)
 }
 
 int
-has_property(uint_least32_t cp, struct lg_internal_heisenstate *cpstate,
+has_property(uint_least32_t cp, struct grapheme_internal_heisenstate *cpstate,
              const struct range_list *proptable, int property)
 {
 	int res;
