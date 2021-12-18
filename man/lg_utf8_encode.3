@@ -1,0 +1,98 @@
+.Dd 2021-12-17
+.Dt LG_UTF8_ENCODE 3
+.Os suckless.org
+.Sh NAME
+.Nm lg_utf8_encode
+.Nd encode code point into UTF-8 string
+.Sh SYNOPSIS
+.In grapheme.h
+.Ft size_t
+.Fn lg_utf8_encode "uint_least32_t cp" "char *" "size_t"
+.Sh DESCRIPTION
+The
+.Fn lg_utf8_encode
+function encodes the code point
+.Va cp
+into a UTF-8-string.
+If
+.Va str
+is not
+.Dv NULL
+and
+.Va len
+is large enough it writes the UTF-8-string to the memory pointed to by
+.Va str .
+.Sh RETURN VALUES
+The
+.Fn lg_utf8_encode
+function returns the length (in bytes) of the UTF-8-string resulting
+from encoding
+.Va cp .
+When the returned value is larger than
+.Va len
+it is indicated that the output string is too small and no data has been
+written.
+.Sh EXAMPLES
+.Bd -literal
+/* cc (-static) -o example example.c -lgrapheme */
+#include <grapheme.h>
+#include <stddef.h>
+#include <stdlib.h>
+
+size_t
+cps_to_utf8(const uint_least32_t *cp, size_t cplen, char *str, size_t len)
+{
+	size_t i, off, ret;
+
+	for (i = 0, off = 0; i < cplen; i++, off += ret) {
+		if ((ret = lg_utf8_encode(cp[i], str + off,
+		                          len - off)) > (len - off)) {
+			/* buffer too small */
+			break;
+		}
+	}
+	
+	return off;
+}
+
+size_t
+cps_bytelen(const uint_least32_t *cp, size_t cplen)
+{
+	size_t i, len;
+
+	for (i = 0, len = 0; i < cplen; i++) {
+		len += lg_utf8_encode(cp[i], NULL, 0);
+	}
+
+	return len;
+}
+
+char *
+cps_to_utf8_alloc(const uint_least32_t *cp, size_t cplen)
+{
+	char *str;
+	size_t len, i, ret, off;
+
+	len = cps_bytelen(cp, cplen);
+
+	if (!(str = malloc(len))) {
+		return NULL;
+	}
+
+	for (i = 0, off = 0; i < cplen; i++, off += ret) {
+		if ((ret = lg_utf8_encode(cp[i], str + off,
+		                          len - off)) > (len - off)) {
+			/* buffer too small */
+			break;
+		}
+	}
+	str[off] = '\\0';
+
+	return str;
+}
+.Ed
+.Sh SEE ALSO
+.Xr lg_grapheme_decode 3 ,
+.Xr libgrapheme 7
+.Sh AUTHORS
+.An Laslo Hunhold Aq Mt dev@frign.de

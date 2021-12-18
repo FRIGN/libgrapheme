@@ -197,19 +197,19 @@ lg_grapheme_nextbreak(const char *str)
 	 * miss it, even if the previous UTF-8 sequence terminates
 	 * unexpectedly, as it would either act as an unexpected byte,
 	 * saved for later, or as a null byte itself, that we can catch.
-	 * We pass 5 to the length, as we will never read beyond
+	 * We pass (size_t)-1 to the length, as we will never read beyond
 	 * the null byte for the reasons given above.
 	 */
 
 	/* get first code point */
-	len += lg_utf8_decode(str, 5, &cp0);
+	len += lg_utf8_decode(str, (size_t)-1, &cp0);
 	if (cp0 == LG_INVALID_CODE_POINT) {
 		return len;
 	}
 
 	while (cp0 != 0) {
 		/* get next code point */
-		ret = lg_utf8_decode(str + len, 5, &cp1);
+		ret = lg_utf8_decode(str + len, (size_t)-1, &cp1);
 
 		if (cp1 == LG_INVALID_CODE_POINT ||
 		    lg_grapheme_isbreak(cp0, cp1, &state)) {
