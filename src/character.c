@@ -197,19 +197,19 @@ grapheme_next_character_break(const char *str)
 	 * miss it, even if the previous UTF-8 sequence terminates
 	 * unexpectedly, as it would either act as an unexpected byte,
 	 * saved for later, or as a null byte itself, that we can catch.
-	 * We pass (size_t)-1 to the length, as we will never read beyond
+	 * We pass SIZE_MAX to the length, as we will never read beyond
 	 * the null byte for the reasons given above.
 	 */
 
 	/* get first codepoint */
-	len += grapheme_decode_utf8(str, (size_t)-1, &cp0);
+	len += grapheme_decode_utf8(str, SIZE_MAX, &cp0);
 	if (cp0 == GRAPHEME_INVALID_CODEPOINT) {
 		return len;
 	}
 
 	while (cp0 != 0) {
 		/* get next codepoint */
-		ret = grapheme_decode_utf8(str + len, (size_t)-1, &cp1);
+		ret = grapheme_decode_utf8(str + len, SIZE_MAX, &cp1);
 
 		if (cp1 == GRAPHEME_INVALID_CODEPOINT ||
 		    grapheme_is_character_break(cp0, cp1, &state)) {

@@ -31,8 +31,8 @@ Given NUL has a unique 1 byte representation, it is safe to operate on
 NUL-terminated strings by setting
 .Va len
 to
-.Dv (size_t)-1
-and terminating when
+.Dv SIZE_MAX
+(stdint.h is already included by grapheme.h) and terminating when
 .Va cp
 is 0 (see
 .Sx EXAMPLES
@@ -87,7 +87,7 @@ print_cps_nul_terminated(const char *str)
 	uint_least32_t cp;
 
 	for (off = 0; (ret = grapheme_decode_utf8(str + off,
-	                                          (size_t)-1, &cp)) > 0 &&
+	                                          SIZE_MAX, &cp)) > 0 &&
 	     cp != 0; off += ret) {
 		printf("%"PRIxLEAST32"\\n", cp);
 	}
