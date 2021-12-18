@@ -201,14 +201,14 @@ grapheme_character_nextbreak(const char *str)
 	 * the null byte for the reasons given above.
 	 */
 
-	/* get first code point */
+	/* get first codepoint */
 	len += grapheme_utf8_decode(str, (size_t)-1, &cp0);
 	if (cp0 == GRAPHEME_INVALID_CODE_POINT) {
 		return len;
 	}
 
 	while (cp0 != 0) {
-		/* get next code point */
+		/* get next codepoint */
 		ret = grapheme_utf8_decode(str + len, (size_t)-1, &cp1);
 
 		if (cp1 == GRAPHEME_INVALID_CODE_POINT ||

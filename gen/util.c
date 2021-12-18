@@ -325,7 +325,7 @@ segment_test_callback(char *fname, char **field, size_t nfields, char *comment, 
 				return 1;
 			}
 		} else {
-			/* add code point to cp-array */
+			/* add codepoint to cp-array */
 			if ((t->cp = realloc(t->cp, ++t->cplen *
 			                     sizeof(*t->cp))) == NULL) {
 				fprintf(stderr, "segment_test_callback: realloc: %s.\n", strerror(errno));

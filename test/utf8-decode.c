@@ -11,7 +11,7 @@ static const struct {
 	char          *arr;     /* UTF-8 byte sequence */
 	size_t         len;     /* length of UTF-8 byte sequence */
 	size_t         exp_len; /* expected length returned */
-	uint_least32_t exp_cp;  /* expected code point returned */
+	uint_least32_t exp_cp;  /* expected codepoint returned */
 } dec_test[] = {
 	{
 		/* empty sequence

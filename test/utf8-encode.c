@@ -8,42 +8,42 @@
 #include "util.h"
 
 static const struct {
-	uint_least32_t cp;      /* input code point */
+	uint_least32_t cp;      /* input codepoint */
 	char          *exp_arr; /* expected UTF-8 byte sequence */
 	size_t         exp_len; /* expected length of UTF-8 sequence */
 } enc_test[] = {
 	{
-		/* invalid code point (UTF-16 surrogate half) */
+		/* invalid codepoint (UTF-16 surrogate half) */
 		.cp      = UINT32_C(0xD800),
 		.exp_arr = (char *)(unsigned char[]){ 0xEF, 0xBF, 0xBD },
 		.exp_len = 3,
 	},
 	{
-		/* invalid code point (UTF-16-unrepresentable) */
+		/* invalid codepoint (UTF-16-unrepresentable) */
 		.cp      = UINT32_C(0x110000),
 		.exp_arr = (char *)(unsigned char[]){ 0xEF, 0xBF, 0xBD },
 		.exp_len = 3,
 	},
 	{
-		/* code point encoded to a 1-byte sequence */
+		/* codepoint encoded to a 1-byte sequence */
 		.cp      = 0x01,
 		.exp_arr = (char *)(unsigned char[]){ 0x01 },
 		.exp_len = 1,
 	},
 	{
-		/* code point encoded to a 2-byte sequence */
+		/* codepoint encoded to a 2-byte sequence */
 		.cp      = 0xFF,
 		.exp_arr = (char *)(unsigned char[]){ 0xC3, 0xBF },
 		.exp_len = 2,
 	},
 	{
-		/* code point encoded to a 3-byte sequence */
+		/* codepoint encoded to a 3-byte sequence */
 		.cp      = 0xFFF,
 		.exp_arr = (char *)(unsigned char[]){ 0xE0, 0xBF, 0xBF },
 		.exp_len = 3,
 	},
 	{
-		/* code point encoded to a 4-byte sequence */
+		/* codepoint encoded to a 4-byte sequence */
 		.cp      = UINT32_C(0xFFFFF),
 		.exp_arr = (char *)(unsigned char[]){ 0xF3, 0xBF, 0xBF, 0xBF },
 		.exp_len = 4,

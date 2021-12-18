@@ -3,7 +3,7 @@
 .Os suckless.org
 .Sh NAME
 .Nm grapheme_utf8_decode
-.Nd decode first code point in UTF-8-encoded string
+.Nd decode first codepoint in UTF-8-encoded string
 .Sh SYNOPSIS
 .In grapheme.h
 .Ft size_t
@@ -11,20 +11,20 @@
 .Sh DESCRIPTION
 The
 .Fn grapheme_utf8_decode
-function decodes the next code point in the UTF-8-encoded string
+function decodes the next codepoint in the UTF-8-encoded string
 .Va str
 of length
 .Va len .
 If the UTF-8-sequence is invalid (overlong encoding, unexpected byte,
 string ends unexpectedly, empty string, etc.) the decoding is stopped
-at the last processed byte and the decoded code point set to
+at the last processed byte and the decoded codepoint set to
 .Dv GRAPHEME_INVALID_CODE_POINT.
 .Pp
 If
 .Va cp
 is not
 .Dv NULL
-the decoded code point is stored in the memory pointed to by
+the decoded codepoint is stored in the memory pointed to by
 .Va cp .
 .Pp
 Given NUL has a unique 1 byte representation, it is safe to operate on

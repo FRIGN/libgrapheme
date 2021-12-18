@@ -10,8 +10,8 @@
 static const struct {
 	uint8_t        lower; /* lower bound of sequence first byte */
 	uint8_t        upper; /* upper bound of sequence first byte */
-	uint_least32_t mincp; /* smallest non-overlong encoded code point */
-	uint_least32_t maxcp; /* largest encodable code point */
+	uint_least32_t mincp; /* smallest non-overlong encoded codepoint */
+	uint_least32_t maxcp; /* largest encodable codepoint */
 	/*
 	 * implicit: table-offset represents the number of following
 	 * bytes of the form 10xxxxxx (6 bits capacity each)
@@ -129,7 +129,7 @@ grapheme_utf8_decode(const char *s, size_t n, uint_least32_t *cp)
 			return 1 + (i - 1);
 		}
 		/*
-		 * shift code point by 6 bits and add the 6 stored bits
+		 * shift codepoint by 6 bits and add the 6 stored bits
 		 * in s[i] to it using the bitmask 0x3F (00111111)
 		 */
 		*cp = (*cp << 6) | (((const unsigned char *)s)[i] & 0x3F);
@@ -139,7 +139,7 @@ grapheme_utf8_decode(const char *s, size_t n, uint_least32_t *cp)
 	    BETWEEN(*cp, UINT32_C(0xD800), UINT32_C(0xDFFF)) ||
 	    *cp > UINT32_C(0x10FFFF)) {
 		/*
-		 * code point is overlong encoded in the sequence, is a
+		 * codepoint is overlong encoded in the sequence, is a
 		 * high or low UTF-16 surrogate half (0xD800..0xDFFF) or
 		 * not representable in UTF-16 (>0x10FFFF) (RFC-3629
 		 * specifies the latter two conditions)
@@ -158,7 +158,7 @@ grapheme_utf8_encode(uint_least32_t cp, char *s, size_t n)
 	if (BETWEEN(cp, UINT32_C(0xD800), UINT32_C(0xDFFF)) ||
 	    cp > UINT32_C(0x10FFFF)) {
 		/*
-		 * code point is a high or low UTF-16 surrogate half
+		 * codepoint is a high or low UTF-16 surrogate half
 		 * (0xD800..0xDFFF) or not representable in UTF-16
 		 * (>0x10FFFF), which RFC-3629 deems invalid for UTF-8.
 		 */
