@@ -7,7 +7,7 @@
 .Sh SYNOPSIS
 .In grapheme.h
 .Ft size_t
-.Fn grapheme_character_isbreak "uint_least32_t cp1" "uint_least32_t cp2" "GRAPHEME_SEGMENTATION_STATE *state"
+.Fn grapheme_character_isbreak "uint_least32_t cp1" "uint_least32_t cp2" "GRAPHEME_STATE *state"
 .Sh DESCRIPTION
 The
 .Fn grapheme_character_isbreak
@@ -51,7 +51,7 @@ if there is not.
 int
 main(void)
 {
-	GRAPHEME_SEGMENTATION_STATE state = { 0 };
+	GRAPHEME_STATE state = { 0 };
 	uint_least32_t s1[] = ..., s2[] = ...; /* two input arrays */
 	size_t i;
 

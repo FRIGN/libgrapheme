@@ -17,7 +17,7 @@ main(int argc, char *argv[])
 	struct timespec start, end;
 	size_t i, j, bufsiz, off;
 	uint32_t *buf;
-	GRAPHEME_SEGMENTATION_STATE state;
+	GRAPHEME_STATE state;
 	double cp_per_sec;
 
 	(void)argc;

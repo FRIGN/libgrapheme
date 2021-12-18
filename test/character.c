@@ -11,7 +11,7 @@
 int
 main(int argc, char *argv[])
 {
-	GRAPHEME_SEGMENTATION_STATE state;
+	GRAPHEME_STATE state;
 	size_t i, j, k, len, failed;
 
 	(void)argc;

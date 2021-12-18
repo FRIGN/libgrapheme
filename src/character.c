@@ -14,8 +14,7 @@ enum {
 };
 
 bool
-grapheme_character_isbreak(uint_least32_t a, uint_least32_t b,
-                           GRAPHEME_SEGMENTATION_STATE *state)
+grapheme_character_isbreak(uint_least32_t a, uint_least32_t b, GRAPHEME_STATE *state)
 {
 	struct grapheme_internal_heisenstate *p[2] = { 0 };
 	uint_least16_t flags = 0;
@@ -184,7 +183,7 @@ grapheme_character_nextbreak(const char *str)
 {
 	uint_least32_t cp0, cp1;
 	size_t ret, len = 0;
-	GRAPHEME_SEGMENTATION_STATE state = { 0 };
+	GRAPHEME_STATE state = { 0 };
 
 	if (str == NULL) {
 		return 0;
