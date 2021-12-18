@@ -27,6 +27,8 @@ TEST =\
 MAN3 =\
 	man/lg_grapheme_isbreak.3\
 	man/lg_grapheme_nextbreak.3\
+	man/lg_utf8_decode.3\
+	man/lg_utf8_encode.3\
 
 MAN7 = man/libgrapheme.7
 
