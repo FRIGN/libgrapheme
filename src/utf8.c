@@ -84,11 +84,29 @@ lg_utf8_decode(const char *s, size_t n, uint_least32_t *cp)
 	}
 	if (1 + off > n) {
 		/*
-		 * input is not long enough, set cp as invalid and
-		 * return number of bytes needed
+		 * input is not long enough, set cp as invalid
 		 */
 		*cp = LG_INVALID_CODE_POINT;
-		return 1 + off;
+
+		/*
+		 * count the following continuation bytes, but nothing
+		 * else in case we have a "rogue" case where e.g. such a
+		 * sequence starter occurs right before a NUL-byte.
+		 */
+		for (i = 0; 1 + i < n; i++) {
+			if(!BETWEEN(((const unsigned char *)s)[1 + i],
+			            0x80, 0xBF)) {
+				break;
+			}
+		}
+
+		/*
+		 * if the continuation bytes do not continue until
+		 * the end, return the incomplete sequence length.
+		 * Otherwise return the number of bytes we actually
+		 * expected, which is larger than n.
+		 */
+		return ((1 + i) < n) ? (1 + i) : (1 + off);
 	}
 
 	/*
