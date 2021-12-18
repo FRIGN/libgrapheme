@@ -6,7 +6,7 @@
 #include <time.h>
 
 #include "../grapheme.h"
-#include "../gen/grapheme-test.h"
+#include "../gen/character-test.h"
 #include "util.h"
 
 #define NUM_ITERATIONS 1000
@@ -23,18 +23,18 @@ main(int argc, char *argv[])
 	(void)argc;
 
 	/* allocate and generate buffer */
-	for (i = 0, bufsiz = 0; i < LEN(grapheme_test); i++) {
-		bufsiz += grapheme_test[i].cplen;
+	for (i = 0, bufsiz = 0; i < LEN(character_test); i++) {
+		bufsiz += character_test[i].cplen;
 	}
 	if (!(buf = calloc(bufsiz, sizeof(*buf)))) {
 		fprintf(stderr, "%s: calloc: Out of memory.\n", argv[0]);
 		return 1;
 	}
-	for (i = 0, off = 0; i < LEN(grapheme_test); i++) {
-		for (j = 0; j < grapheme_test[i].cplen; j++) {
-			buf[off + j] = grapheme_test[i].cp[j];
+	for (i = 0, off = 0; i < LEN(character_test); i++) {
+		for (j = 0; j < character_test[i].cplen; j++) {
+			buf[off + j] = character_test[i].cp[j];
 		}
-		off += grapheme_test[i].cplen;
+		off += character_test[i].cplen;
 	}
 
 	/* run test */
@@ -45,7 +45,7 @@ main(int argc, char *argv[])
 	for (i = 0; i < NUM_ITERATIONS; i++) {
 		memset(&state, 0, sizeof(state));
 		for (j = 0; j < bufsiz - 1; j++) {
-			(void)lg_grapheme_isbreak(buf[j], buf[j+1], &state);
+			(void)lg_character_isbreak(buf[j], buf[j+1], &state);
 		}
 		if (i % (NUM_ITERATIONS / 10) == 0) {
 			printf(".");

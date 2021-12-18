@@ -19,9 +19,9 @@ typedef struct lg_internal_segmentation_state {
 
 #define LG_INVALID_CODE_POINT UINT32_C(0xFFFD)
 
-size_t lg_grapheme_nextbreak(const char *);
+size_t lg_character_nextbreak(const char *);
 
-bool lg_grapheme_isbreak(uint_least32_t, uint_least32_t, LG_SEGMENTATION_STATE *);
+bool lg_character_isbreak(uint_least32_t, uint_least32_t, LG_SEGMENTATION_STATE *);
 
 size_t lg_utf8_decode(const char *, size_t, uint_least32_t *);
 size_t lg_utf8_encode(uint_least32_t, char *, size_t);

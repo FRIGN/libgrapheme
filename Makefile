@@ -10,17 +10,17 @@ DATA =\
 	data/GraphemeBreakTest.txt\
 
 GEN =\
-	gen/grapheme\
-	gen/grapheme-test\
+	gen/character-prop\
+	gen/character-test\
 
 SRC =\
-	src/grapheme\
+	src/character\
 	src/utf8\
 	src/util\
 
 TEST =\
-	test/grapheme\
-	test/grapheme-performance\
+	test/character\
+	test/character-performance\
 	test/utf8-decode\
 	test/utf8-encode\
 
@@ -34,27 +34,27 @@ MAN7 = man/libgrapheme.7
 
 all: libgrapheme.a libgrapheme.so
 
-gen/grapheme.o: gen/grapheme.c config.mk gen/util.h
-gen/grapheme-test.o: gen/grapheme-test.c config.mk gen/util.h
+gen/character-prop.o: gen/character-prop.c config.mk gen/util.h
+gen/character-test.o: gen/character-test.c config.mk gen/util.h
 gen/util.o: gen/util.c config.mk gen/util.h
-src/grapheme.o: src/grapheme.c config.mk gen/grapheme.h grapheme.h src/util.h
+src/character.o: src/character.c config.mk gen/character-prop.h grapheme.h src/util.h
 src/utf8.o: src/utf8.c config.mk grapheme.h
 src/util.o: src/util.c config.mk grapheme.h src/util.h
-test/grapheme.o: test/grapheme.c config.mk gen/grapheme-test.h grapheme.h test/util.h
-test/grapheme-performance.o: test/grapheme-performance.c config.mk gen/grapheme-test.h grapheme.h test/util.h
+test/character.o: test/character.c config.mk gen/character-test.h grapheme.h test/util.h
+test/character-performance.o: test/character-performance.c config.mk gen/character-test.h grapheme.h test/util.h
 test/utf8-encode.o: test/utf8-encode.c config.mk grapheme.h test/util.h
 test/utf8-decode.o: test/utf8-decode.c config.mk grapheme.h test/util.h
 test/util.o: test/util.c config.mk test/util.h
 
-gen/grapheme: gen/grapheme.o gen/util.o
-gen/grapheme-test: gen/grapheme-test.o gen/util.o
-test/grapheme: test/grapheme.o test/util.o libgrapheme.a
-test/grapheme-performance: test/grapheme-performance.o test/util.o libgrapheme.a
+gen/character-prop: gen/character-prop.o gen/util.o
+gen/character-test: gen/character-test.o gen/util.o
+test/character: test/character.o test/util.o libgrapheme.a
+test/character-performance: test/character-performance.o test/util.o libgrapheme.a
 test/utf8-encode: test/utf8-encode.o test/util.o libgrapheme.a
 test/utf8-decode: test/utf8-decode.o test/util.o libgrapheme.a
 
-gen/grapheme.h: data/emoji-data.txt data/GraphemeBreakProperty.txt gen/grapheme
-gen/grapheme-test.h: data/GraphemeBreakTest.txt gen/grapheme-test
+gen/character-prop.h: data/emoji-data.txt data/GraphemeBreakProperty.txt gen/character-prop
+gen/character-test.h: data/GraphemeBreakTest.txt gen/character-test
 
 data/emoji-data.txt:
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/emoji/emoji-data.txt

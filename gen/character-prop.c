@@ -8,72 +8,72 @@
 
 static struct property segment_property[] = {
 	{
-		.enumname   = "GRAPHEME_PROP_CONTROL",
+		.enumname   = "CHARACTER_PROP_CONTROL",
 		.identifier = "Control",
 		.fname      = FILE_GRAPHEME,
 	},
 	{
-		.enumname   = "GRAPHEME_PROP_CR",
+		.enumname   = "CHARACTER_PROP_CR",
 		.identifier = "CR",
 		.fname      = FILE_GRAPHEME,
 	},
 	{
-		.enumname   = "GRAPHEME_PROP_EXTEND",
+		.enumname   = "CHARACTER_PROP_EXTEND",
 		.identifier = "Extend",
 		.fname      = FILE_GRAPHEME,
 	},
 	{
-		.enumname   = "GRAPHEME_PROP_EXTENDED_PICTOGRAPHIC",
+		.enumname   = "CHARACTER_PROP_EXTENDED_PICTOGRAPHIC",
 		.identifier = "Extended_Pictographic",
 		.fname      = FILE_EMOJI,
 	},
 	{
-		.enumname   = "GRAPHEME_PROP_HANGUL_L",
+		.enumname   = "CHARACTER_PROP_HANGUL_L",
 		.identifier = "L",
 		.fname      = FILE_GRAPHEME,
 	},
 	{
-		.enumname   = "GRAPHEME_PROP_HANGUL_V",
+		.enumname   = "CHARACTER_PROP_HANGUL_V",
 		.identifier = "V",
 		.fname      = FILE_GRAPHEME,
 	},
 	{
-		.enumname   = "GRAPHEME_PROP_HANGUL_T",
+		.enumname   = "CHARACTER_PROP_HANGUL_T",
 		.identifier = "T",
 		.fname      = FILE_GRAPHEME,
 	},
 	{
-		.enumname   = "GRAPHEME_PROP_HANGUL_LV",
+		.enumname   = "CHARACTER_PROP_HANGUL_LV",
 		.identifier = "LV",
 		.fname      = FILE_GRAPHEME,
 	},
 	{
-		.enumname   = "GRAPHEME_PROP_HANGUL_LVT",
+		.enumname   = "CHARACTER_PROP_HANGUL_LVT",
 		.identifier = "LVT",
 		.fname      = FILE_GRAPHEME,
 	},
 	{
-		.enumname   = "GRAPHEME_PROP_LF",
+		.enumname   = "CHARACTER_PROP_LF",
 		.identifier = "LF",
 		.fname      = FILE_GRAPHEME,
 	},
 	{
-		.enumname   = "GRAPHEME_PROP_PREPEND",
+		.enumname   = "CHARACTER_PROP_PREPEND",
 		.identifier = "Prepend",
 		.fname      = FILE_GRAPHEME,
 	},
 	{
-		.enumname   = "GRAPHEME_PROP_REGIONAL_INDICATOR",
+		.enumname   = "CHARACTER_PROP_REGIONAL_INDICATOR",
 		.identifier = "Regional_Indicator",
 		.fname      = FILE_GRAPHEME,
 	},
 	{
-		.enumname   = "GRAPHEME_PROP_SPACINGMARK",
+		.enumname   = "CHARACTER_PROP_SPACINGMARK",
 		.identifier = "SpacingMark",
 		.fname      = FILE_GRAPHEME,
 	},
 	{
-		.enumname   = "GRAPHEME_PROP_ZWJ",
+		.enumname   = "CHARACTER_PROP_ZWJ",
 		.identifier = "ZWJ",
 		.fname      = FILE_GRAPHEME,
 	},
@@ -86,7 +86,7 @@ main(int argc, char *argv[])
 
 	property_list_parse(segment_property, LEN(segment_property));
 	property_list_print(segment_property, LEN(segment_property),
-	                    "grapheme_prop", argv[0]);
+	                    "character_prop", argv[0]);
 	property_list_free(segment_property, LEN(segment_property));
 
 	return 0;

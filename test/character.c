@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "../grapheme.h"
-#include "../gen/grapheme-test.h"
+#include "../gen/character-test.h"
 #include "util.h"
 
 int
@@ -16,19 +16,19 @@ main(int argc, char *argv[])
 
 	(void)argc;
 
-	/* grapheme break test */
-	for (i = 0, failed = 0; i < LEN(grapheme_test); i++) {
+	/* character break test */
+	for (i = 0, failed = 0; i < LEN(character_test); i++) {
 		memset(&state, 0, sizeof(state));
-		for (j = 0, k = 0, len = 1; j < grapheme_test[i].cplen; j++) {
-			if ((j + 1) == grapheme_test[i].cplen ||
-			    lg_grapheme_isbreak(grapheme_test[i].cp[j],
-			                        grapheme_test[i].cp[j + 1],
-			                        &state)) {
+		for (j = 0, k = 0, len = 1; j < character_test[i].cplen; j++) {
+			if ((j + 1) == character_test[i].cplen ||
+			    lg_character_isbreak(character_test[i].cp[j],
+			                         character_test[i].cp[j + 1],
+			                         &state)) {
 				/* check if our resulting length matches */
-				if (k == grapheme_test[i].lenlen ||
-				    len != grapheme_test[i].len[k++]) {
+				if (k == character_test[i].lenlen ||
+				    len != character_test[i].len[k++]) {
 					fprintf(stderr, "%s: Failed test \"%s\".\n",
-					        argv[0], grapheme_test[i].descr);
+					        argv[0], character_test[i].descr);
 					failed++;
 					break;
 				}
@@ -39,7 +39,7 @@ main(int argc, char *argv[])
 		}
 	}
 	printf("%s: %zu/%zu tests passed.\n", argv[0],
-	       LEN(grapheme_test) - failed, LEN(grapheme_test));
+	       LEN(character_test) - failed, LEN(character_test));
 
 	return (failed > 0) ? 1 : 0;
 }

@@ -12,7 +12,7 @@ main(int argc, char *argv[])
 	(void)argc;
 
 	segment_test_list_parse("data/GraphemeBreakTest.txt", &st, &numsegtests);
-	segment_test_list_print(st, numsegtests, "grapheme_test", argv[0]);
+	segment_test_list_print(st, numsegtests, "character_test", argv[0]);
 	segment_test_list_free(st, numsegtests);
 
 	return 0;
