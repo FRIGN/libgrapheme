@@ -1,16 +1,16 @@
 .Dd 2021-12-17
-.Dt GRAPHEME_UTF8_ENCODE 3
+.Dt GRAPHEME_ENCODE_UTF8 3
 .Os suckless.org
 .Sh NAME
-.Nm grapheme_utf8_encode
+.Nm grapheme_encode_utf8
 .Nd encode codepoint into UTF-8 string
 .Sh SYNOPSIS
 .In grapheme.h
 .Ft size_t
-.Fn grapheme_utf8_encode "uint_least32_t cp" "char *" "size_t"
+.Fn grapheme_encode_utf8 "uint_least32_t cp" "char *" "size_t"
 .Sh DESCRIPTION
 The
-.Fn grapheme_utf8_encode
+.Fn grapheme_encode_utf8
 function encodes the codepoint
 .Va cp
 into a UTF-8-string.
@@ -24,7 +24,7 @@ is large enough it writes the UTF-8-string to the memory pointed to by
 .Va str .
 .Sh RETURN VALUES
 The
-.Fn grapheme_utf8_encode
+.Fn grapheme_encode_utf8
 function returns the length (in bytes) of the UTF-8-string resulting
 from encoding
 .Va cp .
@@ -45,7 +45,7 @@ cps_to_utf8(const uint_least32_t *cp, size_t cplen, char *str, size_t len)
 	size_t i, off, ret;
 
 	for (i = 0, off = 0; i < cplen; i++, off += ret) {
-		if ((ret = grapheme_utf8_encode(cp[i], str + off,
+		if ((ret = grapheme_encode_utf8(cp[i], str + off,
 		                                len - off)) > (len - off)) {
 			/* buffer too small */
 			break;
@@ -61,7 +61,7 @@ cps_bytelen(const uint_least32_t *cp, size_t cplen)
 	size_t i, len;
 
 	for (i = 0, len = 0; i < cplen; i++) {
-		len += grapheme_utf8_encode(cp[i], NULL, 0);
+		len += grapheme_encode_utf8(cp[i], NULL, 0);
 	}
 
 	return len;
@@ -80,7 +80,7 @@ cps_to_utf8_alloc(const uint_least32_t *cp, size_t cplen)
 	}
 
 	for (i = 0, off = 0; i < cplen; i++, off += ret) {
-		if ((ret = grapheme_utf8_encode(cp[i], str + off,
+		if ((ret = grapheme_encode_utf8(cp[i], str + off,
 		                                len - off)) > (len - off)) {
 			/* buffer too small */
 			break;
@@ -92,7 +92,7 @@ cps_to_utf8_alloc(const uint_least32_t *cp, size_t cplen)
 }
 .Ed
 .Sh SEE ALSO
-.Xr grapheme_utf8_decode 3 ,
+.Xr grapheme_decode_utf8 3 ,
 .Xr libgrapheme 7
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de

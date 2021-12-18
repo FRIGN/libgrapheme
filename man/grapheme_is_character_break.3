@@ -1,16 +1,16 @@
 .Dd 2021-12-18
-.Dt GRAPHEME_CHARACTER_ISBREAK 3
+.Dt GRAPHEME_IS_CHARACTER_BREAK 3
 .Os suckless.org
 .Sh NAME
-.Nm grapheme_character_isbreak
+.Nm grapheme_is_character_break
 .Nd test for a grapheme cluster break between two codepoints
 .Sh SYNOPSIS
 .In grapheme.h
 .Ft size_t
-.Fn grapheme_character_isbreak "uint_least32_t cp1" "uint_least32_t cp2" "GRAPHEME_STATE *state"
+.Fn grapheme_is_character_break "uint_least32_t cp1" "uint_least32_t cp2" "GRAPHEME_STATE *state"
 .Sh DESCRIPTION
 The
-.Fn grapheme_character_isbreak
+.Fn grapheme_is_character_break
 function determines if there is a grapheme cluster break (see
 .Xr libgrapheme 7 )
 between the two codepoints
@@ -26,11 +26,11 @@ If
 .Va state
 is
 .Dv NULL
-.Fn grapheme_character_isbreak
+.Fn grapheme_is_character_break
 behaves as if it was called with a fully reset state.
 .Sh RETURN VALUES
 The
-.Fn grapheme_character_isbreak
+.Fn grapheme_is_character_break
 function returns
 .Va true
 if there is a grapheme cluster break between the codepoints
@@ -56,13 +56,13 @@ main(void)
 	size_t i;
 
 	for (i = 0; i + 1 < sizeof(s1) / sizeof(*s1); i++) {
-		if (grapheme_character_isbreak(s[i], s[i + 1], &state)) {
+		if (grapheme_is_character_break(s[i], s[i + 1], &state)) {
 			printf("break in s1 at offset %zu\n", i);
 		}
 	}
 	memset(&state, 0, sizeof(state)); /* reset state */
 	for (i = 0; i + 1 < sizeof(s2) / sizeof(*s2); i++) {
-		if (grapheme_character_isbreak(s[i], s[i + 1], &state)) {
+		if (grapheme_is_character_break(s[i], s[i + 1], &state)) {
 			printf("break in s2 at offset %zu\n", i);
 		}
 	}
@@ -71,10 +71,10 @@ main(void)
 }
 .Ed
 .Sh SEE ALSO
-.Xr grapheme_character_nextbreak 3 ,
+.Xr grapheme_next_character_break 3 ,
 .Xr libgrapheme 7
 .Sh STANDARDS
-.Fn grapheme_character_isbreak
+.Fn grapheme_is_character_break
 is compliant with the Unicode 14.0.0 specification.
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de

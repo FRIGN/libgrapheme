@@ -14,7 +14,7 @@ enum {
 };
 
 bool
-grapheme_character_isbreak(uint_least32_t a, uint_least32_t b, GRAPHEME_STATE *state)
+grapheme_is_character_break(uint_least32_t a, uint_least32_t b, GRAPHEME_STATE *state)
 {
 	struct grapheme_internal_heisenstate *p[2] = { 0 };
 	uint_least16_t flags = 0;
@@ -179,7 +179,7 @@ hasbreak:
 }
 
 size_t
-grapheme_character_nextbreak(const char *str)
+grapheme_next_character_break(const char *str)
 {
 	uint_least32_t cp0, cp1;
 	size_t ret, len = 0;
@@ -190,7 +190,7 @@ grapheme_character_nextbreak(const char *str)
 	}
 
 	/*
-	 * grapheme_utf8_decode, when it encounters an unexpected byte,
+	 * grapheme_decode_utf8, when it encounters an unexpected byte,
 	 * does not count it to the error and instead assumes that the
 	 * unexpected byte is the beginning of a new sequence.
 	 * This way, when the string ends with a null byte, we never
@@ -202,17 +202,17 @@ grapheme_character_nextbreak(const char *str)
 	 */
 
 	/* get first codepoint */
-	len += grapheme_utf8_decode(str, (size_t)-1, &cp0);
-	if (cp0 == GRAPHEME_CODEPOINT_INVALID) {
+	len += grapheme_decode_utf8(str, (size_t)-1, &cp0);
+	if (cp0 == GRAPHEME_INVALID_CODEPOINT) {
 		return len;
 	}
 
 	while (cp0 != 0) {
 		/* get next codepoint */
-		ret = grapheme_utf8_decode(str + len, (size_t)-1, &cp1);
+		ret = grapheme_decode_utf8(str + len, (size_t)-1, &cp1);
 
-		if (cp1 == GRAPHEME_CODEPOINT_INVALID ||
-		    grapheme_character_isbreak(cp0, cp1, &state)) {
+		if (cp1 == GRAPHEME_INVALID_CODEPOINT ||
+		    grapheme_is_character_break(cp0, cp1, &state)) {
 			/* we read an invalid cp or have a breakpoint */
 			break;
 		} else {

@@ -17,13 +17,13 @@ typedef struct grapheme_internal_segmentation_state {
 	uint_least16_t flags;
 } GRAPHEME_STATE;
 
-#define GRAPHEME_CODEPOINT_INVALID UINT32_C(0xFFFD)
+#define GRAPHEME_INVALID_CODEPOINT UINT32_C(0xFFFD)
 
-size_t grapheme_character_nextbreak(const char *);
+size_t grapheme_next_character_break(const char *);
 
-bool grapheme_character_isbreak(uint_least32_t, uint_least32_t, GRAPHEME_STATE *);
+bool grapheme_is_character_break(uint_least32_t, uint_least32_t, GRAPHEME_STATE *);
 
-size_t grapheme_utf8_decode(const char *, size_t, uint_least32_t *);
-size_t grapheme_utf8_encode(uint_least32_t, char *, size_t);
+size_t grapheme_decode_utf8(const char *, size_t, uint_least32_t *);
+size_t grapheme_encode_utf8(uint_least32_t, char *, size_t);
 
 #endif /* GRAPHEME_H */

@@ -1,16 +1,16 @@
 .Dd 2021-12-17
-.Dt GRAPHEME_UTF8_DECODE 3
+.Dt GRAPHEME_DECODE_UTF8 3
 .Os suckless.org
 .Sh NAME
-.Nm grapheme_utf8_decode
+.Nm grapheme_decode_utf8
 .Nd decode first codepoint in UTF-8-encoded string
 .Sh SYNOPSIS
 .In grapheme.h
 .Ft size_t
-.Fn grapheme_utf8_decode "const char *str" "size_t len" "uint_least32_t *cp"
+.Fn grapheme_decode_utf8 "const char *str" "size_t len" "uint_least32_t *cp"
 .Sh DESCRIPTION
 The
-.Fn grapheme_utf8_decode
+.Fn grapheme_decode_utf8
 function decodes the next codepoint in the UTF-8-encoded string
 .Va str
 of length
@@ -18,7 +18,7 @@ of length
 If the UTF-8-sequence is invalid (overlong encoding, unexpected byte,
 string ends unexpectedly, empty string, etc.) the decoding is stopped
 at the last processed byte and the decoded codepoint set to
-.Dv GRAPHEME_CODEPOINT_INVALID.
+.Dv GRAPHEME_INVALID_CODEPOINT.
 .Pp
 If
 .Va cp
@@ -39,7 +39,7 @@ is 0 (see
 for an example).
 .Sh RETURN VALUES
 The
-.Fn grapheme_utf8_decode
+.Fn grapheme_decode_utf8
 function returns the number of processed bytes and 0 if
 .Va str
 is
@@ -65,7 +65,7 @@ print_cps(const char *str, size_t len)
 	uint_least32_t cp;
 
 	for (off = 0; off < len; off += ret) {
-		if ((ret = grapheme_utf8_decode(str + off,
+		if ((ret = grapheme_decode_utf8(str + off,
 		                                len - off, &cp)) > (len - off)) {
 			/*
 			 * string ended unexpectedly in the middle of a
@@ -86,7 +86,7 @@ print_cps_nul_terminated(const char *str)
 	size_t ret, off;
 	uint_least32_t cp;
 
-	for (off = 0; (ret = grapheme_utf8_decode(str + off,
+	for (off = 0; (ret = grapheme_decode_utf8(str + off,
 	                                          (size_t)-1, &cp)) > 0 &&
 	     cp != 0; off += ret) {
 		printf("%"PRIxLEAST32"\\n", cp);
@@ -94,8 +94,8 @@ print_cps_nul_terminated(const char *str)
 }
 .Ed
 .Sh SEE ALSO
-.Xr grapheme_utf8_encode 3 ,
-.Xr grapheme_character_isbreak 3 ,
+.Xr grapheme_encode_utf8 3 ,
+.Xr grapheme_is_character_break 3 ,
 .Xr libgrapheme 7
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de

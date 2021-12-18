@@ -21,7 +21,7 @@ main(int argc, char *argv[])
 		memset(&state, 0, sizeof(state));
 		for (j = 0, k = 0, len = 1; j < character_test[i].cplen; j++) {
 			if ((j + 1) == character_test[i].cplen ||
-			    grapheme_character_isbreak(character_test[i].cp[j],
+			    grapheme_is_character_break(character_test[i].cp[j],
 			                               character_test[i].cp[j + 1],
 			                               &state)) {
 				/* check if our resulting length matches */

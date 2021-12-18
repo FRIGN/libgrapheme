@@ -45,7 +45,7 @@ main(int argc, char *argv[])
 	for (i = 0; i < NUM_ITERATIONS; i++) {
 		memset(&state, 0, sizeof(state));
 		for (j = 0; j < bufsiz - 1; j++) {
-			(void)grapheme_character_isbreak(buf[j], buf[j+1], &state);
+			(void)grapheme_is_character_break(buf[j], buf[j+1], &state);
 		}
 		if (i % (NUM_ITERATIONS / 10) == 0) {
 			printf(".");

@@ -25,10 +25,10 @@ TEST =\
 	test/utf8-encode\
 
 MAN3 =\
-	man/lg_grapheme_isbreak.3\
-	man/lg_grapheme_nextbreak.3\
-	man/lg_utf8_decode.3\
-	man/lg_utf8_encode.3\
+	man/grapheme_decode_utf8.3\
+	man/grapheme_encode_utf8.3\
+	man/grapheme_is_character_break.3\
+	man/grapheme_next_character_break.3\
 
 MAN7 = man/libgrapheme.7
 

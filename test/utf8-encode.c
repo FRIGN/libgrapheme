@@ -62,7 +62,7 @@ main(int argc, char *argv[])
 		char arr[4];
 		size_t len;
 
-		len = grapheme_utf8_encode(enc_test[i].cp, arr, LEN(arr));
+		len = grapheme_encode_utf8(enc_test[i].cp, arr, LEN(arr));
 
 		if (len != enc_test[i].exp_len ||
 		    memcmp(arr, enc_test[i].exp_arr, len)) {
