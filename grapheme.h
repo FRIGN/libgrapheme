@@ -17,7 +17,7 @@ typedef struct grapheme_internal_segmentation_state {
 	uint_least16_t flags;
 } GRAPHEME_STATE;
 
-#define GRAPHEME_INVALID_CODE_POINT UINT32_C(0xFFFD)
+#define GRAPHEME_CODEPOINT_INVALID UINT32_C(0xFFFD)
 
 size_t grapheme_character_nextbreak(const char *);
 

@@ -203,7 +203,7 @@ grapheme_character_nextbreak(const char *str)
 
 	/* get first codepoint */
 	len += grapheme_utf8_decode(str, (size_t)-1, &cp0);
-	if (cp0 == GRAPHEME_INVALID_CODE_POINT) {
+	if (cp0 == GRAPHEME_CODEPOINT_INVALID) {
 		return len;
 	}
 
@@ -211,7 +211,7 @@ grapheme_character_nextbreak(const char *str)
 		/* get next codepoint */
 		ret = grapheme_utf8_decode(str + len, (size_t)-1, &cp1);
 
-		if (cp1 == GRAPHEME_INVALID_CODE_POINT ||
+		if (cp1 == GRAPHEME_CODEPOINT_INVALID ||
 		    grapheme_character_isbreak(cp0, cp1, &state)) {
 			/* we read an invalid cp or have a breakpoint */
 			break;
