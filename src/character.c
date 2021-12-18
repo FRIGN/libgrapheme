@@ -179,50 +179,41 @@ hasbreak:
 }
 
 size_t
-grapheme_next_character_break(const char *str)
+grapheme_next_character_break(const char *str, size_t len)
 {
-	uint_least32_t cp0, cp1;
-	size_t ret, len = 0;
 	GRAPHEME_STATE state = { 0 };
+	uint_least32_t cp0 = 0, cp1 = 0;
+	size_t off, ret;
 
-	if (str == NULL) {
+	if (str == NULL || len == 0) {
 		return 0;
 	}
 
-	/*
-	 * grapheme_decode_utf8, when it encounters an unexpected byte,
-	 * does not count it to the error and instead assumes that the
-	 * unexpected byte is the beginning of a new sequence.
-	 * This way, when the string ends with a null byte, we never
-	 * miss it, even if the previous UTF-8 sequence terminates
-	 * unexpectedly, as it would either act as an unexpected byte,
-	 * saved for later, or as a null byte itself, that we can catch.
-	 * We pass SIZE_MAX to the length, as we will never read beyond
-	 * the null byte for the reasons given above.
-	 */
+	for (off = 0; (len == SIZE_MAX) || off < len; off += ret) {
+		cp0 = cp1;
+		ret = grapheme_decode_utf8(str + off, (len == SIZE_MAX) ?
+		                           SIZE_MAX : len - off, &cp1);
 
-	/* get first codepoint */
-	len += grapheme_decode_utf8(str, SIZE_MAX, &cp0);
-	if (cp0 == GRAPHEME_INVALID_CODEPOINT) {
-		return len;
-	}
-
-	while (cp0 != 0) {
-		/* get next codepoint */
-		ret = grapheme_decode_utf8(str + len, SIZE_MAX, &cp1);
-
-		if (cp1 == GRAPHEME_INVALID_CODEPOINT ||
-		    grapheme_is_character_break(cp0, cp1, &state)) {
-			/* we read an invalid cp or have a breakpoint */
-			break;
-		} else {
-			/* we don't have a breakpoint, continue */
-			len += ret;
+		if (len != SIZE_MAX && ret > (len - off)) {
+			/* string ended abruptly, simply accept cropping */
+			ret = len - off;
 		}
 
-		/* prepare next round */
-		cp0 = cp1;
+		if (len == SIZE_MAX && cp1 == 0) {
+			/* we hit a NUL-byte and are done */
+			break;
+		}
+
+		if (off == 0) {
+			/*
+			 * we skip the first round, as we need both
+			 * cp0 and cp1 to be initialized
+			 */
+			continue;
+		} else if (grapheme_is_character_break(cp0, cp1, &state)) {
+			break;
+		}
 	}
 
-	return len;
+	return off;
 }

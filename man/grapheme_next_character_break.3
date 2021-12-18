@@ -7,18 +7,29 @@
 .Sh SYNOPSIS
 .In grapheme.h
 .Ft size_t
-.Fn grapheme_next_character_break "const char *str"
+.Fn grapheme_next_character_break "const char *str" "size_t len"
 .Sh DESCRIPTION
 The
 .Fn grapheme_next_character_break
 function computes the offset (in bytes) to the next grapheme
 cluster break (see
 .Xr libgrapheme 7 )
-in the UTF-8-encoded NUL-terminated string
-.Va str .
+in the UTF-8-encoded string
+.Va str
+of length
+.Va len .
 If a grapheme cluster begins at
 .Va str
 this offset is equal to the length of said grapheme cluster.
+.Pp
+If
+.Va len
+is set to
+.Dv SIZE_MAX
+(stdint.h is already included by grapheme.h) the string
+.Va str
+is interpreted to be NUL-terminated and processing stops when a
+NUL-byte is encountered.
 .Pp
 For non-UTF-8 input data
 .Xr grapheme_is_character_break 3
@@ -48,15 +59,24 @@ main(void)
 	          "\\x9F\\x91\\xA9\\xE2\\x80\\x8D\\xF0\\x9F\\x91\\xA6 \\xF0"
 	          "\\x9F\\x87\\xBA\\xF0\\x9F\\x87\\xB8 \\xE0\\xA4\\xA8\\xE0"
 	          "\\xA5\\x80 \\xE0\\xAE\\xA8\\xE0\\xAE\\xBF!";
-	size_t len;
+	size_t ret, len, off;
 
 	printf("Input: \\"%s\\"\\n", s);
 
 	/* print each grapheme cluster with byte-length */
-	for (; *s != '\\0';) {
-		len = grapheme_next_character_break(s);
-		printf("%2zu bytes | %.*s\\n", len, (int)len, s, len);
-		s += len;
+	printf("Grapheme clusters in NUL-delimited input:\\n");
+	for (off = 0; s[off] != '\\0'; off += ret) {
+		ret = grapheme_next_character_break(s + off, SIZE_MAX);
+		printf("%2zu bytes | %.*s\\n", ret, (int)ret, s + off, ret);
+	}
+	printf("\\n");
+
+	/* do the same, but this time string is length-delimited */
+	len = 17;
+	printf("Grapheme clusters in input delimited to %zu bytes:\\n", len);
+	for (off = 0; off < len; off += ret) {
+		ret = grapheme_next_character_break(s + off, len - off);
+		printf("%2zu bytes | %.*s\\n", ret, (int)ret, s + off, ret);
 	}
 
 	return 0;

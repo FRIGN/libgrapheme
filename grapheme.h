@@ -19,7 +19,7 @@ typedef struct grapheme_internal_segmentation_state {
 
 #define GRAPHEME_INVALID_CODEPOINT UINT32_C(0xFFFD)
 
-size_t grapheme_next_character_break(const char *);
+size_t grapheme_next_character_break(const char *, size_t);
 
 bool grapheme_is_character_break(uint_least32_t, uint_least32_t, GRAPHEME_STATE *);
 
