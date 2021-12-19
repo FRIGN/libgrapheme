@@ -28,7 +28,8 @@ hextocp(const char *str, size_t len, uint_least32_t *cp)
 
 	/* the maximum valid codepoint is 0x10FFFF */
 	if (len > 6) {
-		fprintf(stderr, "hextocp: '%.*s' is too long.\n", (int)len, str);
+		fprintf(stderr, "hextocp: '%.*s' is too long.\n",
+		        (int)len, str);
 		return 1;
 	}
 
@@ -53,7 +54,8 @@ hextocp(const char *str, size_t len, uint_least32_t *cp)
 	}
 
 	if (*cp > 0x10ffff) {
-		fprintf(stderr, "hextocp: '%.*s' is too large.\n", (int)len, str);
+		fprintf(stderr, "hextocp: '%.*s' is too large.\n",
+		        (int)len, str);
 		return 1;
 	}
 
@@ -90,8 +92,10 @@ range_list_append(struct range **range, size_t *nranges, const struct range *new
 		(*range)[*nranges - 1].upper = new->upper;
 	} else {
 		/* need to append new entry */
-		if ((*range = realloc(*range, (++(*nranges)) * sizeof(**range))) == NULL) {
-			fprintf(stderr, "range_list_append: realloc: %s.\n", strerror(errno));
+		if ((*range = realloc(*range, (++(*nranges)) *
+		                      sizeof(**range))) == NULL) {
+			fprintf(stderr, "range_list_append: realloc: %s.\n",
+			        strerror(errno));
 			exit(1);
 		}
 		(*range)[*nranges - 1].lower = new->lower;
@@ -100,7 +104,8 @@ range_list_append(struct range **range, size_t *nranges, const struct range *new
 }
 
 static void
-parse_file_with_callback(char *fname, int (*callback)(char *, char **, size_t, char *, void *), void *payload)
+parse_file_with_callback(char *fname, int (*callback)(char *, char **,
+                         size_t, char *, void *), void *payload)
 {
 	FILE *fp;
 	char *line = NULL, **field = NULL, *comment;
@@ -109,8 +114,8 @@ parse_file_with_callback(char *fname, int (*callback)(char *, char **, size_t, c
 
 	/* open file */
 	if (!(fp = fopen(fname, "r"))) {
-		fprintf(stderr, "parse_file_with_callback: fopen '%s': %s.\n", fname,
-		        strerror(errno));
+		fprintf(stderr, "parse_file_with_callback: fopen '%s': %s.\n",
+		        fname, strerror(errno));
 		exit(1);
 	}
 
@@ -132,7 +137,9 @@ parse_file_with_callback(char *fname, int (*callback)(char *, char **, size_t, c
 			if (++nfields > fieldbufsize) {
 				if ((field = realloc(field, nfields *
                                      sizeof(*field))) == NULL) {
-					fprintf(stderr, "parse_file_with_callback: realloc: %s.\n", strerror(errno));
+					fprintf(stderr, "parse_file_with_"
+					        "callback: realloc: %s.\n",
+					        strerror(errno));
 					exit(1);
 				}
 				fieldbufsize = nfields;
@@ -178,7 +185,8 @@ parse_file_with_callback(char *fname, int (*callback)(char *, char **, size_t, c
 
 		/* call callback function */
 		if (callback(fname, field, nfields, comment, payload)) {
-			fprintf(stderr, "parse_file_with_callback: Malformed input.\n");
+			fprintf(stderr, "parse_file_with_callback: "
+			        "Malformed input.\n");
 			exit(1);
 		}
 	}
@@ -188,7 +196,8 @@ parse_file_with_callback(char *fname, int (*callback)(char *, char **, size_t, c
 }
 
 static int
-property_list_callback(char *fname, char **field, size_t nfields, char *comment, void *payload)
+property_list_callback(char *fname, char **field, size_t nfields,
+                       char *comment, void *payload)
 {
 	struct property *prop = ((struct property_list_payload *)payload)->prop;
 	struct range r;
@@ -218,7 +227,10 @@ property_list_callback(char *fname, char **field, size_t nfields, char *comment,
 void
 property_list_parse(struct property *prop, size_t numprops)
 {
-	struct property_list_payload pl = { .prop = prop, .numprops = numprops };
+	struct property_list_payload pl = {
+		.prop = prop,
+		.numprops = numprops
+	};
 	size_t i;
 
 	/* make sure to parse each file only once */
@@ -228,7 +240,8 @@ property_list_parse(struct property *prop, size_t numprops)
 			continue;
 		}
 
-		parse_file_with_callback(prop[i].fname, property_list_callback, &pl);
+		parse_file_with_callback(prop[i].fname,
+		                         property_list_callback, &pl);
 	}
 }
 
@@ -277,9 +290,11 @@ property_list_free(struct property *prop, size_t numprops)
 }
 
 static int
-segment_test_callback(char *fname, char **field, size_t nfields, char *comment, void *payload)
+segment_test_callback(char *fname, char **field, size_t nfields,
+                      char *comment, void *payload)
 {
-	struct segment_test *t, **test = ((struct segment_test_payload *)payload)->st;
+	struct segment_test *t,
+		**test = ((struct segment_test_payload *)payload)->st;
 	size_t i, *ntests = ((struct segment_test_payload *)payload)->numsegtests;
 	char *token;
 
@@ -291,7 +306,8 @@ segment_test_callback(char *fname, char **field, size_t nfields, char *comment, 
 
 	/* append new testcase and initialize with zeroes */
 	if ((*test = realloc(*test, ++(*ntests) * sizeof(**test))) == NULL) {
-		fprintf(stderr, "segment_test_callback: realloc: %s.\n", strerror(errno));
+		fprintf(stderr, "segment_test_callback: realloc: %s.\n",
+		        strerror(errno));
 		return 1;
 	}
 	t = &(*test)[*ntests - 1];
@@ -310,7 +326,8 @@ segment_test_callback(char *fname, char **field, size_t nfields, char *comment, 
 				 */
 				if ((t->len = realloc(t->len,
 				     ++t->lenlen * sizeof(*t->len))) == NULL) {
-					fprintf(stderr, "segment_test_callback: realloc: %s.\n",
+					fprintf(stderr, "segment_test_"
+					        "callback: realloc: %s.\n",
 					        strerror(errno));
 					return 1;
 				}
@@ -320,15 +337,16 @@ segment_test_callback(char *fname, char **field, size_t nfields, char *comment, 
 				 * '×' indicates a non-breakpoint, do nothing
 				 */
 			} else {
-				fprintf(stderr, "segment_test_callback: Malformed delimiter '%s'.\n",
-				        token);
+				fprintf(stderr, "segment_test_callback: "
+				        "Malformed delimiter '%s'.\n", token);
 				return 1;
 			}
 		} else {
 			/* add codepoint to cp-array */
 			if ((t->cp = realloc(t->cp, ++t->cplen *
 			                     sizeof(*t->cp))) == NULL) {
-				fprintf(stderr, "segment_test_callback: realloc: %s.\n", strerror(errno));
+				fprintf(stderr, "segment_test_callback: "
+				        "realloc: %s.\n", strerror(errno));
 				return 1;
 			}
 			if (hextocp(token, strlen(token), &t->cp[t->cplen - 1])) {
@@ -346,7 +364,8 @@ segment_test_callback(char *fname, char **field, size_t nfields, char *comment, 
 
 	/* store comment */
 	if (((*test)[*ntests - 1].descr = strdup(comment)) == NULL) {
-		fprintf(stderr, "segment_test_callback: strdup: %s.\n", strerror(errno));
+		fprintf(stderr, "segment_test_callback: strdup: %s.\n",
+		        strerror(errno));
 		return 1;
 	}
 
@@ -354,9 +373,13 @@ segment_test_callback(char *fname, char **field, size_t nfields, char *comment, 
 }
 
 void
-segment_test_list_parse(char *fname, struct segment_test **st, size_t *numsegtests)
+segment_test_list_parse(char *fname, struct segment_test **st,
+                        size_t *numsegtests)
 {
-	struct segment_test_payload pl = { .st = st, .numsegtests = numsegtests };
+	struct segment_test_payload pl = {
+		.st = st,
+		.numsegtests = numsegtests
+	};
 	*st = NULL;
 	*numsegtests = 0;
 
