@@ -1,4 +1,4 @@
-.Dd 2021-12-15
+.Dd 2021-12-19
 .Dt LIBGRAPHEME 7
 .Os suckless.org
 .Sh NAME
@@ -15,10 +15,10 @@ see
 .Sx MOTIVATION )
 according to the Unicode specification.
 .Sh SEE ALSO
-.Xr grapheme_is_character_break 3 ,
-.Xr grapheme_next_character_break 3 ,
 .Xr grapheme_decode_utf8 3 ,
-.Xr grapheme_encode_utf8 3
+.Xr grapheme_encode_utf8 3 ,
+.Xr grapheme_is_character_break 3 ,
+.Xr grapheme_next_character_break 3
 .Sh STANDARDS
 .Nm
 is compliant with the Unicode 14.0.0 specification.
@@ -36,24 +36,26 @@ and all codepoints of an encoding make up its so-called
 Unicode's code space is much larger, ranging from 0 to 0x10FFFF, but its
 first 128 codepoints are identical to ASCII's. The additional code
 points are needed as Unicode's goal is to express all writing systems
-of the world. To give an example, the abstract character
+of the world.
+To give an example, the abstract character
 .Sq \[u00C4]
 is not expressable in ASCII, given no ASCII codepoint has been assigned
-to it. It can be expressed in Unicode, though, with the codepoint 196
-(0xC4).
+to it.
+It can be expressed in Unicode, though, with the codepoint 196 (0xC4).
 .Pp
 One may assume that this process is straightfoward, but as more and
 more codepoints were assigned to abstract characters, the Unicode
 Consortium (that defines the Unicode standard) was facing a problem:
 Many (mostly non-European) languages have such a large amount of
 abstract characters that it would exhaust the available Unicode code
-space if one tried to assign a codepoint to each abstract character. The
-solution to that problem is best introduced with an example: Consider
+space if one tried to assign a codepoint to each abstract character.
+The solution to that problem is best introduced with an example: Consider
 the abstract character
 .Sq \[u01DE] ,
 which is
 .Sq A
-with an umlaut and a macron added to it. In this sense, one can consider
+with an umlaut and a macron added to it.
+In this sense, one can consider
 .Sq \[u01DE]
 as a two-fold modification (namely
 .Dq add umlaut
@@ -64,9 +66,9 @@ of the
 .Sq A .
 .Pp
 The Unicode Consortium adapted this idea by assigning codepoints to
-modifications. For example, the codepoint 0x308 represents adding an
-umlaut and 0x304 represents adding a macron, and thus, the codepoint
-sequence
+modifications.
+For example, the codepoint 0x308 represents adding an umlaut and 0x304
+represents adding a macron, and thus, the codepoint sequence
 .Dq 0x41 0x308 0x304 ,
 namely the base character
 .Sq A
@@ -86,13 +88,15 @@ this way and represents an abstract character is called a
 .Dq grapheme cluster .
 .Pp
 In many applications it is necessary to count the number of
-user-perceived characters, i.e. grapheme clusters, in a string. A good
-example for this is a terminal text editor, which needs to properly align
-characters on a grid. This is pretty simple with ASCII-strings, where you
-just count the number of bytes (as each byte is a codepoint and each
-codepoint is a grapheme cluster). With Unicode-strings, it is a common
-mistake to simply adapt the ASCII-approach and count the number of code
-points. This is wrong, as, for example, the sequence
+user-perceived characters, i.e. grapheme clusters, in a string.
+A good example for this is a terminal text editor, which needs to
+properly align characters on a grid.
+This is pretty simple with ASCII-strings, where you just count the number
+of bytes (as each byte is a codepoint and each codepoint is a grapheme
+cluster).
+With Unicode-strings, it is a common mistake to simply adapt the
+ASCII-approach and count the number of code points.
+This is wrong, as, for example, the sequence
 .Dq 0x41 0x308 0x304 ,
 while made up of 3 codepoints, is a single grapheme cluster and
 represents the user-perceived character
@@ -100,13 +104,17 @@ represents the user-perceived character
 .Pp
 The proper way to segment a string into user-perceived characters
 is to segment it into its grapheme clusters by applying the Unicode
-grapheme cluster breaking algorithm (UAX #29). It is based on a complex
-ruleset and lookup-tables and determines if a grapheme cluster ends or
-is continued between two codepoints. Libraries like ICU, which also
-offer this functionality, are often bloated, not correct, difficult to
-use or not statically linkable. The motivation behind
+grapheme cluster breaking algorithm (UAX #29).
+It is based on a complex ruleset and lookup-tables and determines if a
+grapheme cluster ends or is continued between two codepoints.
+Libraries like ICU and libunistring, which also offer this functionality,
+are often bloated, not correct, difficult to use or not reasonably
+statically linkable.
+.Pp
+Analogously, the standard provides algorithms to separate strings by
+words, sentences and lines, convert cases and compare strings.
+The motivation behind
 .Nm
-is to make unicode handling suck less and abide by the UNIX
-philosophy.
+is to make unicode handling suck less and abide by the UNIX philosophy.
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de

@@ -1,4 +1,4 @@
-.Dd 2021-12-17
+.Dd 2021-12-19
 .Dt GRAPHEME_DECODE_UTF8 3
 .Os suckless.org
 .Sh NAME
@@ -18,7 +18,7 @@ of length
 If the UTF-8-sequence is invalid (overlong encoding, unexpected byte,
 string ends unexpectedly, empty string, etc.) the decoding is stopped
 at the last processed byte and the decoded codepoint set to
-.Dv GRAPHEME_INVALID_CODEPOINT.
+.Dv GRAPHEME_INVALID_CODEPOINT .
 .Pp
 If
 .Va cp
