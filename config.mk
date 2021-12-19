@@ -5,8 +5,8 @@ VERSION = 0
 
 # paths
 PREFIX = /usr/local
-LIBPREFIX = $(PREFIX)/lib
 INCPREFIX = $(PREFIX)/include
+LIBPREFIX = $(PREFIX)/lib
 MANPREFIX = $(PREFIX)/share/man
 
 # flags
