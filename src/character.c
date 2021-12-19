@@ -14,7 +14,7 @@ enum {
 };
 
 bool
-grapheme_is_character_break(uint_least32_t a, uint_least32_t b, GRAPHEME_STATE *state)
+grapheme_is_character_break(uint_least32_t cp0, uint_least32_t cp1, GRAPHEME_STATE *state)
 {
 	struct grapheme_internal_heisenstate *p[2] = { 0 };
 	uint_least16_t flags = 0;
@@ -22,14 +22,14 @@ grapheme_is_character_break(uint_least32_t a, uint_least32_t b, GRAPHEME_STATE *
 
 	/* set state depending on state pointer */
 	if (state != NULL) {
-		p[0] = &(state->a);
-		p[1] = &(state->b);
+		p[0] = &(state->cp0);
+		p[1] = &(state->cp1);
 		flags = state->flags;
 	}
 
 	/* skip printable ASCII */
-	if ((a >= 0x20 && a <= 0x7E) &&
-	    (b >= 0x20 && b <= 0x7E)) {
+	if ((cp0 >= 0x20 && cp0 <= 0x7E) &&
+	    (cp1 >= 0x20 && cp1 <= 0x7E)) {
 		goto hasbreak;
 	}
 
@@ -41,8 +41,8 @@ grapheme_is_character_break(uint_least32_t a, uint_least32_t b, GRAPHEME_STATE *
 	/*
 	 * update flags, if state-pointer given
 	 */
-	if (has_property(b, p[1], character_prop, CHARACTER_PROP_REGIONAL_INDICATOR)) {
-		if (has_property(a, p[0], character_prop, CHARACTER_PROP_REGIONAL_INDICATOR)) {
+	if (has_property(cp1, p[1], character_prop, CHARACTER_PROP_REGIONAL_INDICATOR)) {
+		if (has_property(cp0, p[0], character_prop, CHARACTER_PROP_REGIONAL_INDICATOR)) {
 			/* one more RI is on the left side of the seam, flip state */
 			flags ^= CHARACTER_FLAG_RI_ODD;
 		} else {
@@ -52,22 +52,22 @@ grapheme_is_character_break(uint_least32_t a, uint_least32_t b, GRAPHEME_STATE *
 		}
 	}
 	if (!(flags & CHARACTER_FLAG_EMOJI) &&
-	    ((has_property(a, p[0], character_prop, CHARACTER_PROP_EXTENDED_PICTOGRAPHIC) &&
-	      has_property(b, p[1], character_prop, CHARACTER_PROP_ZWJ)) ||
-             (has_property(a, p[0], character_prop, CHARACTER_PROP_EXTENDED_PICTOGRAPHIC) &&
-	      has_property(b, p[1], character_prop, CHARACTER_PROP_EXTEND)))) {
+	    ((has_property(cp0, p[0], character_prop, CHARACTER_PROP_EXTENDED_PICTOGRAPHIC) &&
+	      has_property(cp1, p[1], character_prop, CHARACTER_PROP_ZWJ)) ||
+             (has_property(cp0, p[0], character_prop, CHARACTER_PROP_EXTENDED_PICTOGRAPHIC) &&
+	      has_property(cp1, p[1], character_prop, CHARACTER_PROP_EXTEND)))) {
 		flags |= CHARACTER_FLAG_EMOJI;
 	} else if ((flags & CHARACTER_FLAG_EMOJI) &&
-	           ((has_property(a, p[0], character_prop, CHARACTER_PROP_ZWJ) &&
-		     has_property(b, p[1], character_prop, CHARACTER_PROP_EXTENDED_PICTOGRAPHIC)) ||
-	            (has_property(a, p[0], character_prop, CHARACTER_PROP_EXTEND) &&
-		     has_property(b, p[1], character_prop, CHARACTER_PROP_EXTEND)) ||
-	            (has_property(a, p[0], character_prop, CHARACTER_PROP_EXTEND) &&
-		     has_property(b, p[1], character_prop, CHARACTER_PROP_ZWJ)) ||
-	            (has_property(a, p[0], character_prop, CHARACTER_PROP_EXTENDED_PICTOGRAPHIC) &&
-		     has_property(b, p[1], character_prop, CHARACTER_PROP_ZWJ)) ||
-	            (has_property(a, p[0], character_prop, CHARACTER_PROP_EXTENDED_PICTOGRAPHIC) &&
-		     has_property(b, p[1], character_prop, CHARACTER_PROP_EXTEND)))) {
+	           ((has_property(cp0, p[0], character_prop, CHARACTER_PROP_ZWJ) &&
+		     has_property(cp1, p[1], character_prop, CHARACTER_PROP_EXTENDED_PICTOGRAPHIC)) ||
+	            (has_property(cp0, p[0], character_prop, CHARACTER_PROP_EXTEND) &&
+		     has_property(cp1, p[1], character_prop, CHARACTER_PROP_EXTEND)) ||
+	            (has_property(cp0, p[0], character_prop, CHARACTER_PROP_EXTEND) &&
+		     has_property(cp1, p[1], character_prop, CHARACTER_PROP_ZWJ)) ||
+	            (has_property(cp0, p[0], character_prop, CHARACTER_PROP_EXTENDED_PICTOGRAPHIC) &&
+		     has_property(cp1, p[1], character_prop, CHARACTER_PROP_ZWJ)) ||
+	            (has_property(cp0, p[0], character_prop, CHARACTER_PROP_EXTENDED_PICTOGRAPHIC) &&
+		     has_property(cp1, p[1], character_prop, CHARACTER_PROP_EXTEND)))) {
 		/* CHARACTER_FLAG_EMOJI remains */
 	} else {
 		flags &= ~CHARACTER_FLAG_EMOJI;
@@ -85,76 +85,76 @@ grapheme_is_character_break(uint_least32_t a, uint_least32_t b, GRAPHEME_STATE *
 	/* skip GB1 and GB2, as they are never satisfied here */
 
 	/* GB3 */
-	if (has_property(a, p[0], character_prop, CHARACTER_PROP_CR) &&
-	    has_property(b, p[1], character_prop, CHARACTER_PROP_LF)) {
+	if (has_property(cp0, p[0], character_prop, CHARACTER_PROP_CR) &&
+	    has_property(cp1, p[1], character_prop, CHARACTER_PROP_LF)) {
 		goto nobreak;
 	}
 
 	/* GB4 */
-	if (has_property(a, p[0], character_prop, CHARACTER_PROP_CONTROL) ||
-	    has_property(a, p[0], character_prop, CHARACTER_PROP_CR) ||
-	    has_property(a, p[0], character_prop, CHARACTER_PROP_LF)) {
+	if (has_property(cp0, p[0], character_prop, CHARACTER_PROP_CONTROL) ||
+	    has_property(cp0, p[0], character_prop, CHARACTER_PROP_CR) ||
+	    has_property(cp0, p[0], character_prop, CHARACTER_PROP_LF)) {
 		goto hasbreak;
 	}
 
 	/* GB5 */
-	if (has_property(b, p[1], character_prop, CHARACTER_PROP_CONTROL) ||
-	    has_property(b, p[1], character_prop, CHARACTER_PROP_CR) ||
-	    has_property(b, p[1], character_prop, CHARACTER_PROP_LF)) {
+	if (has_property(cp1, p[1], character_prop, CHARACTER_PROP_CONTROL) ||
+	    has_property(cp1, p[1], character_prop, CHARACTER_PROP_CR) ||
+	    has_property(cp1, p[1], character_prop, CHARACTER_PROP_LF)) {
 		goto hasbreak;
 	}
 
 	/* GB6 */
-	if (has_property(a, p[0], character_prop, CHARACTER_PROP_HANGUL_L) &&
-	    (has_property(b, p[1], character_prop, CHARACTER_PROP_HANGUL_L) ||
-	     has_property(b, p[1], character_prop, CHARACTER_PROP_HANGUL_V) ||
-	     has_property(b, p[1], character_prop, CHARACTER_PROP_HANGUL_LV) ||
+	if (has_property(cp0, p[0], character_prop, CHARACTER_PROP_HANGUL_L) &&
+	    (has_property(cp1, p[1], character_prop, CHARACTER_PROP_HANGUL_L) ||
+	     has_property(cp1, p[1], character_prop, CHARACTER_PROP_HANGUL_V) ||
+	     has_property(cp1, p[1], character_prop, CHARACTER_PROP_HANGUL_LV) ||
 
-	     has_property(b, p[1], character_prop, CHARACTER_PROP_HANGUL_LVT))) {
+	     has_property(cp1, p[1], character_prop, CHARACTER_PROP_HANGUL_LVT))) {
 		goto nobreak;
 	}
 
 	/* GB7 */
-	if ((has_property(a, p[0], character_prop, CHARACTER_PROP_HANGUL_LV) ||
-	     has_property(a, p[0], character_prop, CHARACTER_PROP_HANGUL_V)) &&
-	    (has_property(b, p[1], character_prop, CHARACTER_PROP_HANGUL_V) ||
-	     has_property(b, p[1], character_prop, CHARACTER_PROP_HANGUL_T))) {
+	if ((has_property(cp0, p[0], character_prop, CHARACTER_PROP_HANGUL_LV) ||
+	     has_property(cp0, p[0], character_prop, CHARACTER_PROP_HANGUL_V)) &&
+	    (has_property(cp1, p[1], character_prop, CHARACTER_PROP_HANGUL_V) ||
+	     has_property(cp1, p[1], character_prop, CHARACTER_PROP_HANGUL_T))) {
 		goto nobreak;
 	}
 
 	/* GB8 */
-	if ((has_property(a, p[0], character_prop, CHARACTER_PROP_HANGUL_LVT) ||
-	     has_property(a, p[0], character_prop, CHARACTER_PROP_HANGUL_T)) &&
-	    has_property(b, p[1], character_prop, CHARACTER_PROP_HANGUL_T)) {
+	if ((has_property(cp0, p[0], character_prop, CHARACTER_PROP_HANGUL_LVT) ||
+	     has_property(cp0, p[0], character_prop, CHARACTER_PROP_HANGUL_T)) &&
+	    has_property(cp1, p[1], character_prop, CHARACTER_PROP_HANGUL_T)) {
 		goto nobreak;
 	}
 
 	/* GB9 */
-	if (has_property(b, p[1], character_prop, CHARACTER_PROP_EXTEND) ||
-	    has_property(b, p[1], character_prop, CHARACTER_PROP_ZWJ)) {
+	if (has_property(cp1, p[1], character_prop, CHARACTER_PROP_EXTEND) ||
+	    has_property(cp1, p[1], character_prop, CHARACTER_PROP_ZWJ)) {
 		goto nobreak;
 	}
 
 	/* GB9a */
-	if (has_property(b, p[1], character_prop, CHARACTER_PROP_SPACINGMARK)) {
+	if (has_property(cp1, p[1], character_prop, CHARACTER_PROP_SPACINGMARK)) {
 		goto nobreak;
 	}
 
 	/* GB9b */
-	if (has_property(a, p[0], character_prop, CHARACTER_PROP_PREPEND)) {
+	if (has_property(cp0, p[0], character_prop, CHARACTER_PROP_PREPEND)) {
 		goto nobreak;
 	}
 
 	/* GB11 */
 	if ((flags & CHARACTER_FLAG_EMOJI) &&
-	    has_property(a, p[0], character_prop, CHARACTER_PROP_ZWJ) &&
-	    has_property(b, p[1], character_prop, CHARACTER_PROP_EXTENDED_PICTOGRAPHIC)) {
+	    has_property(cp0, p[0], character_prop, CHARACTER_PROP_ZWJ) &&
+	    has_property(cp1, p[1], character_prop, CHARACTER_PROP_EXTENDED_PICTOGRAPHIC)) {
 		goto nobreak;
 	}
 
 	/* GB12/GB13 */
-	if (has_property(a, p[0], character_prop, CHARACTER_PROP_REGIONAL_INDICATOR) &&
-	    has_property(b, p[1], character_prop, CHARACTER_PROP_REGIONAL_INDICATOR) &&
+	if (has_property(cp0, p[0], character_prop, CHARACTER_PROP_REGIONAL_INDICATOR) &&
+	    has_property(cp1, p[1], character_prop, CHARACTER_PROP_REGIONAL_INDICATOR) &&
 	    (flags & CHARACTER_FLAG_RI_ODD)) {
 		goto nobreak;
 	}
@@ -166,8 +166,8 @@ nobreak:
 hasbreak:
 	if (state != NULL) {
 		/* move b-state to a-state, discard b-state */
-		memcpy(&(state->a), &(state->b), sizeof(state->a));
-		memset(&(state->b), 0, sizeof(state->b));
+		memcpy(&(state->cp0), &(state->cp1), sizeof(state->cp0));
+		memset(&(state->cp1), 0, sizeof(state->cp1));
 
 		/* reset flags */
 		if (isbreak) {

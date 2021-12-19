@@ -48,11 +48,11 @@ static const struct {
 };
 
 size_t
-grapheme_decode_utf8(const char *s, size_t n, uint_least32_t *cp)
+grapheme_decode_utf8(const char *str, size_t len, uint_least32_t *cp)
 {
 	size_t off, i;
 
-	if (s == NULL || n == 0) {
+	if (str == NULL || len == 0) {
 		/* a sequence must be at least 1 byte long */
 		*cp = GRAPHEME_INVALID_CODEPOINT;
 		return 0;
@@ -60,14 +60,14 @@ grapheme_decode_utf8(const char *s, size_t n, uint_least32_t *cp)
 
 	/* identify sequence type with the first byte */
 	for (off = 0; off < LEN(lut); off++) {
-		if (BETWEEN(((const unsigned char *)s)[0], lut[off].lower,
+		if (BETWEEN(((const unsigned char *)str)[0], lut[off].lower,
 		            lut[off].upper)) {
 			/*
 			 * first byte is within the bounds; fill
 			 * p with the the first bits contained in
 			 * the first byte (by subtracting the high bits)
 			 */
-			*cp = ((const unsigned char *)s)[0] - lut[off].lower;
+			*cp = ((const unsigned char *)str)[0] - lut[off].lower;
 			break;
 		}
 	}
@@ -82,7 +82,7 @@ grapheme_decode_utf8(const char *s, size_t n, uint_least32_t *cp)
 		*cp = GRAPHEME_INVALID_CODEPOINT;
 		return 1;
 	}
-	if (1 + off > n) {
+	if (1 + off > len) {
 		/*
 		 * input is not long enough, set cp as invalid
 		 */
@@ -93,8 +93,8 @@ grapheme_decode_utf8(const char *s, size_t n, uint_least32_t *cp)
 		 * else in case we have a "rogue" case where e.g. such a
 		 * sequence starter occurs right before a NUL-byte.
 		 */
-		for (i = 0; 1 + i < n; i++) {
-			if(!BETWEEN(((const unsigned char *)s)[1 + i],
+		for (i = 0; 1 + i < len; i++) {
+			if(!BETWEEN(((const unsigned char *)str)[1 + i],
 			            0x80, 0xBF)) {
 				break;
 			}
@@ -106,7 +106,7 @@ grapheme_decode_utf8(const char *s, size_t n, uint_least32_t *cp)
 		 * Otherwise return the number of bytes we actually
 		 * expected, which is larger than n.
 		 */
-		return ((1 + i) < n) ? (1 + i) : (1 + off);
+		return ((1 + i) < len) ? (1 + i) : (1 + off);
 	}
 
 	/*
@@ -114,7 +114,7 @@ grapheme_decode_utf8(const char *s, size_t n, uint_least32_t *cp)
 	 * (i.e. between 0x80 (10000000) and 0xBF (10111111))
 	 */
 	for (i = 1; i <= off; i++) {
-		if(!BETWEEN(((const unsigned char *)s)[i], 0x80, 0xBF)) {
+		if(!BETWEEN(((const unsigned char *)str)[i], 0x80, 0xBF)) {
 			/*
 			 * byte does not match format; return
 			 * number of bytes processed excluding the
@@ -132,7 +132,7 @@ grapheme_decode_utf8(const char *s, size_t n, uint_least32_t *cp)
 		 * shift codepoint by 6 bits and add the 6 stored bits
 		 * in s[i] to it using the bitmask 0x3F (00111111)
 		 */
-		*cp = (*cp << 6) | (((const unsigned char *)s)[i] & 0x3F);
+		*cp = (*cp << 6) | (((const unsigned char *)str)[i] & 0x3F);
 	}
 
 	if (*cp < lut[off].mincp ||
@@ -151,7 +151,7 @@ grapheme_decode_utf8(const char *s, size_t n, uint_least32_t *cp)
 }
 
 size_t
-grapheme_encode_utf8(uint_least32_t cp, char *s, size_t n)
+grapheme_encode_utf8(uint_least32_t cp, char *str, size_t len)
 {
 	size_t off, i;
 
@@ -171,7 +171,7 @@ grapheme_encode_utf8(uint_least32_t cp, char *s, size_t n)
 			break;
 		}
 	}
-	if (1 + off > n || s == NULL || n == 0) {
+	if (1 + off > len || str == NULL || len == 0) {
 		/*
 		 * specified buffer is too small to store sequence or
 		 * the caller just wanted to know how many bytes the
@@ -191,7 +191,7 @@ grapheme_encode_utf8(uint_least32_t cp, char *s, size_t n)
 	 * We do not overwrite the mask because we guaranteed earlier
 	 * that there are no bits higher than the mask allows.
 	 */
-	((unsigned char *)s)[0] = lut[off].lower | (uint8_t)(cp >> (6 * off));
+	((unsigned char *)str)[0] = lut[off].lower | (uint8_t)(cp >> (6 * off));
 
 	for (i = 1; i <= off; i++) {
 		/*
@@ -200,8 +200,8 @@ grapheme_encode_utf8(uint_least32_t cp, char *s, size_t n)
 		 * extract from the properly-shifted value using the
 		 * mask 00111111 (0x3F)
 		 */
-		((unsigned char *)s)[i] = 0x80 |
-		                          ((cp >> (6 * (off - i))) & 0x3F);
+		((unsigned char *)str)[i] = 0x80 |
+		                            ((cp >> (6 * (off - i))) & 0x3F);
 	}
 
 	return 1 + off;

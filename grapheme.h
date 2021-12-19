@@ -12,8 +12,8 @@ struct grapheme_internal_heisenstate {
 };
 
 typedef struct grapheme_internal_segmentation_state {
-	struct grapheme_internal_heisenstate a;
-	struct grapheme_internal_heisenstate b;
+	struct grapheme_internal_heisenstate cp0;
+	struct grapheme_internal_heisenstate cp1;
 	uint_least16_t flags;
 } GRAPHEME_STATE;
 
