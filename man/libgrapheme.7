@@ -1,4 +1,4 @@
-.Dd 2021-12-19
+.Dd 2021-12-22
 .Dt LIBGRAPHEME 7
 .Os suckless.org
 .Sh NAME
@@ -18,11 +18,22 @@ see
 that are made up of one or more Unicode codepoints, which in turn
 are encoded in one or more bytes in an encoding like UTF-8.
 .Pp
+There is a widespread misconception that it was enough to simply
+determine codepoints in a string and treat them as user-perceived
+characters to be Unicode compliant.
+While this may work in some cases, this assumption quickly breaks,
+especially for non-Western languages and decomposed Unicode strings
+where user-perceived characters are usually represented using multiple
+codepoints.
+.Pp
 Despite this complicated multilevel structure of Unicode strings,
 .Nm
 provides methods to work with them at the byte-level (i.e. UTF-8
 .Sq char
 arrays) while also offering codepoint-level methods.
+.Pp
+Every documented function's manual page provides a self-contained
+example illustrating the possible usage.
 .Sh SEE ALSO
 .Xr grapheme_decode_utf8 3 ,
 .Xr grapheme_encode_utf8 3 ,

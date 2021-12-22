@@ -7,6 +7,13 @@ up of user-perceived characters (so-called "grapheme clusters") that are
 made up of one or more Unicode codepoints, which in turn are encoded in
 one or more bytes in an encoding like UTF-8.
 
+There is a widespread misconception that it was enough to simply
+determine codepoints in a string and treat them as user-perceived
+characters to be Unicode compliant. While this may work in some cases,
+this assumption quickly breaks, especially for non-Western languages and
+decomposed Unicode strings where user-perceived characters are usually
+represented using multiple codepoints.
+
 Despite the complicated multilevel structure of Unicode strings,
 libgrapheme provides methods to work with them at the byte-level (i.e.
 UTF-8 ‘char’ arrays) while also providing codepoint-level methods.
@@ -27,6 +34,19 @@ Afterwards enter the following command to build and install libgrapheme
 (if necessary as root):
 
 	make install
+
+Conformance
+-----------
+The libgrapheme library is compliant with the Unicode 14.0.0
+specification (September 2021).
+
+To ensure conformance, libgrapheme includes hundreds of tests including
+all provided with the standard-provided test-data that is parsed
+automatically. The tests can be run with
+
+	make test
+
+to check standard conformance.
 
 Usage
 -----
