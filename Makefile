@@ -97,6 +97,7 @@ install: all
 	cp -f libgrapheme.a "$(DESTDIR)$(LIBPREFIX)"
 	cp -f libgrapheme.so "$(DESTDIR)$(LIBPREFIX)"
 	cp -f grapheme.h "$(DESTDIR)$(INCPREFIX)"
+	ldconfig || true
 
 uninstall:
 	for m in $(MAN3); do rm -f "$(DESTDIR)$(MANPREFIX)/man3/`basename $$m`"; done
@@ -104,6 +105,7 @@ uninstall:
 	rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.a"
 	rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so"
 	rm -f "$(DESTDIR)$(INCPREFIX)/grapheme.h"
+	ldconfig || true
 
 clean:
 	rm -f $(GEN:=.h) $(GEN:=.o) gen/util.o $(GEN) $(SRC:=.o) src/util.o $(TEST:=.o) test/util.o $(TEST) libgrapheme.a libgrapheme.so
