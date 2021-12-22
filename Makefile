@@ -1,5 +1,5 @@
 # See LICENSE file for copyright and license details
-# libgrapheme - grapheme cluster utility library
+# libgrapheme - unicode string library
 .POSIX:
 
 include config.mk

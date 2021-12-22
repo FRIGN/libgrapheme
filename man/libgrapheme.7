@@ -3,17 +3,26 @@
 .Os suckless.org
 .Sh NAME
 .Nm libgrapheme
-.Nd unicode library
+.Nd unicode string library
 .Sh SYNOPSIS
 .In grapheme.h
 .Sh DESCRIPTION
 The
 .Nm
-library provides functions to properly handle user-perceived characters
-.Dq ( grapheme clusters ,
+library provides functions to properly handle Unicode strings according
+to the Unicode specification.
+Unicode strings are made up of user-perceived characters (so-called
+.Dq grapheme clusters ,
 see
 .Sx MOTIVATION )
-according to the Unicode specification.
+that are made up of one or more Unicode codepoints, which in turn
+are encoded in one or more bytes in an encoding like UTF-8.
+.Pp
+Despite this complicated multilevel structure of Unicode strings,
+.Nm
+provides methods to work with them at the byte-level (i.e. UTF-8
+.Sq char
+arrays) while also offering codepoint-level methods.
 .Sh SEE ALSO
 .Xr grapheme_decode_utf8 3 ,
 .Xr grapheme_encode_utf8 3 ,

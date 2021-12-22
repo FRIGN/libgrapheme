@@ -1,0 +1,38 @@
+libgrapheme
+===========
+
+The libgrapheme library provides functions to properly handle Unicode
+strings according to the Unicode specification. Unicode strings are made
+up of user-perceived characters (so-called "grapheme clusters") that are
+made up of one or more Unicode codepoints, which in turn are encoded in
+one or more bytes in an encoding like UTF-8.
+
+Despite the complicated multilevel structure of Unicode strings,
+libgrapheme provides methods to work with them at the byte-level (i.e.
+UTF-8 ‘char’ arrays) while also providing codepoint-level methods.
+
+See libgrapheme(7) to get started and try out the self-contained examples
+given on the manual pages for each function.
+
+Requirements
+------------
+A C99-compiler and POSIX make.
+
+Installation
+------------
+Edit config.mk to match your local setup (usually not necessary, the
+default prefix is /usr/local).
+
+Afterwards enter the following command to build and install libgrapheme
+(if necessary as root):
+
+	make install
+
+Usage
+-----
+Include the header grapheme.h in your code and link against libgrapheme
+with "-lgrapheme" either statically ("-static") or dynamically.
+
+Author
+------
+Laslo Hunhold <dev@frign.de>
