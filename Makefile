@@ -125,4 +125,4 @@ dist:
 	tar -cf libgrapheme-$(VERSION).tar libgrapheme-$(VERSION)
 	rm -rf libgrapheme-$(VERSION)
 
-.PHONY: all test install uninstall clean dist
+.PHONY: all test install uninstall clean clean-data dist
