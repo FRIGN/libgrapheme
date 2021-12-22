@@ -1,5 +1,5 @@
 # libgrapheme version
-VERSION = 0
+VERSION = 1
 
 # Customize below to fit your system
 
