@@ -116,7 +116,7 @@ clean-data:
 dist:
 	mkdir libgrapheme-$(VERSION)
 	for m in data gen man src test; do mkdir libgrapheme-$(VERSION)/$$m; done
-	cp config.mk grapheme.h LICENSE Makefile libgrapheme-$(VERSION)
+	cp config.mk grapheme.h LICENSE Makefile README libgrapheme-$(VERSION)
 	cp $(DATA) libgrapheme-$(VERSION)/data
 	cp $(GEN:=.c) gen/util.c gen/util.h libgrapheme-$(VERSION)/gen
 	cp $(MAN3) $(MAN7) libgrapheme-$(VERSION)/man
