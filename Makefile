@@ -135,7 +135,7 @@ dist:
 	cp $(MAN3) $(MAN7) libgrapheme-$(VERSION)/man
 	cp $(SRC:=.c) src/util.h libgrapheme-$(VERSION)/src
 	cp $(TEST:=.c) test/util.c test/util.h libgrapheme-$(VERSION)/test
-	tar -cf libgrapheme-$(VERSION).tar libgrapheme-$(VERSION)
+	tar -cf - libgrapheme-$(VERSION) | gzip -c > libgrapheme-$(VERSION).tar.gz
 	rm -rf libgrapheme-$(VERSION)
 
 .PHONY: all test install uninstall clean clean-data dist
