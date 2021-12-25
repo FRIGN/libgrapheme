@@ -126,16 +126,16 @@ print:
 	@echo $(PREFIX)
 
 dist:
-	mkdir libgrapheme-$(VERSION)
-	for m in benchmark data gen man src test; do mkdir libgrapheme-$(VERSION)/$$m; done
-	cp config.mk grapheme.h LICENSE Makefile README libgrapheme-$(VERSION)
-	cp $(BENCHMARK:=.c) benchmark/util.c benchmark/util.h libgrapheme-$(VERSION)/benchmark
-	cp $(DATA) libgrapheme-$(VERSION)/data
-	cp $(GEN:=.c) gen/util.c gen/types.h gen/util.h libgrapheme-$(VERSION)/gen
-	cp $(MAN3) $(MAN7) libgrapheme-$(VERSION)/man
-	cp $(SRC:=.c) src/util.h libgrapheme-$(VERSION)/src
-	cp $(TEST:=.c) test/util.c test/util.h libgrapheme-$(VERSION)/test
-	tar -cf - libgrapheme-$(VERSION) | gzip -c > libgrapheme-$(VERSION).tar.gz
-	rm -rf libgrapheme-$(VERSION)
+	mkdir "libgrapheme-$(VERSION)"
+	for m in benchmark data gen man src test; do mkdir "libgrapheme-$(VERSION)/$$m"; done
+	cp config.mk grapheme.h LICENSE Makefile README "libgrapheme-$(VERSION)"
+	cp $(BENCHMARK:=.c) benchmark/util.c benchmark/util.h "libgrapheme-$(VERSION)/benchmark"
+	cp $(DATA) "libgrapheme-$(VERSION)/data"
+	cp $(GEN:=.c) gen/util.c gen/types.h gen/util.h "libgrapheme-$(VERSION)/gen"
+	cp $(MAN3) $(MAN7) "libgrapheme-$(VERSION)/man"
+	cp $(SRC:=.c) src/util.h "libgrapheme-$(VERSION)/src"
+	cp $(TEST:=.c) test/util.c test/util.h "libgrapheme-$(VERSION)/test"
+	tar -cf - "libgrapheme-$(VERSION)" | gzip -c > "libgrapheme-$(VERSION).tar.gz"
+	rm -rf "libgrapheme-$(VERSION)"
 
 .PHONY: all test install uninstall clean clean-data dist
