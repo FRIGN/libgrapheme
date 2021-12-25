@@ -4,6 +4,9 @@
 
 include config.mk
 
+BENCHMARK =\
+	benchmark/character\
+
 DATA =\
 	data/emoji-data.txt\
 	data/GraphemeBreakProperty.txt\
@@ -20,7 +23,6 @@ SRC =\
 
 TEST =\
 	test/character\
-	test/character-performance\
 	test/utf8-decode\
 	test/utf8-encode\
 
@@ -34,22 +36,23 @@ MAN7 = man/libgrapheme.7
 
 all: libgrapheme.a libgrapheme.so
 
+benchmark/character.o: benchmark/character.c config.mk gen/character-test.h grapheme.h benchmark/util.h
+benchmark/util.o: benchmark/util.c config.mk benchmark/util.h
 gen/character-prop.o: gen/character-prop.c config.mk gen/util.h
 gen/character-test.o: gen/character-test.c config.mk gen/util.h
 gen/util.o: gen/util.c config.mk gen/util.h
 src/character.o: src/character.c config.mk gen/character-prop.h grapheme.h src/util.h
 src/utf8.o: src/utf8.c config.mk grapheme.h
-src/util.o: src/util.c config.mk grapheme.h src/util.h
+src/util.o: src/util.c config.mk gen/types.h grapheme.h src/util.h
 test/character.o: test/character.c config.mk gen/character-test.h grapheme.h test/util.h
-test/character-performance.o: test/character-performance.c config.mk gen/character-test.h grapheme.h test/util.h
 test/utf8-encode.o: test/utf8-encode.c config.mk grapheme.h test/util.h
 test/utf8-decode.o: test/utf8-decode.c config.mk grapheme.h test/util.h
 test/util.o: test/util.c config.mk test/util.h
 
+benchmark/character: benchmark/character.o benchmark/util.o libgrapheme.a
 gen/character-prop: gen/character-prop.o gen/util.o
 gen/character-test: gen/character-test.o gen/util.o
 test/character: test/character.o test/util.o libgrapheme.a
-test/character-performance: test/character-performance.o test/util.o libgrapheme.a
 test/utf8-encode: test/utf8-encode.o test/util.o libgrapheme.a
 test/utf8-decode: test/utf8-decode.o test/util.o libgrapheme.a
 
@@ -64,6 +67,9 @@ data/GraphemeBreakProperty.txt:
 
 data/GraphemeBreakTest.txt:
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/GraphemeBreakTest.txt
+
+$(BENCHMARK):
+	$(CC) -o $@ $(LDFLAGS) $@.o benchmark/util.o libgrapheme.a -lutf8proc
 
 $(GEN):
 	$(CC) -o $@ $(LDFLAGS) $@.o gen/util.o
@@ -83,6 +89,9 @@ libgrapheme.a: $(SRC:=.o)
 
 libgrapheme.so: $(SRC:=.o)
 	$(CC) -o $@ -shared $?
+
+benchmark: $(BENCHMARK)
+	for m in $(BENCHMARK); do ./$$m; done
 
 test: $(TEST)
 	for m in $(TEST); do ./$$m; done
@@ -108,17 +117,21 @@ uninstall:
 	ldconfig || true
 
 clean:
-	rm -f $(GEN:=.h) $(GEN:=.o) gen/util.o $(GEN) $(SRC:=.o) src/util.o $(TEST:=.o) test/util.o $(TEST) libgrapheme.a libgrapheme.so
+	rm -f $(BENCHMARK:=.o) benchmark/util.o $(BENCHMARK) $(GEN:=.h) $(GEN:=.o) gen/util.o $(GEN) $(SRC:=.o) src/util.o $(TEST:=.o) test/util.o $(TEST) libgrapheme.a libgrapheme.so
 
 clean-data:
 	rm -f $(DATA)
 
+print:
+	@echo $(PREFIX)
+
 dist:
 	mkdir libgrapheme-$(VERSION)
-	for m in data gen man src test; do mkdir libgrapheme-$(VERSION)/$$m; done
+	for m in benchmark data gen man src test; do mkdir libgrapheme-$(VERSION)/$$m; done
 	cp config.mk grapheme.h LICENSE Makefile README libgrapheme-$(VERSION)
+	cp $(BENCHMARK:=.c) benchmark/util.c benchmark/util.h libgrapheme-$(VERSION)/benchmark
 	cp $(DATA) libgrapheme-$(VERSION)/data
-	cp $(GEN:=.c) gen/util.c gen/util.h libgrapheme-$(VERSION)/gen
+	cp $(GEN:=.c) gen/util.c gen/types.h gen/util.h libgrapheme-$(VERSION)/gen
 	cp $(MAN3) $(MAN7) libgrapheme-$(VERSION)/man
 	cp $(SRC:=.c) src/util.h libgrapheme-$(VERSION)/src
 	cp $(TEST:=.c) test/util.c test/util.h libgrapheme-$(VERSION)/test

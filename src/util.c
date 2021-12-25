@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "../gen/types.h"
 #include "../grapheme.h"
 #include "util.h"
 

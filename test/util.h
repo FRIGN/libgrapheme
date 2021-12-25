@@ -6,6 +6,4 @@
 
 #define LEN(x) (sizeof(x) / sizeof(*(x)))
 
-double time_diff(struct timespec *, struct timespec *);
-
 #endif /* UTIL_H */
