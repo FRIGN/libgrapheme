@@ -1,9 +1,10 @@
 /* See LICENSE file for copyright and license details. */
+#include <errno.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 
 #include "util.h"
 
@@ -62,7 +63,7 @@ hextocp(const char *str, size_t len, uint_least32_t *cp)
 	return 0;
 }
 
-static int
+int
 range_parse(const char *str, struct range *range)
 {
 	char *p;
@@ -103,7 +104,7 @@ range_list_append(struct range **range, size_t *nranges, const struct range *new
 	}
 }
 
-static void
+void
 parse_file_with_callback(char *fname, int (*callback)(char *, char **,
                          size_t, char *, void *), void *payload)
 {

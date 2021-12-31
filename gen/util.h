@@ -28,6 +28,11 @@ struct segment_test {
 	char *descr;
 };
 
+int range_parse(const char *, struct range *);
+
+void parse_file_with_callback(char *, int (*callback)(char *, char **,
+                              size_t, char *, void *), void *payload);
+
 void property_list_parse(struct property *, size_t);
 void property_list_print(const struct property *, size_t, const char *,
                          const char *);
