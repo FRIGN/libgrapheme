@@ -4,178 +4,175 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../gen/character-prop.h"
+#include "../gen/properties.h"
 #include "../grapheme.h"
 #include "util.h"
 
-enum {
-	CHARACTER_FLAG_RI_ODD = 1 << 0, /* odd number of RI's before the seam */
-	CHARACTER_FLAG_EMOJI  = 1 << 1, /* within emoji modifier or zwj sequence */
+static const uint_least16_t dont_break[NUM_BREAK_PROPS] = {
+	[BREAK_PROP_OTHER] =
+		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_SPACINGMARK),   /* GB9a */
+	[BREAK_PROP_CR] =
+		UINT16_C(1 << BREAK_PROP_LF),            /* GB3  */
+	[BREAK_PROP_EXTEND] =
+		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_SPACINGMARK),   /* GB9a */
+	[BREAK_PROP_EXTENDED_PICTOGRAPHIC] =
+		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_SPACINGMARK),   /* GB9a */
+	[BREAK_PROP_HANGUL_L] =
+		UINT16_C(1 << BREAK_PROP_HANGUL_L)     | /* GB6  */
+		UINT16_C(1 << BREAK_PROP_HANGUL_V)     | /* GB6  */
+		UINT16_C(1 << BREAK_PROP_HANGUL_LV)    | /* GB6  */
+		UINT16_C(1 << BREAK_PROP_HANGUL_LVT)   | /* GB6  */
+		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_SPACINGMARK),   /* GB9a */
+	[BREAK_PROP_HANGUL_V] =
+		UINT16_C(1 << BREAK_PROP_HANGUL_V)     | /* GB7  */
+		UINT16_C(1 << BREAK_PROP_HANGUL_T)     | /* GB7  */
+		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_SPACINGMARK),   /* GB9a */
+	[BREAK_PROP_HANGUL_T] =
+		UINT16_C(1 << BREAK_PROP_HANGUL_T)     | /* GB8  */
+		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_SPACINGMARK),   /* GB9a */
+	[BREAK_PROP_HANGUL_LV] =
+		UINT16_C(1 << BREAK_PROP_HANGUL_V)     | /* GB7  */
+		UINT16_C(1 << BREAK_PROP_HANGUL_T)     | /* GB7  */
+		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_SPACINGMARK),   /* GB9a */
+	[BREAK_PROP_HANGUL_LVT] =
+		UINT16_C(1 << BREAK_PROP_HANGUL_T)     | /* GB8  */
+		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_SPACINGMARK),   /* GB9a */
+	[BREAK_PROP_PREPEND] =
+		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_SPACINGMARK)  | /* GB9a */
+		(UINT16_C(0xFFFF) &
+		 ~(UINT16_C(1 << BREAK_PROP_CR)      |
+		   UINT16_C(1 << BREAK_PROP_LF)      |
+		   UINT16_C(1 << BREAK_PROP_CONTROL)
+		  )
+		),                                           /* GB9b */
+	[BREAK_PROP_REGIONAL_INDICATOR] =
+		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_SPACINGMARK),   /* GB9a */
+	[BREAK_PROP_SPACINGMARK] =
+		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_SPACINGMARK),   /* GB9a */
+	[BREAK_PROP_ZWJ] =
+		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << BREAK_PROP_SPACINGMARK),   /* GB9a */
 };
+static const uint_least16_t flag_update_gb11[2 * NUM_BREAK_PROPS] = {
+	[BREAK_PROP_EXTENDED_PICTOGRAPHIC] =
+		UINT16_C(1 << BREAK_PROP_ZWJ)                   |
+		UINT16_C(1 << BREAK_PROP_EXTEND),
+	[BREAK_PROP_ZWJ + NUM_BREAK_PROPS] =
+		UINT16_C(1 << BREAK_PROP_EXTENDED_PICTOGRAPHIC),
+	[BREAK_PROP_EXTEND + NUM_BREAK_PROPS] =
+		UINT16_C(1 << BREAK_PROP_EXTEND)                |
+		UINT16_C(1 << BREAK_PROP_ZWJ),
+	[BREAK_PROP_EXTENDED_PICTOGRAPHIC + NUM_BREAK_PROPS] =
+		UINT16_C(1 << BREAK_PROP_ZWJ)                   |
+		UINT16_C(1 << BREAK_PROP_EXTEND),
+};
+static const uint_least16_t dont_break_gb11[2 * NUM_BREAK_PROPS] = {
+	[BREAK_PROP_ZWJ + NUM_BREAK_PROPS] =
+		UINT16_C(1 << BREAK_PROP_EXTENDED_PICTOGRAPHIC),
+};
+static const uint_least16_t flag_update_gb12_13[2 * NUM_BREAK_PROPS] = {
+	[BREAK_PROP_REGIONAL_INDICATOR] =
+		UINT16_C(1 << BREAK_PROP_REGIONAL_INDICATOR),
+};
+static const uint_least16_t dont_break_gb12_13[2 * NUM_BREAK_PROPS] = {
+	[BREAK_PROP_REGIONAL_INDICATOR + NUM_BREAK_PROPS] =
+		UINT16_C(1 << BREAK_PROP_REGIONAL_INDICATOR),
+};
+
+static enum break_property
+get_break_prop(uint_least32_t cp)
+{
+	if (cp > 0x10FFFF) {
+		return BREAK_PROP_OTHER;
+	} else {
+		return prop[minor[major[cp >> 8] + (cp & 0xff)]].break_property;
+	}
+}
 
 bool
 grapheme_is_character_break(uint_least32_t cp0, uint_least32_t cp1, GRAPHEME_STATE *state)
 {
-	struct grapheme_internal_heisenstate *p[2] = { 0 };
-	uint_least16_t flags = 0;
-	bool isbreak = true;
+	enum break_property cp0_prop, cp1_prop;
+	bool notbreak = false;
 
-	/* set state depending on state pointer */
-	if (state != NULL) {
-		p[0] = &(state->cp0);
-		p[1] = &(state->cp1);
-		flags = state->flags;
-	}
-
-	/* skip printable ASCII */
-	if ((cp0 >= 0x20 && cp0 <= 0x7E) &&
-	    (cp1 >= 0x20 && cp1 <= 0x7E)) {
-		goto hasbreak;
-	}
-
-	/*
-	 * Apply grapheme cluster breaking algorithm (UAX #29), see
-	 * http://unicode.org/reports/tr29/#Grapheme_Cluster_Boundary_Rules
-	 */
-
-	/*
-	 * update flags, if state-pointer given
-	 */
-	if (has_property(cp1, p[1], character_prop, CHARACTER_PROP_REGIONAL_INDICATOR)) {
-		if (has_property(cp0, p[0], character_prop, CHARACTER_PROP_REGIONAL_INDICATOR)) {
-			/* one more RI is on the left side of the seam, flip state */
-			flags ^= CHARACTER_FLAG_RI_ODD;
+	if (state) {
+		if (!state->prop_set) {
+			cp0_prop = get_break_prop(cp0);
 		} else {
-			/* an RI appeared on the right side but the left
-			   side is not an RI, reset state (number 0 is even) */
-			flags &= ~CHARACTER_FLAG_RI_ODD;
+			cp0_prop = state->prop;
 		}
-	}
-	if (!(flags & CHARACTER_FLAG_EMOJI) &&
-	    ((has_property(cp0, p[0], character_prop, CHARACTER_PROP_EXTENDED_PICTOGRAPHIC) &&
-	      has_property(cp1, p[1], character_prop, CHARACTER_PROP_ZWJ)) ||
-             (has_property(cp0, p[0], character_prop, CHARACTER_PROP_EXTENDED_PICTOGRAPHIC) &&
-	      has_property(cp1, p[1], character_prop, CHARACTER_PROP_EXTEND)))) {
-		flags |= CHARACTER_FLAG_EMOJI;
-	} else if ((flags & CHARACTER_FLAG_EMOJI) &&
-	           ((has_property(cp0, p[0], character_prop, CHARACTER_PROP_ZWJ) &&
-		     has_property(cp1, p[1], character_prop, CHARACTER_PROP_EXTENDED_PICTOGRAPHIC)) ||
-	            (has_property(cp0, p[0], character_prop, CHARACTER_PROP_EXTEND) &&
-		     has_property(cp1, p[1], character_prop, CHARACTER_PROP_EXTEND)) ||
-	            (has_property(cp0, p[0], character_prop, CHARACTER_PROP_EXTEND) &&
-		     has_property(cp1, p[1], character_prop, CHARACTER_PROP_ZWJ)) ||
-	            (has_property(cp0, p[0], character_prop, CHARACTER_PROP_EXTENDED_PICTOGRAPHIC) &&
-		     has_property(cp1, p[1], character_prop, CHARACTER_PROP_ZWJ)) ||
-	            (has_property(cp0, p[0], character_prop, CHARACTER_PROP_EXTENDED_PICTOGRAPHIC) &&
-		     has_property(cp1, p[1], character_prop, CHARACTER_PROP_EXTEND)))) {
-		/* CHARACTER_FLAG_EMOJI remains */
+		cp1_prop = get_break_prop(cp1);
+
+		/* preserve prop of right codepoint for next iteration */
+		state->prop = cp1_prop;
+		state->prop_set = true;
+
+		/* update flags */
+		state->gb11_flag = flag_update_gb11[cp0_prop +
+		                                    NUM_BREAK_PROPS *
+		                                    state->gb11_flag] &
+	                           UINT16_C(1 << cp1_prop);
+		state->gb12_13_flag = flag_update_gb12_13[cp0_prop +
+		                                          NUM_BREAK_PROPS *
+		                                          state->gb12_13_flag] &
+		                      UINT16_C(1 << cp1_prop);
+
+		/*
+		 * Apply grapheme cluster breaking algorithm (UAX #29), see
+		 * http://unicode.org/reports/tr29/#Grapheme_Cluster_Boundary_Rules
+		 */
+		notbreak = (dont_break[cp0_prop] & UINT16_C(1 << cp1_prop)) ||
+		           (dont_break_gb11[cp0_prop + state->gb11_flag *
+		                            NUM_BREAK_PROPS] &
+		            UINT16_C(1 << cp1_prop)) ||
+		           (dont_break_gb12_13[cp0_prop + state->gb12_13_flag *
+		                               NUM_BREAK_PROPS] &
+		            UINT16_C(1 << cp1_prop));
+
+		/* update or reset flags (when we have a break) */
+		if (!notbreak) {
+			state->gb11_flag = state->gb12_13_flag = false;
+		}
 	} else {
-		flags &= ~CHARACTER_FLAG_EMOJI;
+		cp0_prop = get_break_prop(cp0);
+		cp1_prop = get_break_prop(cp1);
+
+		/*
+		 * Apply grapheme cluster breaking algorithm (UAX #29), see
+		 * http://unicode.org/reports/tr29/#Grapheme_Cluster_Boundary_Rules
+		 *
+		 * Given we have no state, this behaves as if the state-booleans
+		 * were all set to false
+		 */
+		notbreak = (dont_break[cp0_prop] & UINT16_C(1 << cp1_prop)) ||
+		           (dont_break_gb11[cp0_prop] & UINT16_C(1 << cp1_prop)) ||
+		           (dont_break_gb12_13[cp0_prop] & UINT16_C(1 << cp1_prop));
 	}
 
-	/* write updated flags to state, if given */
-	if (state != NULL) {
-		state->flags = flags;
-	}
-
-	/*
-	 * apply rules
-	 */
-
-	/* skip GB1 and GB2, as they are never satisfied here */
-
-	/* GB3 */
-	if (has_property(cp0, p[0], character_prop, CHARACTER_PROP_CR) &&
-	    has_property(cp1, p[1], character_prop, CHARACTER_PROP_LF)) {
-		goto nobreak;
-	}
-
-	/* GB4 */
-	if (has_property(cp0, p[0], character_prop, CHARACTER_PROP_CONTROL) ||
-	    has_property(cp0, p[0], character_prop, CHARACTER_PROP_CR) ||
-	    has_property(cp0, p[0], character_prop, CHARACTER_PROP_LF)) {
-		goto hasbreak;
-	}
-
-	/* GB5 */
-	if (has_property(cp1, p[1], character_prop, CHARACTER_PROP_CONTROL) ||
-	    has_property(cp1, p[1], character_prop, CHARACTER_PROP_CR) ||
-	    has_property(cp1, p[1], character_prop, CHARACTER_PROP_LF)) {
-		goto hasbreak;
-	}
-
-	/* GB6 */
-	if (has_property(cp0, p[0], character_prop, CHARACTER_PROP_HANGUL_L) &&
-	    (has_property(cp1, p[1], character_prop, CHARACTER_PROP_HANGUL_L) ||
-	     has_property(cp1, p[1], character_prop, CHARACTER_PROP_HANGUL_V) ||
-	     has_property(cp1, p[1], character_prop, CHARACTER_PROP_HANGUL_LV) ||
-
-	     has_property(cp1, p[1], character_prop, CHARACTER_PROP_HANGUL_LVT))) {
-		goto nobreak;
-	}
-
-	/* GB7 */
-	if ((has_property(cp0, p[0], character_prop, CHARACTER_PROP_HANGUL_LV) ||
-	     has_property(cp0, p[0], character_prop, CHARACTER_PROP_HANGUL_V)) &&
-	    (has_property(cp1, p[1], character_prop, CHARACTER_PROP_HANGUL_V) ||
-	     has_property(cp1, p[1], character_prop, CHARACTER_PROP_HANGUL_T))) {
-		goto nobreak;
-	}
-
-	/* GB8 */
-	if ((has_property(cp0, p[0], character_prop, CHARACTER_PROP_HANGUL_LVT) ||
-	     has_property(cp0, p[0], character_prop, CHARACTER_PROP_HANGUL_T)) &&
-	    has_property(cp1, p[1], character_prop, CHARACTER_PROP_HANGUL_T)) {
-		goto nobreak;
-	}
-
-	/* GB9 */
-	if (has_property(cp1, p[1], character_prop, CHARACTER_PROP_EXTEND) ||
-	    has_property(cp1, p[1], character_prop, CHARACTER_PROP_ZWJ)) {
-		goto nobreak;
-	}
-
-	/* GB9a */
-	if (has_property(cp1, p[1], character_prop, CHARACTER_PROP_SPACINGMARK)) {
-		goto nobreak;
-	}
-
-	/* GB9b */
-	if (has_property(cp0, p[0], character_prop, CHARACTER_PROP_PREPEND)) {
-		goto nobreak;
-	}
-
-	/* GB11 */
-	if ((flags & CHARACTER_FLAG_EMOJI) &&
-	    has_property(cp0, p[0], character_prop, CHARACTER_PROP_ZWJ) &&
-	    has_property(cp1, p[1], character_prop, CHARACTER_PROP_EXTENDED_PICTOGRAPHIC)) {
-		goto nobreak;
-	}
-
-	/* GB12/GB13 */
-	if (has_property(cp0, p[0], character_prop, CHARACTER_PROP_REGIONAL_INDICATOR) &&
-	    has_property(cp1, p[1], character_prop, CHARACTER_PROP_REGIONAL_INDICATOR) &&
-	    (flags & CHARACTER_FLAG_RI_ODD)) {
-		goto nobreak;
-	}
-
-	/* GB999 */
-	goto hasbreak;
-nobreak:
-	isbreak = false;
-hasbreak:
-	if (state != NULL) {
-		/* move b-state to a-state, discard b-state */
-		memcpy(&(state->cp0), &(state->cp1), sizeof(state->cp0));
-		memset(&(state->cp1), 0, sizeof(state->cp1));
-
-		/* reset flags */
-		if (isbreak) {
-			state->flags = 0;
-		}
-	}
-
-	return isbreak;
+	return !notbreak;
 }
 
 size_t

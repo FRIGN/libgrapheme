@@ -13,7 +13,6 @@ DATA =\
 	data/GraphemeBreakTest.txt\
 
 GEN =\
-	gen/character-prop\
 	gen/character-test\
 	gen/properties\
 
@@ -43,7 +42,7 @@ gen/character-prop.o: gen/character-prop.c config.mk gen/util.h
 gen/character-test.o: gen/character-test.c config.mk gen/util.h
 gen/properties.o: gen/properties.c config.mk gen/util.h
 gen/util.o: gen/util.c config.mk gen/util.h
-src/character.o: src/character.c config.mk gen/character-prop.h grapheme.h src/util.h
+src/character.o: src/character.c config.mk gen/properties.h grapheme.h src/util.h
 src/utf8.o: src/utf8.c config.mk grapheme.h
 src/util.o: src/util.c config.mk gen/types.h grapheme.h src/util.h
 test/character.o: test/character.c config.mk gen/character-test.h grapheme.h test/util.h
@@ -52,14 +51,12 @@ test/utf8-decode.o: test/utf8-decode.c config.mk grapheme.h test/util.h
 test/util.o: test/util.c config.mk test/util.h
 
 benchmark/character: benchmark/character.o benchmark/util.o libgrapheme.a
-gen/character-prop: gen/character-prop.o gen/util.o
 gen/character-test: gen/character-test.o gen/util.o
 gen/properties: gen/properties.o gen/util.o
 test/character: test/character.o test/util.o libgrapheme.a
 test/utf8-encode: test/utf8-encode.o test/util.o libgrapheme.a
 test/utf8-decode: test/utf8-decode.o test/util.o libgrapheme.a
 
-gen/character-prop.h: data/emoji-data.txt data/GraphemeBreakProperty.txt gen/character-prop
 gen/character-test.h: data/GraphemeBreakTest.txt gen/character-test
 gen/properties.h: data/emoji-data.txt data/GraphemeBreakProperty.txt gen/properties
 

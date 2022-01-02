@@ -6,15 +6,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
-struct grapheme_internal_heisenstate {
-	uint_least64_t determined;
-	uint_least64_t state;
-};
-
 typedef struct grapheme_internal_segmentation_state {
-	struct grapheme_internal_heisenstate cp0;
-	struct grapheme_internal_heisenstate cp1;
-	uint_least16_t flags;
+	uint_least8_t prop;
+	bool prop_set;
+	bool gb11_flag;
+	bool gb12_13_flag;
 } GRAPHEME_STATE;
 
 #define GRAPHEME_INVALID_CODEPOINT UINT32_C(0xFFFD)

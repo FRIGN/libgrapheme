@@ -10,10 +10,4 @@
 
 #define LEN(x) (sizeof(x) / sizeof(*(x)))
 
-int heisenstate_get(struct grapheme_internal_heisenstate *, int);
-int heisenstate_set(struct grapheme_internal_heisenstate *, int, int);
-
-int has_property(uint_least32_t, struct grapheme_internal_heisenstate *,
-                 const struct range_list *, int);
-
 #endif /* UTIL_H */
