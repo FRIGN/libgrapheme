@@ -6,6 +6,7 @@ include config.mk
 
 BENCHMARK =\
 	benchmark/character\
+	benchmark/utf8-decode\
 
 DATA =\
 	data/emoji-data.txt\
@@ -37,6 +38,7 @@ MAN7 = man/libgrapheme.7
 all: libgrapheme.a libgrapheme.so
 
 benchmark/character.o: benchmark/character.c config.mk gen/character-test.h grapheme.h benchmark/util.h
+benchmark/utf8-decode.o: benchmark/utf8-decode.c config.mk gen/character-test.h grapheme.h benchmark/util.h
 benchmark/util.o: benchmark/util.c config.mk benchmark/util.h
 gen/character-prop.o: gen/character-prop.c config.mk gen/util.h
 gen/character-test.o: gen/character-test.c config.mk gen/util.h
@@ -51,6 +53,7 @@ test/utf8-decode.o: test/utf8-decode.c config.mk grapheme.h test/util.h
 test/util.o: test/util.c config.mk test/util.h
 
 benchmark/character: benchmark/character.o benchmark/util.o libgrapheme.a
+benchmark/utf8-decode: benchmark/utf8-decode.o benchmark/util.o libgrapheme.a
 gen/character-test: gen/character-test.o gen/util.o
 gen/properties: gen/properties.o gen/util.o
 test/character: test/character.o test/util.o libgrapheme.a
@@ -139,4 +142,4 @@ dist:
 	tar -cf - "libgrapheme-$(VERSION)" | gzip -c > "libgrapheme-$(VERSION).tar.gz"
 	rm -rf "libgrapheme-$(VERSION)"
 
-.PHONY: all test install uninstall clean clean-data dist
+.PHONY: all benchmark test install uninstall clean clean-data dist
