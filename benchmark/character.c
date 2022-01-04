@@ -14,7 +14,7 @@
 
 #define NUM_ITERATIONS 100000
 
-#if defined __has_attribute
+#ifdef __has_attribute
 	#if __has_attribute(optnone)
 		void libgrapheme(const void *) __attribute__((optnone));
 		void libutf8proc(const void *) __attribute__((optnone));
