@@ -8,61 +8,68 @@
 #include "../gen/character-test.h"
 #include "util.h"
 
-#include <unigbrk.h>
 #include <utf8proc.h>
 
-#define NUM_ITERATIONS 10000
+#define NUM_ITERATIONS 100000
 
 #if defined __has_attribute
 	#if __has_attribute(optnone)
-		void libgrapheme(const uint32_t *, size_t) __attribute__((optnone));
-		void libutf8proc(const uint32_t *, size_t) __attribute__((optnone));
+		void libgrapheme(const void *) __attribute__((optnone));
+		void libutf8proc(const void *) __attribute__((optnone));
 	#endif
 #endif
 
+struct payload {
+	uint_least32_t *buf;
+	size_t bufsiz;
+};
+
 void
-libgrapheme(const uint32_t *buf, size_t bufsiz)
+libgrapheme(const void *payload)
 {
 	GRAPHEME_STATE state = { 0 };
+	const struct payload *p = payload;
 	size_t i;
 
-	for (i = 0; i + 1 < bufsiz; i++) {
-		(void)grapheme_is_character_break(buf[i], buf[i+1], &state);
+	for (i = 0; i + 1 < p->bufsiz; i++) {
+		(void)grapheme_is_character_break(p->buf[i], p->buf[i+1],
+		                                  &state);
 	}
 }
 
 void
-libutf8proc(const uint32_t *buf, size_t bufsiz)
+libutf8proc(const void *payload)
 {
 	utf8proc_int32_t state = 0;
+	const struct payload *p = payload;
 	size_t i;
 
-	for (i = 0; i + 1 < bufsiz; i++) {
-		(void)utf8proc_grapheme_break_stateful(buf[i], buf[i+1], &state);
+	for (i = 0; i + 1 < p->bufsiz; i++) {
+		(void)utf8proc_grapheme_break_stateful(p->buf[i], p->buf[i+1],
+		                                       &state);
 	}
 }
 
 int
 main(int argc, char *argv[])
 {
-	size_t bufsiz;
-	uint32_t *buf;
+	struct payload p;
 	double baseline = NAN;
 
 	(void)argc;
 
-	if ((buf = generate_test_buffer(character_test, LEN(character_test),
-	                                &bufsiz)) == NULL) {
+	if ((p.buf = generate_test_buffer(character_test, LEN(character_test),
+	                                  &(p.bufsiz))) == NULL) {
 		return 1;
 	}
 
 	printf("%s\n", argv[0]);
-	run_benchmark(libgrapheme, "libgrapheme ", &baseline, buf, bufsiz,
+	run_benchmark(libgrapheme, &p, "libgrapheme ", &baseline,
 	              NUM_ITERATIONS);
-	run_benchmark(libutf8proc, "libutf8proc ", &baseline, buf, bufsiz,
+	run_benchmark(libutf8proc, &p, "libutf8proc ", &baseline,
 	              NUM_ITERATIONS);
 
-	free(buf);
+	free(p.buf);
 
 	return 0;
 }

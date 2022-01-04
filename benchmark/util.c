@@ -38,9 +38,8 @@ time_diff(struct timespec *a, struct timespec *b)
 }
 
 void
-run_benchmark(void (*func)(const uint32_t *, size_t), const char *name,
-              double *baseline, const uint32_t *buf, size_t bufsiz,
-	      uint32_t num_iterations)
+run_benchmark(void (*func)(const void *), const void *payload,
+              const char *name, double *baseline, uint32_t num_iterations)
 {
 	struct timespec start, end;
 	size_t i;
@@ -51,7 +50,7 @@ run_benchmark(void (*func)(const uint32_t *, size_t), const char *name,
 
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	for (i = 0; i < num_iterations; i++) {
-		func(buf, bufsiz);
+		func(payload);
 
 		if (i % (num_iterations / 10) == 0) {
 			printf(".");
@@ -59,13 +58,13 @@ run_benchmark(void (*func)(const uint32_t *, size_t), const char *name,
 		}
 	}
 	clock_gettime(CLOCK_MONOTONIC, &end);
-	diff = time_diff(&start, &end);
+	diff = time_diff(&start, &end) / num_iterations;
 
 	if (isnan(*baseline)) {
 		*baseline = diff;
-		printf(" %.3fs (baseline)\n", diff);
+		printf(" avg. %.3es (baseline)\n", diff);
 	} else {
-		printf(" %.3fs (%.2f%% %s)\n", diff,
+		printf(" avg. %.3es (%.2f%% %s)\n", diff,
 		       fabs(1.0 - diff / *baseline) * 100,
 		       (diff < *baseline) ? "faster" : "slower");
 	}
