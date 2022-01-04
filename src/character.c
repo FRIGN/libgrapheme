@@ -105,10 +105,10 @@ static const uint_least16_t dont_break_gb12_13[2 * NUM_BREAK_PROPS] = {
 static enum break_property
 get_break_prop(uint_least32_t cp)
 {
-	if (cp > 0x10FFFF) {
-		return BREAK_PROP_OTHER;
-	} else {
+	if (likely(cp <= 0x10FFFF)) {
 		return prop[minor[major[cp >> 8] + (cp & 0xff)]].break_property;
+	} else {
+		return BREAK_PROP_OTHER;
 	}
 }
 
@@ -118,11 +118,11 @@ grapheme_is_character_break(uint_least32_t cp0, uint_least32_t cp1, GRAPHEME_STA
 	enum break_property cp0_prop, cp1_prop;
 	bool notbreak = false;
 
-	if (state) {
-		if (!state->prop_set) {
-			cp0_prop = get_break_prop(cp0);
-		} else {
+	if (likely(state)) {
+		if (likely(state->prop_set)) {
 			cp0_prop = state->prop;
+		} else {
+			cp0_prop = get_break_prop(cp0);
 		}
 		cp1_prop = get_break_prop(cp1);
 
@@ -153,7 +153,7 @@ grapheme_is_character_break(uint_least32_t cp0, uint_least32_t cp1, GRAPHEME_STA
 		            UINT16_C(1 << cp1_prop));
 
 		/* update or reset flags (when we have a break) */
-		if (!notbreak) {
+		if (likely(!notbreak)) {
 			state->gb11_flag = state->gb12_13_flag = false;
 		}
 	} else {
