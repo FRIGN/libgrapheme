@@ -108,9 +108,9 @@ main(int argc, char *argv[])
 
 	printf("%s\n", argv[0]);
 	run_benchmark(libgrapheme, &p, "libgrapheme ", "byte", &baseline,
-	              NUM_ITERATIONS, p.bufsiz);
+	              NUM_ITERATIONS, cpbufsiz);
 	run_benchmark(libutf8proc, &p, "libutf8proc ", "byte", &baseline,
-	              NUM_ITERATIONS, p.bufsiz);
+	              NUM_ITERATIONS, cpbufsiz);
 
 	free(cpbuf);
 	free(p.buf_char);
