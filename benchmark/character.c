@@ -80,10 +80,10 @@ main(int argc, char *argv[])
 	}
 
 	printf("%s\n", argv[0]);
-	run_benchmark(libgrapheme, &p, "libgrapheme ", &baseline,
-	              NUM_ITERATIONS);
-	run_benchmark(libutf8proc, &p, "libutf8proc ", &baseline,
-	              NUM_ITERATIONS);
+	run_benchmark(libgrapheme, &p, "libgrapheme ", "comparison",
+	              &baseline, NUM_ITERATIONS, p.bufsiz - 1);
+	run_benchmark(libutf8proc, &p, "libutf8proc ", "comparison",
+	              &baseline, NUM_ITERATIONS, p.bufsiz - 1);
 
 	free(p.buf);
 

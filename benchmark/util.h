@@ -8,6 +8,6 @@
 
 uint32_t *generate_test_buffer(const struct test *, size_t, size_t *);
 void run_benchmark(void (*func)(const void *), const void *, const char *,
-                   double *, uint32_t);
+                   const char *, double *, size_t, size_t);
 
 #endif /* UTIL_H */
