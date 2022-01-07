@@ -25,7 +25,7 @@ struct property_spec {
 struct property_payload {
 	struct properties *prop;
 	const struct property_spec *spec;
-	size_t speclen;
+	uint_least8_t speclen;
 };
 
 static const struct property_spec char_break_property[] = {
@@ -113,7 +113,7 @@ break_property_callback(char *file, char **field, size_t nfields,
 	/* prop always has the length 0x110000 */
 	struct property_payload *p = (struct property_payload *)payload;
 	struct range r;
-	size_t i;
+	uint_least8_t i;
 	uint_least32_t cp;
 
 	(void)comment;
@@ -161,7 +161,7 @@ struct compressed_properties {
 	size_t datalen;
 };
 
-void
+static void
 compress_properties(const struct properties *prop,
                     struct compressed_properties *comp)
 {
