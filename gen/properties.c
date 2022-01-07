@@ -1,5 +1,6 @@
 /* See LICENSE file for copyright and license details. */
 #include <errno.h>
+#include <inttypes.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -296,7 +297,7 @@ print_lookup_table(char *name, size_t *data, size_t datalen)
 	       (maxval <= UINT_LEAST32_MAX) ? "uint_least32_t" :
 	                                      "uint_least64_t";
 
-	printf("const %s %s[] = {\n\t", type, name);
+	printf("static const %s %s[] = {\n\t", type, name);
 	for (i = 0; i < datalen; i++) {
 		printf("%zu", data[i]);
 		if (i + 1 == datalen) {
@@ -317,16 +318,14 @@ print_lookup_table(char *name, size_t *data, size_t datalen)
  */
 static void
 print_enum_lookup_table(char *name, size_t *offset, size_t offsetlen,
-                        const struct properties *prop,
-                        const struct property_spec *spec,
-                        const char *enumprefix)
+                        const struct properties *prop)
 {
 	size_t i;
 
-	printf("const uint8_t %s[] = {\n\t", name);
+	printf("static const uint8_t %s[] = {\n\t", name);
 	for (i = 0; i < offsetlen; i++) {
-		printf("%s_%s", enumprefix,
-		       spec[*((uint_least8_t *)&(prop[offset[i]]))].enumname);
+		printf("%"PRIuLEAST8,
+		       *((const uint_least8_t *)&(prop[offset[i]])));
 		if (i + 1 == offsetlen) {
 			printf("\n");
 		} else if ((i + 1) % 8 != 0) {
@@ -392,8 +391,7 @@ main(int argc, char *argv[])
 
 	print_lookup_table("major", mm.major, 0x1100);
 	printf("\n");
-	print_enum_lookup_table("minor", mm.minor, mm.minorlen, comp.data, char_break_property, "CHAR_BREAK_PROP");
-	printf("\n");
+	print_enum_lookup_table("minor", mm.minor, mm.minorlen, comp.data);
 
 	/* free data */
 	free(prop);
