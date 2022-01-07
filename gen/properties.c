@@ -312,20 +312,22 @@ print_lookup_table(char *name, size_t *data, size_t datalen)
 	printf("};\n");
 }
 
-/*
- * this function is for the special case where struct property
- * only contains a single enum value.
- */
+static uint_least8_t
+get_value(const void *payload, size_t offset)
+{
+	return ((const struct properties *)payload)[offset].char_break_property;
+}
+
 static void
-print_enum_lookup_table(char *name, size_t *offset, size_t offsetlen,
-                        const struct properties *prop)
+print_derived_lookup_table(char *name, size_t *offset, size_t offsetlen,
+                           uint_least8_t (*get_value)(const void *, size_t),
+                           const void *payload)
 {
 	size_t i;
 
-	printf("static const uint8_t %s[] = {\n\t", name);
+	printf("static const uint_least8_t %s[] = {\n\t", name);
 	for (i = 0; i < offsetlen; i++) {
-		printf("%"PRIuLEAST8,
-		       *((const uint_least8_t *)&(prop[offset[i]])));
+		printf("%"PRIuLEAST8, get_value(payload, offset[i]));
 		if (i + 1 == offsetlen) {
 			printf("\n");
 		} else if ((i + 1) % 8 != 0) {
@@ -369,9 +371,9 @@ main(int argc, char *argv[])
 
 	/* extract properties */
 	payload.prop = prop;
-
 	payload.spec = char_break_property;
 	payload.speclen = LEN(char_break_property);
+
 	parse_file_with_callback(FILE_EMOJI, break_property_callback, &payload);
 	parse_file_with_callback(FILE_GRAPHEME, break_property_callback, &payload);
 
@@ -391,7 +393,8 @@ main(int argc, char *argv[])
 
 	print_lookup_table("major", mm.major, 0x1100);
 	printf("\n");
-	print_enum_lookup_table("minor", mm.minor, mm.minorlen, comp.data);
+	print_derived_lookup_table("minor", mm.minor, mm.minorlen, get_value,
+	                           comp.data);
 
 	/* free data */
 	free(prop);
