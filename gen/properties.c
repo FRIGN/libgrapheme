@@ -12,7 +12,7 @@
 #define FILE_GRAPHEME "data/GraphemeBreakProperty.txt"
 
 struct properties {
-	uint_least8_t break_property;
+	uint_least8_t char_break_property;
 };
 
 struct property_spec {
@@ -21,7 +21,13 @@ struct property_spec {
 	const char *ucdname;
 };
 
-static const struct property_spec break_property[] = {
+struct property_payload {
+	struct properties *prop;
+	const struct property_spec *spec;
+	size_t speclen;
+};
+
+static const struct property_spec char_break_property[] = {
 	{
 		.enumname = "OTHER",
 		.file     = NULL,
@@ -104,7 +110,7 @@ break_property_callback(char *file, char **field, size_t nfields,
                         char *comment, void *payload)
 {
 	/* prop always has the length 0x110000 */
-	struct properties *prop = (struct properties *)payload;
+	struct property_payload *p = (struct property_payload *)payload;
 	struct range r;
 	size_t i;
 	uint_least32_t cp;
@@ -115,11 +121,11 @@ break_property_callback(char *file, char **field, size_t nfields,
 		return 1;
 	}
 
-	for (i = 0; i < LEN(break_property); i++) {
+	for (i = 0; i < p->speclen; i++) {
 		/* identify fitting file and identifier */
-		if (break_property[i].file &&
-		    !strcmp(break_property[i].file, file) &&
-		    !strcmp(break_property[i].ucdname, field[1])) {
+		if (p->spec[i].file &&
+		    !strcmp(p->spec[i].file, file) &&
+		    !strcmp(p->spec[i].ucdname, field[1])) {
 			/* parse range in first field */
 			if (range_parse(field[0], &r)) {
 				return 1;
@@ -127,13 +133,18 @@ break_property_callback(char *file, char **field, size_t nfields,
 
 			/* apply to all codepoints in the range */
 			for (cp = r.lower; cp <= r.upper; cp++) {
-				if (prop[cp].break_property != 0) {
+				if (p->spec == char_break_property) {
+					if (p->prop[cp].char_break_property != 0) {
+						fprintf(stderr, "break_property_callback: "
+						        "Character break property overlap.\n");
+						exit(1);
+					}
+					p->prop[cp].char_break_property = i;
+				} else {
 					fprintf(stderr, "break_property_callback: "
-					        "property overlap\n");
+					                "Unknown specification.\n");
 					exit(1);
 				}
-
-				prop[cp].break_property = i;
 			}
 
 			break;
@@ -292,13 +303,54 @@ print_lookup_table(char *name, size_t *data, size_t datalen, size_t maxval)
 	printf("};\n");
 }
 
+/*
+ * this function is for the special case where struct property
+ * only contains a single enum value.
+ */
+static void
+print_enum_lookup_table(char *name, size_t *offset, size_t offsetlen,
+                        const struct properties *prop,
+                        const struct property_spec *spec,
+                        const char *enumprefix)
+{
+	size_t i;
+
+	printf("const uint8_t %s[] = {\n\t", name);
+	for (i = 0; i < offsetlen; i++) {
+		printf("%s_%s", enumprefix,
+		       spec[*((uint_least8_t *)&(prop[offset[i]]))].enumname);
+		if (i + 1 == offsetlen) {
+			printf("\n");
+		} else if ((i + 1) % 8 != 0) {
+			printf(", ");
+		} else {
+			printf(",\n\t");
+		}
+
+	}
+	printf("};\n");
+}
+
+static void
+print_enum(const struct property_spec *spec, size_t speclen,
+           const char *enumname, const char *enumprefix)
+{
+	size_t i;
+
+	printf("enum %s {\n", enumname);
+	for (i = 0; i < speclen; i++) {
+		printf("\t%s_%s,\n", enumprefix, spec[i].enumname);
+	}
+	printf("\tNUM_%sS,\n};\n\n", enumprefix);
+}
+
 int
 main(int argc, char *argv[])
 {
 	struct compressed_properties comp;
 	struct major_minor_properties mm;
+	struct property_payload payload;
 	struct properties *prop;
-	size_t i;
 
 	(void)argc;
 
@@ -309,8 +361,12 @@ main(int argc, char *argv[])
 	}
 
 	/* extract properties */
-	parse_file_with_callback(FILE_EMOJI, break_property_callback, prop);
-	parse_file_with_callback(FILE_GRAPHEME, break_property_callback, prop);
+	payload.prop = prop;
+
+	payload.spec = char_break_property;
+	payload.speclen = LEN(char_break_property);
+	parse_file_with_callback(FILE_EMOJI, break_property_callback, &payload);
+	parse_file_with_callback(FILE_GRAPHEME, break_property_callback, &payload);
 
 	/*
 	 * deduplicate by generating an array of offsets into prop where
@@ -323,28 +379,16 @@ main(int argc, char *argv[])
 	        get_major_minor_properties(&comp, &mm));
 
 	/* print data */
+	print_enum(char_break_property, LEN(char_break_property),
+	           "char_break_property", "CHAR_BREAK_PROP");
+
 	if (mm.minorlen < 0x100) {
 		fprintf(stderr, "minor-array is too short.\n");
 	}
 	print_lookup_table("major", mm.major, 0x1100, mm.minorlen - 0x100);
 	printf("\n");
-	print_lookup_table("minor", mm.minor, mm.minorlen, comp.datalen);
+	print_enum_lookup_table("minor", mm.minor, mm.minorlen, comp.data, char_break_property, "CHAR_BREAK_PROP");
 	printf("\n");
-
-	printf("enum break_property {\n");
-	for (i = 0; i < LEN(break_property); i++) {
-		printf("\tBREAK_PROP_%s,\n", break_property[i].enumname);
-	}
-	printf("\tNUM_BREAK_PROPS,\n};\n\n");
-	printf("struct properties {\n\tenum break_property break_property;\n};\n\n");
-
-	/* properties table */
-	printf("const struct properties prop[] = {\n");
-	for (i = 0; i < comp.datalen; i++) {
-		printf("\t{ BREAK_PROP_%s },\n",
-		       break_property[comp.data[i].break_property].enumname);
-	}
-	printf("};\n");
 
 	/* free data */
 	free(prop);

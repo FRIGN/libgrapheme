@@ -8,114 +8,114 @@
 #include "../grapheme.h"
 #include "util.h"
 
-static const uint_least16_t dont_break[NUM_BREAK_PROPS] = {
-	[BREAK_PROP_OTHER] =
-		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_SPACINGMARK),   /* GB9a */
-	[BREAK_PROP_CR] =
-		UINT16_C(1 << BREAK_PROP_LF),            /* GB3  */
-	[BREAK_PROP_EXTEND] =
-		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_SPACINGMARK),   /* GB9a */
-	[BREAK_PROP_EXTENDED_PICTOGRAPHIC] =
-		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_SPACINGMARK),   /* GB9a */
-	[BREAK_PROP_HANGUL_L] =
-		UINT16_C(1 << BREAK_PROP_HANGUL_L)     | /* GB6  */
-		UINT16_C(1 << BREAK_PROP_HANGUL_V)     | /* GB6  */
-		UINT16_C(1 << BREAK_PROP_HANGUL_LV)    | /* GB6  */
-		UINT16_C(1 << BREAK_PROP_HANGUL_LVT)   | /* GB6  */
-		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_SPACINGMARK),   /* GB9a */
-	[BREAK_PROP_HANGUL_V] =
-		UINT16_C(1 << BREAK_PROP_HANGUL_V)     | /* GB7  */
-		UINT16_C(1 << BREAK_PROP_HANGUL_T)     | /* GB7  */
-		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_SPACINGMARK),   /* GB9a */
-	[BREAK_PROP_HANGUL_T] =
-		UINT16_C(1 << BREAK_PROP_HANGUL_T)     | /* GB8  */
-		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_SPACINGMARK),   /* GB9a */
-	[BREAK_PROP_HANGUL_LV] =
-		UINT16_C(1 << BREAK_PROP_HANGUL_V)     | /* GB7  */
-		UINT16_C(1 << BREAK_PROP_HANGUL_T)     | /* GB7  */
-		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_SPACINGMARK),   /* GB9a */
-	[BREAK_PROP_HANGUL_LVT] =
-		UINT16_C(1 << BREAK_PROP_HANGUL_T)     | /* GB8  */
-		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_SPACINGMARK),   /* GB9a */
-	[BREAK_PROP_PREPEND] =
-		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_SPACINGMARK)  | /* GB9a */
+static const uint_least16_t dont_break[NUM_CHAR_BREAK_PROPS] = {
+	[CHAR_BREAK_PROP_OTHER] =
+		UINT16_C(1 << CHAR_BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_SPACINGMARK),   /* GB9a */
+	[CHAR_BREAK_PROP_CR] =
+		UINT16_C(1 << CHAR_BREAK_PROP_LF),            /* GB3  */
+	[CHAR_BREAK_PROP_EXTEND] =
+		UINT16_C(1 << CHAR_BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_SPACINGMARK),   /* GB9a */
+	[CHAR_BREAK_PROP_EXTENDED_PICTOGRAPHIC] =
+		UINT16_C(1 << CHAR_BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_SPACINGMARK),   /* GB9a */
+	[CHAR_BREAK_PROP_HANGUL_L] =
+		UINT16_C(1 << CHAR_BREAK_PROP_HANGUL_L)     | /* GB6  */
+		UINT16_C(1 << CHAR_BREAK_PROP_HANGUL_V)     | /* GB6  */
+		UINT16_C(1 << CHAR_BREAK_PROP_HANGUL_LV)    | /* GB6  */
+		UINT16_C(1 << CHAR_BREAK_PROP_HANGUL_LVT)   | /* GB6  */
+		UINT16_C(1 << CHAR_BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_SPACINGMARK),   /* GB9a */
+	[CHAR_BREAK_PROP_HANGUL_V] =
+		UINT16_C(1 << CHAR_BREAK_PROP_HANGUL_V)     | /* GB7  */
+		UINT16_C(1 << CHAR_BREAK_PROP_HANGUL_T)     | /* GB7  */
+		UINT16_C(1 << CHAR_BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_SPACINGMARK),   /* GB9a */
+	[CHAR_BREAK_PROP_HANGUL_T] =
+		UINT16_C(1 << CHAR_BREAK_PROP_HANGUL_T)     | /* GB8  */
+		UINT16_C(1 << CHAR_BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_SPACINGMARK),   /* GB9a */
+	[CHAR_BREAK_PROP_HANGUL_LV] =
+		UINT16_C(1 << CHAR_BREAK_PROP_HANGUL_V)     | /* GB7  */
+		UINT16_C(1 << CHAR_BREAK_PROP_HANGUL_T)     | /* GB7  */
+		UINT16_C(1 << CHAR_BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_SPACINGMARK),   /* GB9a */
+	[CHAR_BREAK_PROP_HANGUL_LVT] =
+		UINT16_C(1 << CHAR_BREAK_PROP_HANGUL_T)     | /* GB8  */
+		UINT16_C(1 << CHAR_BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_SPACINGMARK),   /* GB9a */
+	[CHAR_BREAK_PROP_PREPEND] =
+		UINT16_C(1 << CHAR_BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_SPACINGMARK)  | /* GB9a */
 		(UINT16_C(0xFFFF) &
-		 ~(UINT16_C(1 << BREAK_PROP_CR)      |
-		   UINT16_C(1 << BREAK_PROP_LF)      |
-		   UINT16_C(1 << BREAK_PROP_CONTROL)
+		 ~(UINT16_C(1 << CHAR_BREAK_PROP_CR)      |
+		   UINT16_C(1 << CHAR_BREAK_PROP_LF)      |
+		   UINT16_C(1 << CHAR_BREAK_PROP_CONTROL)
 		  )
 		),                                           /* GB9b */
-	[BREAK_PROP_REGIONAL_INDICATOR] =
-		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_SPACINGMARK),   /* GB9a */
-	[BREAK_PROP_SPACINGMARK] =
-		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_SPACINGMARK),   /* GB9a */
-	[BREAK_PROP_ZWJ] =
-		UINT16_C(1 << BREAK_PROP_EXTEND)       | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_ZWJ)          | /* GB9  */
-		UINT16_C(1 << BREAK_PROP_SPACINGMARK),   /* GB9a */
+	[CHAR_BREAK_PROP_REGIONAL_INDICATOR] =
+		UINT16_C(1 << CHAR_BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_SPACINGMARK),   /* GB9a */
+	[CHAR_BREAK_PROP_SPACINGMARK] =
+		UINT16_C(1 << CHAR_BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_SPACINGMARK),   /* GB9a */
+	[CHAR_BREAK_PROP_ZWJ] =
+		UINT16_C(1 << CHAR_BREAK_PROP_EXTEND)       | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_ZWJ)          | /* GB9  */
+		UINT16_C(1 << CHAR_BREAK_PROP_SPACINGMARK),   /* GB9a */
 };
-static const uint_least16_t flag_update_gb11[2 * NUM_BREAK_PROPS] = {
-	[BREAK_PROP_EXTENDED_PICTOGRAPHIC] =
-		UINT16_C(1 << BREAK_PROP_ZWJ)                   |
-		UINT16_C(1 << BREAK_PROP_EXTEND),
-	[BREAK_PROP_ZWJ + NUM_BREAK_PROPS] =
-		UINT16_C(1 << BREAK_PROP_EXTENDED_PICTOGRAPHIC),
-	[BREAK_PROP_EXTEND + NUM_BREAK_PROPS] =
-		UINT16_C(1 << BREAK_PROP_EXTEND)                |
-		UINT16_C(1 << BREAK_PROP_ZWJ),
-	[BREAK_PROP_EXTENDED_PICTOGRAPHIC + NUM_BREAK_PROPS] =
-		UINT16_C(1 << BREAK_PROP_ZWJ)                   |
-		UINT16_C(1 << BREAK_PROP_EXTEND),
+static const uint_least16_t flag_update_gb11[2 * NUM_CHAR_BREAK_PROPS] = {
+	[CHAR_BREAK_PROP_EXTENDED_PICTOGRAPHIC] =
+		UINT16_C(1 << CHAR_BREAK_PROP_ZWJ)                   |
+		UINT16_C(1 << CHAR_BREAK_PROP_EXTEND),
+	[CHAR_BREAK_PROP_ZWJ + NUM_CHAR_BREAK_PROPS] =
+		UINT16_C(1 << CHAR_BREAK_PROP_EXTENDED_PICTOGRAPHIC),
+	[CHAR_BREAK_PROP_EXTEND + NUM_CHAR_BREAK_PROPS] =
+		UINT16_C(1 << CHAR_BREAK_PROP_EXTEND)                |
+		UINT16_C(1 << CHAR_BREAK_PROP_ZWJ),
+	[CHAR_BREAK_PROP_EXTENDED_PICTOGRAPHIC + NUM_CHAR_BREAK_PROPS] =
+		UINT16_C(1 << CHAR_BREAK_PROP_ZWJ)                   |
+		UINT16_C(1 << CHAR_BREAK_PROP_EXTEND),
 };
-static const uint_least16_t dont_break_gb11[2 * NUM_BREAK_PROPS] = {
-	[BREAK_PROP_ZWJ + NUM_BREAK_PROPS] =
-		UINT16_C(1 << BREAK_PROP_EXTENDED_PICTOGRAPHIC),
+static const uint_least16_t dont_break_gb11[2 * NUM_CHAR_BREAK_PROPS] = {
+	[CHAR_BREAK_PROP_ZWJ + NUM_CHAR_BREAK_PROPS] =
+		UINT16_C(1 << CHAR_BREAK_PROP_EXTENDED_PICTOGRAPHIC),
 };
-static const uint_least16_t flag_update_gb12_13[2 * NUM_BREAK_PROPS] = {
-	[BREAK_PROP_REGIONAL_INDICATOR] =
-		UINT16_C(1 << BREAK_PROP_REGIONAL_INDICATOR),
+static const uint_least16_t flag_update_gb12_13[2 * NUM_CHAR_BREAK_PROPS] = {
+	[CHAR_BREAK_PROP_REGIONAL_INDICATOR] =
+		UINT16_C(1 << CHAR_BREAK_PROP_REGIONAL_INDICATOR),
 };
-static const uint_least16_t dont_break_gb12_13[2 * NUM_BREAK_PROPS] = {
-	[BREAK_PROP_REGIONAL_INDICATOR + NUM_BREAK_PROPS] =
-		UINT16_C(1 << BREAK_PROP_REGIONAL_INDICATOR),
+static const uint_least16_t dont_break_gb12_13[2 * NUM_CHAR_BREAK_PROPS] = {
+	[CHAR_BREAK_PROP_REGIONAL_INDICATOR + NUM_CHAR_BREAK_PROPS] =
+		UINT16_C(1 << CHAR_BREAK_PROP_REGIONAL_INDICATOR),
 };
 
-static enum break_property
+static enum char_break_property
 get_break_prop(uint_least32_t cp)
 {
 	if (likely(cp <= 0x10FFFF)) {
-		return prop[minor[major[cp >> 8] + (cp & 0xff)]].break_property;
+		return (enum char_break_property)minor[major[cp >> 8] + (cp & 0xff)];
 	} else {
-		return BREAK_PROP_OTHER;
+		return CHAR_BREAK_PROP_OTHER;
 	}
 }
 
 bool
 grapheme_is_character_break(uint_least32_t cp0, uint_least32_t cp1, GRAPHEME_STATE *state)
 {
-	enum break_property cp0_prop, cp1_prop;
+	enum char_break_property cp0_prop, cp1_prop;
 	bool notbreak = false;
 
 	if (likely(state)) {
@@ -132,11 +132,11 @@ grapheme_is_character_break(uint_least32_t cp0, uint_least32_t cp1, GRAPHEME_STA
 
 		/* update flags */
 		state->gb11_flag = flag_update_gb11[cp0_prop +
-		                                    NUM_BREAK_PROPS *
+		                                    NUM_CHAR_BREAK_PROPS *
 		                                    state->gb11_flag] &
 	                           UINT16_C(1 << cp1_prop);
 		state->gb12_13_flag = flag_update_gb12_13[cp0_prop +
-		                                          NUM_BREAK_PROPS *
+		                                          NUM_CHAR_BREAK_PROPS *
 		                                          state->gb12_13_flag] &
 		                      UINT16_C(1 << cp1_prop);
 
@@ -146,10 +146,10 @@ grapheme_is_character_break(uint_least32_t cp0, uint_least32_t cp1, GRAPHEME_STA
 		 */
 		notbreak = (dont_break[cp0_prop] & UINT16_C(1 << cp1_prop)) ||
 		           (dont_break_gb11[cp0_prop + state->gb11_flag *
-		                            NUM_BREAK_PROPS] &
+		                            NUM_CHAR_BREAK_PROPS] &
 		            UINT16_C(1 << cp1_prop)) ||
 		           (dont_break_gb12_13[cp0_prop + state->gb12_13_flag *
-		                               NUM_BREAK_PROPS] &
+		                               NUM_CHAR_BREAK_PROPS] &
 		            UINT16_C(1 << cp1_prop));
 
 		/* update or reset flags (when we have a break) */
