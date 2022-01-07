@@ -280,13 +280,21 @@ get_major_minor_properties(const struct compressed_properties *comp,
 }
 
 static void
-print_lookup_table(char *name, size_t *data, size_t datalen, size_t maxval)
+print_lookup_table(char *name, size_t *data, size_t datalen)
 {
 	char *type;
-	size_t i;
+	size_t i, maxval;
 
-	type = (maxval <= (((1 << 16) - 1)) + 0xFF) ? "uint_least16_t" :
-	                                          "uint_least32_t";
+	for (i = 0, maxval = 0; i < datalen; i++) {
+		if (data[i] > maxval) {
+			maxval = data[i];
+		}
+	}
+
+	type = (maxval <= UINT_LEAST8_MAX)  ? "uint_least8_t"  :
+	       (maxval <= UINT_LEAST16_MAX) ? "uint_least16_t" :
+	       (maxval <= UINT_LEAST32_MAX) ? "uint_least32_t" :
+	                                      "uint_least64_t";
 
 	printf("const %s %s[] = {\n\t", type, name);
 	for (i = 0; i < datalen; i++) {
@@ -382,10 +390,7 @@ main(int argc, char *argv[])
 	print_enum(char_break_property, LEN(char_break_property),
 	           "char_break_property", "CHAR_BREAK_PROP");
 
-	if (mm.minorlen < 0x100) {
-		fprintf(stderr, "minor-array is too short.\n");
-	}
-	print_lookup_table("major", mm.major, 0x1100, mm.minorlen - 0x100);
+	print_lookup_table("major", mm.major, 0x1100);
 	printf("\n");
 	print_enum_lookup_table("minor", mm.minor, mm.minorlen, comp.data, char_break_property, "CHAR_BREAK_PROP");
 	printf("\n");
