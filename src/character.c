@@ -128,7 +128,7 @@ grapheme_is_character_break(uint_least32_t cp0, uint_least32_t cp1, GRAPHEME_STA
 		cp1_prop = get_break_prop(cp1);
 
 		/* preserve prop of right codepoint for next iteration */
-		state->prop = cp1_prop;
+		state->prop = (uint_least8_t)cp1_prop;
 		state->prop_set = true;
 
 		/* update flags */
