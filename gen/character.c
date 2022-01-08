@@ -1,12 +1,4 @@
 /* See LICENSE file for copyright and license details. */
-#include <errno.h>
-#include <inttypes.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "util.h"
 
 #define FILE_EMOJI    "data/emoji-data.txt"
