@@ -12,7 +12,7 @@
 
 #include <utf8proc.h>
 
-#define NUM_ITERATIONS 100000
+#define NUM_ITERATIONS 1000000
 
 #ifdef __has_attribute
 	#if __has_attribute(optnone)
