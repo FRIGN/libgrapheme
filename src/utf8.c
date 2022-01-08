@@ -8,8 +8,8 @@
 
 /* lookup-table for the types of sequence first bytes */
 static const struct {
-	uint8_t        lower; /* lower bound of sequence first byte */
-	uint8_t        upper; /* upper bound of sequence first byte */
+	uint_least8_t  lower; /* lower bound of sequence first byte */
+	uint_least8_t  upper; /* upper bound of sequence first byte */
 	uint_least32_t mincp; /* smallest non-overlong encoded codepoint */
 	uint_least32_t maxcp; /* largest encodable codepoint */
 	/*
@@ -191,7 +191,8 @@ grapheme_encode_utf8(uint_least32_t cp, char *str, size_t len)
 	 * We do not overwrite the mask because we guaranteed earlier
 	 * that there are no bits higher than the mask allows.
 	 */
-	((unsigned char *)str)[0] = lut[off].lower | (uint8_t)(cp >> (6 * off));
+	((unsigned char *)str)[0] = lut[off].lower |
+	                            (uint_least8_t)(cp >> (6 * off));
 
 	for (i = 1; i <= off; i++) {
 		/*

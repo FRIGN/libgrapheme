@@ -67,7 +67,7 @@ main(int argc, char *argv[])
 {
 	struct payload p;
 	size_t cpbufsiz, i, off, ret;
-	uint32_t *cpbuf;
+	uint_least32_t *cpbuf;
 	double baseline = (double)NAN;
 
 	(void)argc;

@@ -6,11 +6,11 @@
 
 #include "util.h"
 
-uint32_t *
+uint_least32_t *
 generate_test_buffer(const struct test *t, size_t tlen, size_t *bufsiz)
 {
 	size_t i, j, off;
-	uint32_t *buf;
+	uint_least32_t *buf;
 
 	/* allocate and generate buffer */
 	for (i = 0, *bufsiz = 0; i < tlen; i++) {
