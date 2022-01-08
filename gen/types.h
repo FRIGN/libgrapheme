@@ -5,16 +5,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-struct range {
-	uint_least32_t lower;
-	uint_least32_t upper;
-};
-
-struct range_list {
-	struct range *data;
-	size_t len;
-};
-
 struct test {
 	uint_least32_t *cp;
 	size_t cplen;
