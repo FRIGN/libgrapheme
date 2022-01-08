@@ -59,7 +59,8 @@ run_benchmark(void (*func)(const void *), const void *payload,
 		}
 	}
 	clock_gettime(CLOCK_MONOTONIC, &end);
-	diff = time_diff(&start, &end) / num_iterations / units_per_iteration;
+	diff = time_diff(&start, &end) / (double)num_iterations /
+	       (double)units_per_iteration;
 
 	if (isnan(*baseline)) {
 		*baseline = diff;
