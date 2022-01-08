@@ -39,8 +39,9 @@ time_diff(struct timespec *a, struct timespec *b)
 
 void
 run_benchmark(void (*func)(const void *), const void *payload,
-              const char *name, const char *unit, double *baseline,
-              size_t num_iterations, size_t units_per_iteration)
+              const char *name, const char *comment, const char *unit,
+              double *baseline, size_t num_iterations,
+              size_t units_per_iteration)
 {
 	struct timespec start, end;
 	size_t i;
@@ -66,8 +67,10 @@ run_benchmark(void (*func)(const void *), const void *payload,
 		*baseline = diff;
 		printf(" avg. %.3es/%s (baseline)\n", diff, unit);
 	} else {
-		printf(" avg. %.3es/%s (%.2f%% %s)\n", diff, unit,
+		printf(" avg. %.3es/%s (%.2f%% %s%s%s)\n", diff, unit,
 		       fabs(1.0 - diff / *baseline) * 100,
-		       (diff < *baseline) ? "faster" : "slower");
+		       (diff < *baseline) ? "faster" : "slower",
+		       comment ? ", " : "",
+		       comment ? comment : "");
 	}
 }

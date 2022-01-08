@@ -107,10 +107,11 @@ main(int argc, char *argv[])
 	}
 
 	printf("%s\n", argv[0]);
-	run_benchmark(libgrapheme, &p, "libgrapheme ", "byte", &baseline,
-	              NUM_ITERATIONS, p.bufsiz);
-	run_benchmark(libutf8proc, &p, "libutf8proc ", "byte", &baseline,
-	              NUM_ITERATIONS, p.bufsiz);
+	run_benchmark(libgrapheme, &p, "libgrapheme ", NULL,
+	              "byte", &baseline, NUM_ITERATIONS, p.bufsiz);
+	run_benchmark(libutf8proc, &p, "libutf8proc ",
+	              "but unsafe (does not detect overlong encodings)",
+	              "byte", &baseline, NUM_ITERATIONS, p.bufsiz);
 
 	free(cpbuf);
 	free(p.buf_char);
