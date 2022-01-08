@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../gen/character-properties.h"
+#include "../gen/character.h"
 #include "../grapheme.h"
 #include "util.h"
 

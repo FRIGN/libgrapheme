@@ -14,8 +14,8 @@ DATA =\
 	data/GraphemeBreakTest.txt\
 
 GEN =\
+	gen/character\
 	gen/character-test\
-	gen/character-properties\
 
 SRC =\
 	src/character\
@@ -40,11 +40,10 @@ all: libgrapheme.a libgrapheme.so
 benchmark/character.o: benchmark/character.c config.mk gen/character-test.h grapheme.h benchmark/util.h
 benchmark/utf8-decode.o: benchmark/utf8-decode.c config.mk gen/character-test.h grapheme.h benchmark/util.h
 benchmark/util.o: benchmark/util.c config.mk benchmark/util.h
-gen/character-prop.o: gen/character-prop.c config.mk gen/util.h
+gen/character.o: gen/character.c config.mk gen/util.h
 gen/character-test.o: gen/character-test.c config.mk gen/util.h
-gen/character-properties.o: gen/character-properties.c config.mk gen/util.h
 gen/util.o: gen/util.c config.mk gen/util.h
-src/character.o: src/character.c config.mk gen/character-properties.h grapheme.h src/util.h
+src/character.o: src/character.c config.mk gen/character.h grapheme.h src/util.h
 src/utf8.o: src/utf8.c config.mk grapheme.h
 src/util.o: src/util.c config.mk gen/types.h grapheme.h src/util.h
 test/character.o: test/character.c config.mk gen/character-test.h grapheme.h test/util.h
@@ -54,14 +53,14 @@ test/util.o: test/util.c config.mk test/util.h
 
 benchmark/character: benchmark/character.o benchmark/util.o libgrapheme.a
 benchmark/utf8-decode: benchmark/utf8-decode.o benchmark/util.o libgrapheme.a
+gen/character: gen/character.o gen/util.o
 gen/character-test: gen/character-test.o gen/util.o
-gen/character-properties: gen/character-properties.o gen/util.o
 test/character: test/character.o test/util.o libgrapheme.a
 test/utf8-encode: test/utf8-encode.o test/util.o libgrapheme.a
 test/utf8-decode: test/utf8-decode.o test/util.o libgrapheme.a
 
+gen/character.h: data/emoji-data.txt data/GraphemeBreakProperty.txt gen/character
 gen/character-test.h: data/GraphemeBreakTest.txt gen/character-test
-gen/character-properties.h: data/emoji-data.txt data/GraphemeBreakProperty.txt gen/character-properties
 
 data/emoji-data.txt:
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/emoji/emoji-data.txt
