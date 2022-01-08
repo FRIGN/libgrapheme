@@ -1,5 +1,7 @@
 /* See LICENSE file for copyright and license details. */
+#include <ctype.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -8,10 +10,28 @@
 
 #include "util.h"
 
-struct property_list_payload
-{
-	struct property *prop;
-	size_t numprops;
+struct range {
+	uint_least32_t lower;
+	uint_least32_t upper;
+};
+
+struct properties_payload {
+	struct properties *prop;
+	const struct property_spec *spec;
+	uint_least8_t speclen;
+	int (*set_value)(struct properties_payload *, uint_least32_t, uint_least8_t);
+};
+
+struct properties_compressed {
+	size_t *offset;
+	struct properties *data;
+	size_t datalen;
+};
+
+struct properties_major_minor {
+	size_t *major;
+	size_t *minor;
+	size_t minorlen;
 };
 
 struct segment_test_payload
@@ -63,7 +83,7 @@ hextocp(const char *str, size_t len, uint_least32_t *cp)
 	return 0;
 }
 
-int
+static int
 range_parse(const char *str, struct range *range)
 {
 	char *p;
@@ -85,28 +105,9 @@ range_parse(const char *str, struct range *range)
 	return 0;
 }
 
-static void
-range_list_append(struct range **range, size_t *nranges, const struct range *new)
-{
-	if (*nranges > 0 && (*range)[*nranges - 1].upper == new->lower) {
-		/* we can merge with previous entry */
-		(*range)[*nranges - 1].upper = new->upper;
-	} else {
-		/* need to append new entry */
-		if ((*range = realloc(*range, (++(*nranges)) *
-		                      sizeof(**range))) == NULL) {
-			fprintf(stderr, "range_list_append: realloc: %s.\n",
-			        strerror(errno));
-			exit(1);
-		}
-		(*range)[*nranges - 1].lower = new->lower;
-		(*range)[*nranges - 1].upper = new->upper;
-	}
-}
-
 void
-parse_file_with_callback(char *fname, int (*callback)(char *, char **,
-                         size_t, char *, void *), void *payload)
+parse_file_with_callback(const char *fname, int (*callback)(const char *,
+                         char **, size_t, char *, void *), void *payload)
 {
 	FILE *fp;
 	char *line = NULL, **field = NULL, *comment;
@@ -197,12 +198,14 @@ parse_file_with_callback(char *fname, int (*callback)(char *, char **,
 }
 
 static int
-property_list_callback(char *fname, char **field, size_t nfields,
-                       char *comment, void *payload)
+properties_callback(const char *file, char **field, size_t nfields,
+                    char *comment, void *payload)
 {
-	struct property *prop = ((struct property_list_payload *)payload)->prop;
+	/* prop always has the length 0x110000 */
+	struct properties_payload *p = (struct properties_payload *)payload;
 	struct range r;
-	size_t i, numprops = ((struct property_list_payload *)payload)->numprops;
+	uint_least8_t i;
+	uint_least32_t cp;
 
 	(void)comment;
 
@@ -210,14 +213,22 @@ property_list_callback(char *fname, char **field, size_t nfields,
 		return 1;
 	}
 
-	for (i = 0; i < numprops; i++) {
-		if (!strcmp(field[1], prop[i].identifier) &&
-		    !strcmp(fname, prop[i].fname)) {
+	for (i = 0; i < p->speclen; i++) {
+		/* identify fitting file and identifier */
+		if (p->spec[i].file &&
+		    !strcmp(p->spec[i].file, file) &&
+		    !strcmp(p->spec[i].ucdname, field[1])) {
+			/* parse range in first field */
 			if (range_parse(field[0], &r)) {
 				return 1;
 			}
-			range_list_append(&(prop[i].table),
-			                  &(prop[i].tablelen), &r);
+
+			/* apply to all codepoints in the range */
+			for (cp = r.lower; cp <= r.upper; cp++) {
+				if (p->set_value(payload, cp, i)) {
+					exit(1);
+				}
+			}
 			break;
 		}
 	}
@@ -225,73 +236,290 @@ property_list_callback(char *fname, char **field, size_t nfields,
 	return 0;
 }
 
-void
-property_list_parse(struct property *prop, size_t numprops)
+static void
+properties_compress(const struct properties *prop,
+                    struct properties_compressed *comp)
 {
-	struct property_list_payload pl = {
-		.prop = prop,
-		.numprops = numprops
-	};
-	size_t i;
+	uint_least32_t cp, i;
 
-	/* make sure to parse each file only once */
-	for (i = 0; i < numprops; i++) {
-		if (prop[i].tablelen > 0) {
-			/* property's file was already parsed */
-			continue;
+	/* initialization */
+	if (!(comp->offset = malloc((size_t)0x110000 * sizeof(*(comp->offset))))) {
+		fprintf(stderr, "malloc: %s\n", strerror(errno));
+		exit(1);
+	}
+	comp->data = NULL;
+	comp->datalen = 0;
+
+	for (cp = 0; cp < 0x110000; cp++) {
+		for (i = 0; i < comp->datalen; i++) {
+			if (!memcmp(&(prop[cp]), &(comp->data[i]), sizeof(*prop))) {
+				/* found a match! */
+				comp->offset[cp] = i;
+				break;
+			}
 		}
-
-		parse_file_with_callback(prop[i].fname,
-		                         property_list_callback, &pl);
+		if (i == comp->datalen) {
+			/*
+			 * found no matching properties-struct, so
+			 * add current properties to data and add the
+			 * offset in the offset-table
+			 */
+			if (!(comp->data = reallocarray(comp->data,
+			                                ++(comp->datalen),
+			                                sizeof(*(comp->data))))) {
+				fprintf(stderr, "reallocarray: %s\n",
+				        strerror(errno));
+				exit(1);
+			}
+			memcpy(&(comp->data[comp->datalen - 1]), &(prop[cp]),
+			       sizeof(*prop));
+			comp->offset[cp] = comp->datalen - 1;
+		}
 	}
 }
 
-void
-property_list_print(const struct property *prop, size_t numprops,
-                    const char *identifier, const char *progname)
+static double
+properties_get_major_minor(const struct properties_compressed *comp,
+                           struct properties_major_minor *mm)
 {
-	size_t i, j;
+	size_t i, j, compression_count = 0;
 
-	printf("/* Automatically generated by %s */\n"
-	       "#include <stdint.h>\n\n#include \"../gen/types.h\"\n\n",
-	       progname);
+	/*
+	 * we currently have an array comp->offset which maps the
+	 * codepoints 0..0x110000 to offsets into comp->data.
+	 * To improve cache-locality instead and allow a bit of
+	 * compressing, instead of directly mapping a codepoint
+	 * 0xAAAABB with comp->offset, we generate two arrays major
+	 * and minor such that
+	 *    comp->offset(0xAAAABB) == minor[major[0xAAAA] + 0xBB]
+	 * This yields a major-array of length 2^16 and a minor array
+	 * of variable length depending on how many common subsequences
+	 * can be filtered out.
+	 */
 
-	/* print enum */
-	printf("enum %s {\n", identifier);
-	for (i = 0; i < numprops; i++) {
-		printf("\t%s,\n", prop[i].enumname);
+	/* initialize */
+	if (!(mm->major = malloc((size_t)0x1100 * sizeof(*(mm->major))))) {
+		fprintf(stderr, "malloc: %s\n", strerror(errno));
+		exit(1);
 	}
-	printf("};\n\n");
+	mm->minor = NULL;
+	mm->minorlen = 0;
 
-	/* print table */
-	printf("static const struct range_list %s[] = {\n", identifier);
-	for (i = 0; i < numprops; i++) {
-		printf("\t[%s] = {\n\t\t.data = (struct range[]){\n",
-		       prop[i].enumname);
-		for (j = 0; j < prop[i].tablelen; j++) {
-			printf("\t\t\t{ UINT32_C(0x%06X), UINT32_C(0x%06X) },\n",
-			       prop[i].table[j].lower,
-			       prop[i].table[j].upper);
+	printf("#include <stdint.h>\n\n");
+
+	for (i = 0; i < (size_t)0x1100; i++) {
+		/*
+		 * we now look at the cp-range (i << 8)..(i << 8 + 0xFF)
+		 * and check if its corresponding offset-data already
+		 * exists in minor (because then we just point there
+		 * and need less storage)
+		 */
+		for (j = 0; j + 0xFF < mm->minorlen; j++) {
+			if (!memcmp(&(comp->offset[i << 8]),
+			            &(mm->minor[j]),
+			            sizeof(*(comp->offset)) * 0x100)) {
+				break;
+			}
 		}
-		printf("\t\t},\n\t\t.len = %zu,\n\t},\n", prop[i].tablelen);
+		if (j + 0xFF < mm->minorlen) {
+			/* found an index */
+			compression_count++;
+			mm->major[i] = j;
+		} else {
+			/*
+			 * add "new" sequence to minor and point to it
+			 * in major
+			 */
+			mm->minorlen += 0x100;
+			if (!(mm->minor = reallocarray(mm->minor,
+			                               mm->minorlen,
+			                               sizeof(*(mm->minor))))) {
+				fprintf(stderr, "reallocarray: %s\n",
+				        strerror(errno));
+				exit(1);
+			}
+			memcpy(&(mm->minor[mm->minorlen - 0x100]),
+			       &(comp->offset[i << 8]),
+			       sizeof(*(mm->minor)) * 0x100);
+			mm->major[i] = mm->minorlen - 0x100;
+		}
+	}
+
+	/* return compression ratio */
+	return (double)compression_count / 0x1100 * 100;
+}
+
+static void
+properties_print_lookup_table(char *name, size_t *data, size_t datalen)
+{
+	char *type;
+	size_t i, maxval;
+
+	for (i = 0, maxval = 0; i < datalen; i++) {
+		if (data[i] > maxval) {
+			maxval = data[i];
+		}
+	}
+
+	type = (maxval <= UINT_LEAST8_MAX)  ? "uint_least8_t"  :
+	       (maxval <= UINT_LEAST16_MAX) ? "uint_least16_t" :
+	       (maxval <= UINT_LEAST32_MAX) ? "uint_least32_t" :
+	                                      "uint_least64_t";
+
+	printf("static const %s %s[] = {\n\t", type, name);
+	for (i = 0; i < datalen; i++) {
+		printf("%zu", data[i]);
+		if (i + 1 == datalen) {
+			printf("\n");
+		} else if ((i + 1) % 8 != 0) {
+			printf(", ");
+		} else {
+			printf(",\n\t");
+		}
+
 	}
 	printf("};\n");
 }
 
-void
-property_list_free(struct property *prop, size_t numprops)
+static void
+properties_print_derived_lookup_table(char *name, size_t *offset, size_t offsetlen,
+                                      uint_least8_t (*get_value)(const struct properties *,
+                                      size_t), const void *payload)
 {
 	size_t i;
 
-	for (i = 0; i < numprops; i++) {
-		free(prop[i].table);
-		prop[i].table = NULL;
-		prop[i].tablelen = 0;
+	printf("static const uint_least8_t %s[] = {\n\t", name);
+	for (i = 0; i < offsetlen; i++) {
+		printf("%"PRIuLEAST8, get_value(payload, offset[i]));
+		if (i + 1 == offsetlen) {
+			printf("\n");
+		} else if ((i + 1) % 8 != 0) {
+			printf(", ");
+		} else {
+			printf(",\n\t");
+		}
+
 	}
+	printf("};\n");
+}
+
+static void
+properties_print_enum(const struct property_spec *spec, size_t speclen,
+                      const char *enumname, const char *enumprefix)
+{
+	size_t i;
+
+	printf("enum %s {\n", enumname);
+	for (i = 0; i < speclen; i++) {
+		printf("\t%s_%s,\n", enumprefix, spec[i].enumname);
+	}
+	printf("\tNUM_%sS,\n};\n\n", enumprefix);
 }
 
 static int
-segment_test_callback(char *fname, char **field, size_t nfields,
+set_value_bp(struct properties_payload *payload, uint_least32_t cp,
+             uint_least8_t value)
+{
+	if (payload->prop[cp].break_property != 0) {
+		fprintf(stderr, "set_value_bp: "
+	                "Character break property overlap.\n");
+		return 1;
+	}
+	payload->prop[cp].break_property = value;
+
+	return 0;
+}
+
+static uint_least8_t
+get_value_bp(const struct properties *prop, size_t offset)
+{
+	return prop[offset].break_property;
+}
+
+void
+properties_generate_break_property(const struct property_spec *spec,
+                                   uint_least8_t speclen, const char *prefix,
+				   const char *argv0)
+{
+	struct properties_compressed comp;
+	struct properties_major_minor mm;
+	struct properties_payload payload;
+	struct properties *prop;
+	size_t i, j, prefixlen = strlen(prefix);
+	char buf1[64], prefix_uc[64], buf2[64], buf3[64], buf4[64];
+
+	/* allocate property buffer for all 0x110000 codepoints */
+	if (!(prop = calloc(0x110000, sizeof(*prop)))) {
+		fprintf(stderr, "calloc: %s\n", strerror(errno));
+		exit(1);
+	}
+
+	/* generate data */
+	payload.prop = prop;
+	payload.spec = spec;
+	payload.speclen = speclen;
+	payload.set_value = set_value_bp;
+
+	/* parse each file exactly once and ignore NULL-fields */
+	for (i = 0; i < speclen; i++) {
+		for (j = 0; j < i; j++) {
+			if (spec[i].file && spec[j].file &&
+			    !strcmp(spec[i].file, spec[j].file)) {
+				/* file has already been parsed */
+				break;
+			}
+		}
+		if (i == j && spec[i].file) {
+			/* file has not been processed yet */
+			parse_file_with_callback(spec[i].file,
+			                         properties_callback,
+			                         &payload);
+		}
+	}
+
+	/* compress data */
+	properties_compress(prop, &comp);
+
+	fprintf(stderr, "%s: compression-ratio: %.2f%%\n", argv0,
+	        properties_get_major_minor(&comp, &mm));
+
+	/* prepare names */
+	if ((size_t)snprintf(buf1, LEN(buf1), "%s_break_property", prefix) >= LEN(buf1)) {
+		fprintf(stderr, "snprintf: String truncated.\n");
+		exit(1);
+	}
+	if (LEN(prefix_uc) + 1 < prefixlen) {
+		fprintf(stderr, "snprintf: Buffer too small.\n");
+		exit(1);
+	}
+	for (i = 0; i < prefixlen; i++) {
+		prefix_uc[i] = (char)toupper(prefix[i]);
+	}
+	prefix_uc[prefixlen] = '\0';
+	if ((size_t)snprintf(buf2, LEN(buf2), "%s_BREAK_PROP", prefix_uc) >= LEN(buf2) ||
+	    (size_t)snprintf(buf3, LEN(buf3), "%s_break_major", prefix) >= LEN(buf3)   ||
+	    (size_t)snprintf(buf4, LEN(buf4), "%s_break_minor", prefix) >= LEN(buf4)) {
+		fprintf(stderr, "snprintf: String truncated.\n");
+		exit(1);
+	}
+
+	/* print data */
+	properties_print_enum(spec, speclen, buf1, buf2);
+	properties_print_lookup_table(buf3, mm.major, 0x1100);
+	printf("\n");
+	properties_print_derived_lookup_table(buf4, mm.minor, mm.minorlen,
+	                                      get_value_bp, comp.data);
+
+	/* free data */
+	free(prop);
+	free(comp.data);
+	free(comp.offset);
+	free(mm.major);
+	free(mm.minor);
+}
+
+static int
+segment_test_callback(const char *fname, char **field, size_t nfields,
                       char *comment, void *payload)
 {
 	struct segment_test *t,

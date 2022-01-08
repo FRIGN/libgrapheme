@@ -7,17 +7,14 @@
 
 #define LEN(x) (sizeof (x) / sizeof *(x))
 
-struct range {
-	uint_least32_t lower;
-	uint_least32_t upper;
+struct property_spec {
+	const char *enumname;
+	const char *file;
+	const char *ucdname;
 };
 
-struct property {
-	char         *enumname;
-	char         *identifier;
-	char         *fname;
-	struct range *table;
-	size_t        tablelen;
+struct properties {
+	uint_least8_t break_property;
 };
 
 struct segment_test {
@@ -28,15 +25,12 @@ struct segment_test {
 	char *descr;
 };
 
-int range_parse(const char *, struct range *);
+void parse_file_with_callback(const char *, int (*callback)(const char *,
+                              char **, size_t, char *, void *), void *payload);
 
-void parse_file_with_callback(char *, int (*callback)(char *, char **,
-                              size_t, char *, void *), void *payload);
-
-void property_list_parse(struct property *, size_t);
-void property_list_print(const struct property *, size_t, const char *,
-                         const char *);
-void property_list_free(struct property *, size_t);
+void properties_generate_break_property(const struct property_spec *,
+                                        uint_least8_t, const char *,
+                                        const char *);
 
 void segment_test_list_parse(char *, struct segment_test **, size_t *);
 void segment_test_list_print(const struct segment_test *, size_t,
