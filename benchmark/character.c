@@ -14,27 +14,20 @@
 
 #define NUM_ITERATIONS 1000000
 
-#ifdef __has_attribute
-	#if __has_attribute(optnone)
-		void libgrapheme(const void *) __attribute__((optnone));
-		void libutf8proc(const void *) __attribute__((optnone));
-	#endif
-#endif
-
-struct payload {
+struct break_benchmark_payload {
 	uint_least32_t *buf;
-	utf8proc_int32_t *buf_int32;
-	size_t bufsiz;
+	utf8proc_int32_t *buf_utf8proc;
+	size_t buflen;
 };
 
 void
 libgrapheme(const void *payload)
 {
 	GRAPHEME_STATE state = { 0 };
-	const struct payload *p = payload;
+	const struct break_benchmark_payload *p = payload;
 	size_t i;
 
-	for (i = 0; i + 1 < p->bufsiz; i++) {
+	for (i = 0; i + 1 < p->buflen; i++) {
 		(void)grapheme_is_character_break(p->buf[i], p->buf[i+1],
 		                                  &state);
 	}
@@ -44,12 +37,12 @@ void
 libutf8proc(const void *payload)
 {
 	utf8proc_int32_t state = 0;
-	const struct payload *p = payload;
+	const struct break_benchmark_payload *p = payload;
 	size_t i;
 
-	for (i = 0; i + 1 < p->bufsiz; i++) {
-		(void)utf8proc_grapheme_break_stateful(p->buf_int32[i],
-		                                       p->buf_int32[i+1],
+	for (i = 0; i + 1 < p->buflen; i++) {
+		(void)utf8proc_grapheme_break_stateful(p->buf_utf8proc[i],
+		                                       p->buf_utf8proc[i+1],
 		                                       &state);
 	}
 }
@@ -57,33 +50,33 @@ libutf8proc(const void *payload)
 int
 main(int argc, char *argv[])
 {
-	struct payload p;
+	struct break_benchmark_payload p;
 	double baseline = (double)NAN;
 	size_t i;
 
 	(void)argc;
 
-	if ((p.buf = generate_test_buffer(character_test, LEN(character_test),
-	                                  &(p.bufsiz))) == NULL) {
+	if ((p.buf = generate_cp_test_buffer(character_test, LEN(character_test),
+	                                     &(p.buflen))) == NULL) {
 		return 1;
 	}
-	if ((p.buf_int32 = malloc(p.bufsiz * sizeof(*(p.buf_int32)))) == NULL) {
+	if ((p.buf_utf8proc = malloc(p.buflen * sizeof(*(p.buf_utf8proc)))) == NULL) {
 		fprintf(stderr, "malloc: %s\n", strerror(errno));
 		exit(1);
 	}
-	for (i = 0; i < p.bufsiz; i++) {
+	for (i = 0; i < p.buflen; i++) {
 		/*
 		 * there is no overflow, as we know that the maximum
 		 * codepoint is 0x10FFFF, which is way below 2^31
 		 */
-		p.buf_int32[i] = (utf8proc_int32_t)p.buf[i];
+		p.buf_utf8proc[i] = (utf8proc_int32_t)p.buf[i];
 	}
 
 	printf("%s\n", argv[0]);
 	run_benchmark(libgrapheme, &p, "libgrapheme ", NULL, "comparison",
-	              &baseline, NUM_ITERATIONS, p.bufsiz - 1);
+	              &baseline, NUM_ITERATIONS, p.buflen - 1);
 	run_benchmark(libutf8proc, &p, "libutf8proc ", NULL, "comparison",
-	              &baseline, NUM_ITERATIONS, p.bufsiz - 1);
+	              &baseline, NUM_ITERATIONS, p.buflen - 1);
 
 	free(p.buf);
 
