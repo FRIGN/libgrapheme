@@ -11,7 +11,7 @@
 
 int
 run_break_tests(bool (*is_break)(uint_least32_t, uint_least32_t, GRAPHEME_STATE *),
-                const struct test *test, size_t testlen, const char *argv0)
+                const struct break_test *test, size_t testlen, const char *argv0)
 {
 	GRAPHEME_STATE state;
 	size_t i, j, k, len, failed;

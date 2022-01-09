@@ -34,10 +34,10 @@ struct properties_major_minor {
 	size_t minorlen;
 };
 
-struct segment_test_payload
+struct break_test_payload
 {
-	struct segment_test **st;
-	size_t *numsegtests;
+	struct break_test **test;
+	size_t *testlen;
 };
 
 static int
@@ -422,7 +422,7 @@ set_value_bp(struct properties_payload *payload, uint_least32_t cp,
 {
 	if (payload->prop[cp].break_property != 0) {
 		fprintf(stderr, "set_value_bp: "
-	                "Character break property overlap.\n");
+		        "Character break property overlap.\n");
 		return 1;
 	}
 	payload->prop[cp].break_property = value;
@@ -519,12 +519,12 @@ properties_generate_break_property(const struct property_spec *spec,
 }
 
 static int
-segment_test_callback(const char *fname, char **field, size_t nfields,
+break_test_callback(const char *fname, char **field, size_t nfields,
                       char *comment, void *payload)
 {
-	struct segment_test *t,
-		**test = ((struct segment_test_payload *)payload)->st;
-	size_t i, *ntests = ((struct segment_test_payload *)payload)->numsegtests;
+	struct break_test *t,
+		**test = ((struct break_test_payload *)payload)->test;
+	size_t i, *testlen = ((struct break_test_payload *)payload)->testlen;
 	char *token;
 
 	(void)fname;
@@ -534,12 +534,12 @@ segment_test_callback(const char *fname, char **field, size_t nfields,
 	}
 
 	/* append new testcase and initialize with zeroes */
-	if ((*test = realloc(*test, ++(*ntests) * sizeof(**test))) == NULL) {
-		fprintf(stderr, "segment_test_callback: realloc: %s.\n",
+	if ((*test = realloc(*test, ++(*testlen) * sizeof(**test))) == NULL) {
+		fprintf(stderr, "break_test_callback: realloc: %s.\n",
 		        strerror(errno));
 		return 1;
 	}
-	t = &(*test)[*ntests - 1];
+	t = &(*test)[*testlen - 1];
 	memset(t, 0, sizeof(*t));
 
 	/* parse testcase "<÷|×> <cp> <÷|×> ... <cp> <÷|×>" */
@@ -555,7 +555,7 @@ segment_test_callback(const char *fname, char **field, size_t nfields,
 				 */
 				if ((t->len = realloc(t->len,
 				     ++t->lenlen * sizeof(*t->len))) == NULL) {
-					fprintf(stderr, "segment_test_"
+					fprintf(stderr, "break_test_"
 					        "callback: realloc: %s.\n",
 					        strerror(errno));
 					return 1;
@@ -566,7 +566,7 @@ segment_test_callback(const char *fname, char **field, size_t nfields,
 				 * '×' indicates a non-breakpoint, do nothing
 				 */
 			} else {
-				fprintf(stderr, "segment_test_callback: "
+				fprintf(stderr, "break_test_callback: "
 				        "Malformed delimiter '%s'.\n", token);
 				return 1;
 			}
@@ -574,7 +574,7 @@ segment_test_callback(const char *fname, char **field, size_t nfields,
 			/* add codepoint to cp-array */
 			if ((t->cp = realloc(t->cp, ++t->cplen *
 			                     sizeof(*t->cp))) == NULL) {
-				fprintf(stderr, "segment_test_callback: "
+				fprintf(stderr, "break_test_callback: "
 				        "realloc: %s.\n", strerror(errno));
 				return 1;
 			}
@@ -592,8 +592,8 @@ segment_test_callback(const char *fname, char **field, size_t nfields,
 	}
 
 	/* store comment */
-	if (((*test)[*ntests - 1].descr = strdup(comment)) == NULL) {
-		fprintf(stderr, "segment_test_callback: strdup: %s.\n",
+	if (((*test)[*testlen - 1].descr = strdup(comment)) == NULL) {
+		fprintf(stderr, "break_test_callback: strdup: %s.\n",
 		        strerror(errno));
 		return 1;
 	}
@@ -602,21 +602,21 @@ segment_test_callback(const char *fname, char **field, size_t nfields,
 }
 
 void
-segment_test_list_parse(char *fname, struct segment_test **st,
-                        size_t *numsegtests)
+break_test_list_parse(char *fname, struct break_test **test,
+                        size_t *testlen)
 {
-	struct segment_test_payload pl = {
-		.st = st,
-		.numsegtests = numsegtests
+	struct break_test_payload pl = {
+		.test = test,
+		.testlen = testlen,
 	};
-	*st = NULL;
-	*numsegtests = 0;
+	*test = NULL;
+	*testlen = 0;
 
-	parse_file_with_callback(fname, segment_test_callback, &pl);
+	parse_file_with_callback(fname, break_test_callback, &pl);
 }
 
 void
-segment_test_list_print(const struct segment_test *st, size_t numsegtests,
+break_test_list_print(const struct break_test *test, size_t testlen,
                         const char *identifier, const char *progname)
 {
 	size_t i, j;
@@ -625,31 +625,31 @@ segment_test_list_print(const struct segment_test *st, size_t numsegtests,
 	       "#include <stdint.h>\n#include <stddef.h>\n\n"
 	       "#include \"../gen/types.h\"\n\n", progname);
 
-	printf("static const struct test %s[] = {\n", identifier);
-	for (i = 0; i < numsegtests; i++) {
+	printf("static const struct break_test %s[] = {\n", identifier);
+	for (i = 0; i < testlen; i++) {
 		printf("\t{\n");
 
 		printf("\t\t.cp     = (uint_least32_t[]){");
-		for (j = 0; j < st[i].cplen; j++) {
-			printf(" UINT32_C(0x%06X)", st[i].cp[j]);
-			if (j + 1 < st[i].cplen) {
+		for (j = 0; j < test[i].cplen; j++) {
+			printf(" UINT32_C(0x%06X)", test[i].cp[j]);
+			if (j + 1 < test[i].cplen) {
 				putchar(',');
 			}
 		}
 		printf(" },\n");
-		printf("\t\t.cplen  = %zu,\n", st[i].cplen);
+		printf("\t\t.cplen  = %zu,\n", test[i].cplen);
 
 		printf("\t\t.len    = (size_t[]){");
-		for (j = 0; j < st[i].lenlen; j++) {
-			printf(" %zu", st[i].len[j]);
-			if (j + 1 < st[i].lenlen) {
+		for (j = 0; j < test[i].lenlen; j++) {
+			printf(" %zu", test[i].len[j]);
+			if (j + 1 < test[i].lenlen) {
 				putchar(',');
 			}
 		}
 		printf(" },\n");
-		printf("\t\t.lenlen = %zu,\n", st[i].lenlen);
+		printf("\t\t.lenlen = %zu,\n", test[i].lenlen);
 
-		printf("\t\t.descr  = \"%s\",\n", st[i].descr);
+		printf("\t\t.descr  = \"%s\",\n", test[i].descr);
 
 		printf("\t},\n");
 	}
@@ -657,9 +657,9 @@ segment_test_list_print(const struct segment_test *st, size_t numsegtests,
 }
 
 void
-segment_test_list_free(struct segment_test *st, size_t numsegtests)
+break_test_list_free(struct break_test *test, size_t testlen)
 {
-	(void)numsegtests;
+	(void)testlen;
 
-	free(st);
+	free(test);
 }

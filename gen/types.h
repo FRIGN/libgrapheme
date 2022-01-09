@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-struct test {
+struct break_test {
 	uint_least32_t *cp;
 	size_t cplen;
 	size_t *len;

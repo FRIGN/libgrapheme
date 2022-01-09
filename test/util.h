@@ -8,7 +8,7 @@
 #define LEN(x) (sizeof(x) / sizeof(*(x)))
 
 int run_break_tests(bool (*is_break)(uint_least32_t, uint_least32_t,
-                    GRAPHEME_STATE *), const struct test *test,
+                    GRAPHEME_STATE *), const struct break_test *test,
                     size_t testlen, const char *);
 
 #endif /* UTIL_H */

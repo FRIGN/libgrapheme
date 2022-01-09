@@ -6,14 +6,14 @@
 int
 main(int argc, char *argv[])
 {
-	struct segment_test *st = NULL;
-	size_t numsegtests = 0;
+	struct break_test *test = NULL;
+	size_t testlen = 0;
 
 	(void)argc;
 
-	segment_test_list_parse("data/GraphemeBreakTest.txt", &st, &numsegtests);
-	segment_test_list_print(st, numsegtests, "character_test", argv[0]);
-	segment_test_list_free(st, numsegtests);
+	break_test_list_parse("data/GraphemeBreakTest.txt", &test, &testlen);
+	break_test_list_print(test, testlen, "character_test", argv[0]);
+	break_test_list_free(test, testlen);
 
 	return 0;
 }

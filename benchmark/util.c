@@ -4,27 +4,29 @@
 #include <stdio.h>
 #include <time.h>
 
+#include "../gen/types.h"
 #include "util.h"
 
 uint_least32_t *
-generate_test_buffer(const struct test *t, size_t tlen, size_t *bufsiz)
+generate_test_buffer(const struct break_test *test, size_t testlen,
+                     size_t *bufsiz)
 {
 	size_t i, j, off;
 	uint_least32_t *buf;
 
 	/* allocate and generate buffer */
-	for (i = 0, *bufsiz = 0; i < tlen; i++) {
-		*bufsiz += t[i].cplen;
+	for (i = 0, *bufsiz = 0; i < testlen; i++) {
+		*bufsiz += test[i].cplen;
 	}
 	if (!(buf = calloc(*bufsiz, sizeof(*buf)))) {
 		fprintf(stderr, "generate_test_buffer: calloc: Out of memory.\n");
 		return NULL;
 	}
-	for (i = 0, off = 0; i < tlen; i++) {
-		for (j = 0; j < t[i].cplen; j++) {
-			buf[off + j] = t[i].cp[j];
+	for (i = 0, off = 0; i < testlen; i++) {
+		for (j = 0; j < test[i].cplen; j++) {
+			buf[off + j] = test[i].cp[j];
 		}
-		off += t[i].cplen;
+		off += test[i].cplen;
 	}
 
 	return buf;
