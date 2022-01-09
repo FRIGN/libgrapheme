@@ -422,7 +422,9 @@ set_value_bp(struct properties_payload *payload, uint_least32_t cp,
 {
 	if (payload->prop[cp].break_property != 0) {
 		fprintf(stderr, "set_value_bp: "
-		        "Character break property overlap.\n");
+	                "Character break property overwrite (%s <- %s).\n",
+		        payload->spec[payload->prop[cp].break_property].enumname,
+			payload->spec[value].enumname);
 		return 1;
 	}
 	payload->prop[cp].break_property = value;
