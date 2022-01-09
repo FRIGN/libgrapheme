@@ -2,8 +2,13 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include <time.h>
+#include "../gen/types.h"
+#include "../grapheme.h"
 
 #define LEN(x) (sizeof(x) / sizeof(*(x)))
+
+int run_break_tests(bool (*is_break)(uint_least32_t, uint_least32_t,
+                    GRAPHEME_STATE *), const struct test *test,
+                    size_t testlen, const char *);
 
 #endif /* UTIL_H */
