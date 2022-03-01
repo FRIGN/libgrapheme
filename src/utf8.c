@@ -51,6 +51,15 @@ size_t
 grapheme_decode_utf8(const char *str, size_t len, uint_least32_t *cp)
 {
 	size_t off, i;
+	uint_least32_t tmp;
+
+	if (cp == NULL) {
+		/*
+		 * instead of checking every time if cp is NULL within
+		 * the decoder, simply point it at a dummy variable here.
+		 */
+		cp = &tmp;
+	}
 
 	if (str == NULL || len == 0) {
 		/* a sequence must be at least 1 byte long */
