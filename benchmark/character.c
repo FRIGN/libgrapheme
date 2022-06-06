@@ -12,7 +12,7 @@
 
 #include <utf8proc.h>
 
-#define NUM_ITERATIONS 1000000
+#define NUM_ITERATIONS 100000
 
 struct break_benchmark_payload {
 	uint_least32_t *buf;
@@ -56,7 +56,8 @@ main(int argc, char *argv[])
 
 	(void)argc;
 
-	if ((p.buf = generate_cp_test_buffer(character_test, LEN(character_test),
+	if ((p.buf = generate_cp_test_buffer(character_break_test,
+	                                     LEN(character_break_test),
 	                                     &(p.buflen))) == NULL) {
 		return 1;
 	}

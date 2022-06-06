@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -20,6 +21,7 @@ struct properties_payload {
 	const struct property_spec *spec;
 	uint_least8_t speclen;
 	int (*set_value)(struct properties_payload *, uint_least32_t, uint_least8_t);
+	uint_least8_t (*handle_conflict)(uint_least32_t, uint_least8_t, uint_least8_t);
 };
 
 struct properties_compressed {
@@ -421,11 +423,18 @@ set_value_bp(struct properties_payload *payload, uint_least32_t cp,
              uint_least8_t value)
 {
 	if (payload->prop[cp].break_property != 0) {
-		fprintf(stderr, "set_value_bp: "
-	                "Character break property overwrite (%s <- %s).\n",
-		        payload->spec[payload->prop[cp].break_property].enumname,
-			payload->spec[value].enumname);
-		return 1;
+		if (payload->handle_conflict == NULL) {
+			fprintf(stderr, "set_value_bp: "
+	                        "Unhandled character break property "
+			        "overwrite for 0x%06X (%s <- %s).\n",
+		                cp, payload->spec[payload->prop[cp].
+			        break_property].enumname,
+			        payload->spec[value].enumname);
+			return 1;
+		} else {
+			value = payload->handle_conflict(cp,
+			        payload->prop[cp].break_property, value);
+		}
 	}
 	payload->prop[cp].break_property = value;
 
@@ -440,8 +449,11 @@ get_value_bp(const struct properties *prop, size_t offset)
 
 void
 properties_generate_break_property(const struct property_spec *spec,
-                                   uint_least8_t speclen, const char *prefix,
-				   const char *argv0)
+                                   uint_least8_t speclen,
+                                   uint_least8_t (*handle_conflict)(
+                                   uint_least32_t, uint_least8_t,
+                                   uint_least8_t), const char *prefix,
+                                   const char *argv0)
 {
 	struct properties_compressed comp;
 	struct properties_major_minor mm;
@@ -461,6 +473,7 @@ properties_generate_break_property(const struct property_spec *spec,
 	payload.spec = spec;
 	payload.speclen = speclen;
 	payload.set_value = set_value_bp;
+	payload.handle_conflict = handle_conflict;
 
 	/* parse each file exactly once and ignore NULL-fields */
 	for (i = 0; i < speclen; i++) {

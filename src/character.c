@@ -102,7 +102,7 @@ static const uint_least16_t dont_break_gb12_13[2 * NUM_CHAR_BREAK_PROPS] = {
 		UINT16_C(1 << CHAR_BREAK_PROP_REGIONAL_INDICATOR),
 };
 
-static enum char_break_property
+static inline enum char_break_property
 get_break_prop(uint_least32_t cp)
 {
 	if (likely(cp <= 0x10FFFF)) {
@@ -132,14 +132,14 @@ grapheme_is_character_break(uint_least32_t cp0, uint_least32_t cp1, GRAPHEME_STA
 		state->prop_set = true;
 
 		/* update flags */
-		state->gb11_flag = flag_update_gb11[cp0_prop +
-		                                    NUM_CHAR_BREAK_PROPS *
-		                                    state->gb11_flag] &
-	                           UINT16_C(1 << cp1_prop);
-		state->gb12_13_flag = flag_update_gb12_13[cp0_prop +
-		                                          NUM_CHAR_BREAK_PROPS *
-		                                          state->gb12_13_flag] &
-		                      UINT16_C(1 << cp1_prop);
+		state->gb11_flag =
+			flag_update_gb11[cp0_prop + NUM_CHAR_BREAK_PROPS *
+			                 state->gb11_flag] &
+			UINT16_C(1 << cp1_prop);
+		state->gb12_13_flag =
+			flag_update_gb12_13[cp0_prop + NUM_CHAR_BREAK_PROPS *
+		                            state->gb12_13_flag] &
+		        UINT16_C(1 << cp1_prop);
 
 		/*
 		 * Apply grapheme cluster breaking algorithm (UAX #29), see
@@ -177,7 +177,31 @@ grapheme_is_character_break(uint_least32_t cp0, uint_least32_t cp1, GRAPHEME_STA
 }
 
 size_t
-grapheme_next_character_break(const char *str, size_t len)
+grapheme_next_character_break(const uint_least32_t *str, size_t len)
+{
+	GRAPHEME_STATE state = { 0 };
+	size_t off;
+
+	if (str == NULL || len == 0) {
+		return 0;
+	}
+
+	for (off = 1; off < len; off++) {
+		if (grapheme_is_character_break(str[off - 1], str[off], &state)) {
+			break;
+		}
+	}
+
+	/* with no breaks we break at the end */
+	if (off == len) {
+		return len;
+	} else {
+		return off;
+	}
+}
+
+size_t
+grapheme_next_character_break_utf8(const char *str, size_t len)
 {
 	GRAPHEME_STATE state = { 0 };
 	uint_least32_t cp0 = 0, cp1 = 0;

@@ -64,8 +64,8 @@ main(int argc, char *argv[])
 
 	(void)argc;
 
-	p.buf = generate_utf8_test_buffer(character_test,
-	                                  LEN(character_test),
+	p.buf = generate_utf8_test_buffer(character_break_test,
+	                                  LEN(character_break_test),
 	                                  &(p.buflen));
 
 	/* convert cp-buffer to stupid custom libutf8proc-uint8-type */

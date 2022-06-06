@@ -1,4 +1,6 @@
 /* See LICENSE file for copyright and license details. */
+#include <stddef.h>
+
 #include "util.h"
 
 #define FILE_EMOJI    "data/emoji-data.txt"
@@ -89,7 +91,7 @@ main(int argc, char *argv[])
 
 	properties_generate_break_property(char_break_property,
 	                                   LEN(char_break_property),
-	                                   "char", argv[0]);
+	                                   NULL, "char", argv[0]);
 
 	return 0;
 }
