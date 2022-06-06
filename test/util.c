@@ -13,7 +13,6 @@ int
 run_break_tests(size_t (*next_break)(const uint_least32_t *, size_t),
                 const struct break_test *test, size_t testlen, const char *argv0)
 {
-	GRAPHEME_STATE state;
 	size_t i, j, off, res, failed;
 
 	/* character break test */
