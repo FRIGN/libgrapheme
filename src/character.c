@@ -192,12 +192,7 @@ grapheme_next_character_break(const uint_least32_t *str, size_t len)
 		}
 	}
 
-	/* with no breaks we break at the end */
-	if (off == len) {
-		return len;
-	} else {
-		return off;
-	}
+	return off;
 }
 
 size_t
