@@ -6,6 +6,7 @@ include config.mk
 
 BENCHMARK =\
 	benchmark/character\
+	benchmark/sentence\
 	benchmark/utf8-decode\
 	benchmark/word\
 
@@ -13,23 +14,29 @@ DATA =\
 	data/emoji-data.txt\
 	data/GraphemeBreakProperty.txt\
 	data/GraphemeBreakTest.txt\
+	data/SentenceBreakProperty.txt\
+	data/SentenceBreakTest.txt\
 	data/WordBreakProperty.txt\
 	data/WordBreakTest.txt\
 
 GEN =\
 	gen/character\
 	gen/character-test\
+	gen/sentence\
+	gen/sentence-test\
 	gen/word\
 	gen/word-test\
 
 SRC =\
 	src/character\
+	src/sentence\
 	src/utf8\
 	src/util\
 	src/word\
 
 TEST =\
 	test/character\
+	test/sentence\
 	test/utf8-decode\
 	test/utf8-encode\
 	test/word\
@@ -46,37 +53,48 @@ all: libgrapheme.a libgrapheme.so
 
 benchmark/character.o: benchmark/character.c config.mk gen/character-test.h grapheme.h benchmark/util.h
 benchmark/utf8-decode.o: benchmark/utf8-decode.c config.mk gen/character-test.h grapheme.h benchmark/util.h
+benchmark/sentence.o: benchmark/sentence.c config.mk gen/sentence-test.h grapheme.h benchmark/util.h
 benchmark/util.o: benchmark/util.c config.mk benchmark/util.h
 benchmark/word.o: benchmark/word.c config.mk gen/word-test.h grapheme.h benchmark/util.h
 gen/character.o: gen/character.c config.mk gen/util.h
 gen/character-test.o: gen/character-test.c config.mk gen/util.h
+gen/sentence.o: gen/sentence.c config.mk gen/util.h
+gen/sentence-test.o: gen/sentence-test.c config.mk gen/util.h
 gen/word.o: gen/word.c config.mk gen/util.h
 gen/word-test.o: gen/word-test.c config.mk gen/util.h
 gen/util.o: gen/util.c config.mk gen/util.h
 src/character.o: src/character.c config.mk gen/character.h grapheme.h src/util.h
+src/sentence.o: src/sentence.c config.mk gen/sentence.h grapheme.h src/util.h
 src/utf8.o: src/utf8.c config.mk grapheme.h
 src/util.o: src/util.c config.mk gen/types.h grapheme.h src/util.h
 src/word.o: src/word.c config.mk gen/word.h grapheme.h src/util.h
 test/character.o: test/character.c config.mk gen/character-test.h grapheme.h test/util.h
+test/sentence.o: test/sentence.c config.mk gen/sentence-test.h grapheme.h test/util.h
 test/utf8-encode.o: test/utf8-encode.c config.mk grapheme.h test/util.h
 test/utf8-decode.o: test/utf8-decode.c config.mk grapheme.h test/util.h
 test/util.o: test/util.c config.mk test/util.h
 test/word.o: test/word.c config.mk gen/word-test.h grapheme.h test/util.h
 
 benchmark/character: benchmark/character.o benchmark/util.o libgrapheme.a
+benchmark/sentence: benchmark/sentence.o benchmark/util.o libgrapheme.a
 benchmark/utf8-decode: benchmark/utf8-decode.o benchmark/util.o libgrapheme.a
 benchmark/word: benchmark/word.o benchmark/util.o libgrapheme.a
 gen/character: gen/character.o gen/util.o
 gen/character-test: gen/character-test.o gen/util.o
+gen/sentence: gen/sentence.o gen/util.o
+gen/sentence-test: gen/sentence-test.o gen/util.o
 gen/word: gen/word.o gen/util.o
 gen/word-test: gen/word-test.o gen/util.o
 test/character: test/character.o test/util.o libgrapheme.a
+test/sentence: test/sentence.o test/util.o libgrapheme.a
 test/utf8-encode: test/utf8-encode.o test/util.o libgrapheme.a
 test/utf8-decode: test/utf8-decode.o test/util.o libgrapheme.a
 test/word: test/word.o test/util.o libgrapheme.a
 
 gen/character.h: data/emoji-data.txt data/GraphemeBreakProperty.txt gen/character
 gen/character-test.h: data/GraphemeBreakTest.txt gen/character-test
+gen/sentence.h: data/SentenceBreakProperty.txt gen/sentence
+gen/sentence-test.h: data/SentenceBreakTest.txt gen/sentence-test
 gen/word.h: data/WordBreakProperty.txt gen/word
 gen/word-test.h: data/WordBreakTest.txt gen/word-test
 
@@ -88,6 +106,12 @@ data/GraphemeBreakProperty.txt:
 
 data/GraphemeBreakTest.txt:
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/GraphemeBreakTest.txt
+
+data/SentenceBreakProperty.txt:
+	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/SentenceBreakProperty.txt
+
+data/SentenceBreakTest.txt:
+	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/SentenceBreakTest.txt
 
 data/WordBreakProperty.txt:
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/WordBreakProperty.txt
