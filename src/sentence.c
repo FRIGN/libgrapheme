@@ -64,7 +64,7 @@ next_sentence_break(const void *str, size_t len, size_t (*get_codepoint)
 
 	/*
 	 * Apply sentence breaking algorithm (UAX #29), see
-	 * https://unicode.org/reports/tr29/#Word_Boundary_Rules
+	 * https://unicode.org/reports/tr29/#Sentence_Boundary_Rules
 	 *
 	 * There are 4 slots (a, b, c, d) of "break" properties and
 	 * we check if there is a break in the middle between b and c.
