@@ -76,7 +76,7 @@ next_sentence_break(const void *str, size_t len, size_t (*get_codepoint)
 	 *
 	 * It is further complicated by the fact that the algorithm
 	 * expects you to skip certain characters for the second
-	 * half of the rules (after WB4). Thus, we do not only have
+	 * half of the rules (after SB5). Thus, we do not only have
 	 * the "raw" properties as described above, but also the "skip"
 	 * properties, where the skip.a and skip.b, for instance,
 	 * give the two preceding character properties behind the
