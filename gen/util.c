@@ -219,7 +219,9 @@ properties_callback(const char *file, char **field, size_t nfields,
 		/* identify fitting file and identifier */
 		if (p->spec[i].file &&
 		    !strcmp(p->spec[i].file, file) &&
-		    !strcmp(p->spec[i].ucdname, field[1])) {
+		    (!strcmp(p->spec[i].ucdname, field[1]) ||
+		     (comment != NULL && !strncmp(p->spec[i].ucdname, comment, strlen(p->spec[i].ucdname)) &&
+		      comment[strlen(p->spec[i].ucdname)] == ' '))) {
 			/* parse range in first field */
 			if (range_parse(field[0], &r)) {
 				return 1;
@@ -452,8 +454,9 @@ properties_generate_break_property(const struct property_spec *spec,
                                    uint_least8_t speclen,
                                    uint_least8_t (*handle_conflict)(
                                    uint_least32_t, uint_least8_t,
-                                   uint_least8_t), const char *prefix,
-                                   const char *argv0)
+                                   uint_least8_t), uint_least8_t
+                                   (*post_process)(uint_least8_t),
+                                   const char *prefix, const char *argv0)
 {
 	struct properties_compressed comp;
 	struct properties_major_minor mm;
@@ -463,7 +466,7 @@ properties_generate_break_property(const struct property_spec *spec,
 	char buf1[64], prefix_uc[64], buf2[64], buf3[64], buf4[64];
 
 	/* allocate property buffer for all 0x110000 codepoints */
-	if (!(prop = calloc(0x110000, sizeof(*prop)))) {
+	if (!(prop = calloc(UINT32_C(0x110000), sizeof(*prop)))) {
 		fprintf(stderr, "calloc: %s\n", strerror(errno));
 		exit(1);
 	}
@@ -492,11 +495,19 @@ properties_generate_break_property(const struct property_spec *spec,
 		}
 	}
 
+	/* post-processing */
+	if (post_process != NULL) {
+		for (i = 0; i < UINT32_C(0x110000); i++) {
+			payload.prop[i].break_property =
+				post_process(payload.prop[i].break_property);
+		}
+	}
+
 	/* compress data */
 	properties_compress(prop, &comp);
 
-	fprintf(stderr, "%s: compression-ratio: %.2f%%\n", argv0,
-	        properties_get_major_minor(&comp, &mm));
+	fprintf(stderr, "%s: %s-LUT compression-ratio: %.2f%%\n", argv0,
+	        prefix, properties_get_major_minor(&comp, &mm));
 
 	/* prepare names */
 	if ((size_t)snprintf(buf1, LEN(buf1), "%s_break_property", prefix) >= LEN(buf1)) {
@@ -561,8 +572,8 @@ break_test_callback(const char *fname, char **field, size_t nfields,
 	for (token = strtok(field[0], " "), i = 0; token != NULL; i++,
 	     token = strtok(NULL, " ")) {
 		if (i % 2 == 0) {
-			/* delimiter */
-			if (!strncmp(token, "\xC3\xB7", 2)) { /* UTF-8 */
+			/* delimiter or start of sequence */
+			if (i == 0 || !strncmp(token, "\xC3\xB7", 2)) { /* UTF-8 */
 				/*
 				 * '÷' indicates a breakpoint,
 				 * the current length is done; allocate
@@ -602,7 +613,10 @@ break_test_callback(const char *fname, char **field, size_t nfields,
 		}
 	}
 	if (t->len[t->lenlen - 1] == 0) {
-		/* we allocated one more length than we needed */
+		/*
+		 * we allocated one more length than we needed because
+		 * the breakpoint was at the end
+		 */
 		t->lenlen--;
 	}
 

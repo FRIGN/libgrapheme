@@ -152,7 +152,8 @@ main(int argc, char *argv[])
 
 	properties_generate_break_property(word_break_property,
 	                                   LEN(word_break_property),
-	                                   handle_conflict, "word", argv[0]);
+	                                   handle_conflict, NULL, "word",
+	                                   argv[0]);
 
 	return 0;
 }
