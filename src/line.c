@@ -439,43 +439,6 @@ next_line_break(const void *str, size_t len, size_t (*get_codepoint)
 			continue;
 		}
 
-#if 0
-		if ((last_non_cm_or_zwj_prop == LINE_BREAK_PROP_CL &&
-		     cp1_prop == LINE_BREAK_PROP_PO) ||
-		    ((last_non_cm_or_zwj_prop == LINE_BREAK_PROP_CP_WITHOUT_EAW_HWF ||
-		      last_non_cm_or_zwj_prop == LINE_BREAK_PROP_CP_WITH_EAW_HWF) &&
-		     cp1_prop == LINE_BREAK_PROP_PO) ||
-		    (last_non_cm_or_zwj_prop == LINE_BREAK_PROP_CL &&
-		     cp1_prop == LINE_BREAK_PROP_PR) ||
-		    ((last_non_cm_or_zwj_prop == LINE_BREAK_PROP_CP_WITHOUT_EAW_HWF ||
-		      last_non_cm_or_zwj_prop == LINE_BREAK_PROP_CP_WITH_EAW_HWF) &&
-		     cp1_prop == LINE_BREAK_PROP_PR) ||
-		    (last_non_cm_or_zwj_prop == LINE_BREAK_PROP_NU &&
-		     cp1_prop == LINE_BREAK_PROP_PO) ||
-		    (last_non_cm_or_zwj_prop == LINE_BREAK_PROP_NU &&
-		     cp1_prop == LINE_BREAK_PROP_PR) ||
-		    (last_non_cm_or_zwj_prop == LINE_BREAK_PROP_PO &&
-		     (cp1_prop == LINE_BREAK_PROP_OP_WITHOUT_EAW_HWF ||
-		      cp1_prop == LINE_BREAK_PROP_OP_WITH_EAW_HWF)) ||
-		    (last_non_cm_or_zwj_prop == LINE_BREAK_PROP_PO &&
-		     cp1_prop == LINE_BREAK_PROP_NU) ||
-		    (last_non_cm_or_zwj_prop == LINE_BREAK_PROP_PR &&
-		     (cp1_prop == LINE_BREAK_PROP_OP_WITHOUT_EAW_HWF ||
-		      cp1_prop == LINE_BREAK_PROP_OP_WITH_EAW_HWF)) ||
-		    (last_non_cm_or_zwj_prop == LINE_BREAK_PROP_PR &&
-		     cp1_prop == LINE_BREAK_PROP_NU) ||
-		    (last_non_cm_or_zwj_prop == LINE_BREAK_PROP_HY &&
-		     cp1_prop == LINE_BREAK_PROP_NU) ||
-		    (last_non_cm_or_zwj_prop == LINE_BREAK_PROP_IS &&
-		     cp1_prop == LINE_BREAK_PROP_NU) ||
-		    (last_non_cm_or_zwj_prop == LINE_BREAK_PROP_NU &&
-		     cp1_prop == LINE_BREAK_PROP_NU) ||
-		    (last_non_cm_or_zwj_prop == LINE_BREAK_PROP_SY &&
-		     cp1_prop == LINE_BREAK_PROP_NU)) {
-			continue;
-		}
-#endif
-
 		/* LB26 */
 		if (last_non_cm_or_zwj_prop == LINE_BREAK_PROP_JL &&
 		    (cp1_prop == LINE_BREAK_PROP_JL ||
