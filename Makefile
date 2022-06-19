@@ -16,6 +16,7 @@ DATA =\
 	data/emoji-data.txt\
 	data/GraphemeBreakProperty.txt\
 	data/GraphemeBreakTest.txt\
+	data/LICENSE\
 	data/LineBreak.txt\
 	data/LineBreakTest.txt\
 	data/SentenceBreakProperty.txt\
@@ -115,34 +116,37 @@ gen/sentence-test.h: data/SentenceBreakTest.txt gen/sentence-test
 gen/word.h: data/WordBreakProperty.txt gen/word
 gen/word-test.h: data/WordBreakTest.txt gen/word-test
 
-data/EastAsianWidth.txt:
+data/EastAsianWidth.txt: data/LICENSE
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/EastAsianWidth.txt
 
-data/emoji-data.txt:
+data/emoji-data.txt: data/LICENSE
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/emoji/emoji-data.txt
 
-data/GraphemeBreakProperty.txt:
+data/GraphemeBreakProperty.txt: data/LICENSE
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/GraphemeBreakProperty.txt
 
-data/GraphemeBreakTest.txt:
+data/GraphemeBreakTest.txt: data/LICENSE
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/GraphemeBreakTest.txt
 
-data/LineBreak.txt:
+data/LICENSE:
+	wget -O $@ https://www.unicode.org/license.txt
+
+data/LineBreak.txt: data/LICENSE
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/LineBreak.txt
 
-data/LineBreakTest.txt:
+data/LineBreakTest.txt: data/LICENSE
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/LineBreakTest.txt
 
-data/SentenceBreakProperty.txt:
+data/SentenceBreakProperty.txt: data/LICENSE
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/SentenceBreakProperty.txt
 
-data/SentenceBreakTest.txt:
+data/SentenceBreakTest.txt: data/LICENSE
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/SentenceBreakTest.txt
 
-data/WordBreakProperty.txt:
+data/WordBreakProperty.txt: data/LICENSE
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/WordBreakProperty.txt
 
-data/WordBreakTest.txt:
+data/WordBreakTest.txt: data/LICENSE
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/WordBreakTest.txt
 
 $(BENCHMARK):
