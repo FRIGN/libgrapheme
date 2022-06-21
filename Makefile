@@ -5,6 +5,7 @@
 include config.mk
 
 BENCHMARK =\
+	benchmark/case\
 	benchmark/character\
 	benchmark/sentence\
 	benchmark/line\
@@ -12,6 +13,7 @@ BENCHMARK =\
 	benchmark/word\
 
 DATA =\
+	data/DerivedCoreProperties.txt\
 	data/EastAsianWidth.txt\
 	data/emoji-data.txt\
 	data/GraphemeBreakProperty.txt\
@@ -21,10 +23,13 @@ DATA =\
 	data/LineBreakTest.txt\
 	data/SentenceBreakProperty.txt\
 	data/SentenceBreakTest.txt\
+	data/SpecialCasing.txt\
+	data/UnicodeData.txt\
 	data/WordBreakProperty.txt\
 	data/WordBreakTest.txt\
 
 GEN =\
+	gen/case\
 	gen/character\
 	gen/character-test\
 	gen/line\
@@ -35,6 +40,7 @@ GEN =\
 	gen/word-test\
 
 SRC =\
+	src/case\
 	src/character\
 	src/line\
 	src/sentence\
@@ -57,13 +63,16 @@ MAN3 =\
 
 MAN7 = man/libgrapheme.7
 
-all: libgrapheme.a libgrapheme.so
+all: data/LICENSE libgrapheme.a libgrapheme.so
 
+benchmark/case.o: benchmark/case.c config.mk gen/word-test.h grapheme.h benchmark/util.h
 benchmark/character.o: benchmark/character.c config.mk gen/character-test.h grapheme.h benchmark/util.h
+benchmark/line.o: benchmark/line.c config.mk gen/line-test.h grapheme.h benchmark/util.h
 benchmark/utf8-decode.o: benchmark/utf8-decode.c config.mk gen/character-test.h grapheme.h benchmark/util.h
 benchmark/sentence.o: benchmark/sentence.c config.mk gen/sentence-test.h grapheme.h benchmark/util.h
 benchmark/util.o: benchmark/util.c config.mk benchmark/util.h
 benchmark/word.o: benchmark/word.c config.mk gen/word-test.h grapheme.h benchmark/util.h
+gen/case.o: gen/case.c config.mk gen/util.h
 gen/character.o: gen/character.c config.mk gen/util.h
 gen/character-test.o: gen/character-test.c config.mk gen/util.h
 gen/line.o: gen/line.c config.mk gen/util.h
@@ -73,6 +82,7 @@ gen/sentence-test.o: gen/sentence-test.c config.mk gen/util.h
 gen/word.o: gen/word.c config.mk gen/util.h
 gen/word-test.o: gen/word-test.c config.mk gen/util.h
 gen/util.o: gen/util.c config.mk gen/util.h
+src/case.o: src/case.c config.mk gen/case.h grapheme.h src/util.h
 src/character.o: src/character.c config.mk gen/character.h grapheme.h src/util.h
 src/line.o: src/line.c config.mk gen/line.h grapheme.h src/util.h
 src/sentence.o: src/sentence.c config.mk gen/sentence.h grapheme.h src/util.h
@@ -87,11 +97,13 @@ test/utf8-decode.o: test/utf8-decode.c config.mk grapheme.h test/util.h
 test/util.o: test/util.c config.mk test/util.h
 test/word.o: test/word.c config.mk gen/word-test.h grapheme.h test/util.h
 
+benchmark/case: benchmark/case.o benchmark/util.o libgrapheme.a
 benchmark/character: benchmark/character.o benchmark/util.o libgrapheme.a
 benchmark/line: benchmark/line.o benchmark/util.o libgrapheme.a
 benchmark/sentence: benchmark/sentence.o benchmark/util.o libgrapheme.a
 benchmark/utf8-decode: benchmark/utf8-decode.o benchmark/util.o libgrapheme.a
 benchmark/word: benchmark/word.o benchmark/util.o libgrapheme.a
+gen/case: gen/case.o gen/util.o
 gen/character: gen/character.o gen/util.o
 gen/character-test: gen/character-test.o gen/util.o
 gen/line: gen/line.o gen/util.o
@@ -107,6 +119,7 @@ test/utf8-encode: test/utf8-encode.o test/util.o libgrapheme.a
 test/utf8-decode: test/utf8-decode.o test/util.o libgrapheme.a
 test/word: test/word.o test/util.o libgrapheme.a
 
+gen/case.h: data/DerivedCoreProperties.txt data/UnicodeData.txt data/SpecialCasing.txt gen/case
 gen/character.h: data/emoji-data.txt data/GraphemeBreakProperty.txt gen/character
 gen/character-test.h: data/GraphemeBreakTest.txt gen/character-test
 gen/line.h: data/emoji-data.txt data/EastAsianWidth.txt data/LineBreak.txt gen/line
@@ -116,37 +129,46 @@ gen/sentence-test.h: data/SentenceBreakTest.txt gen/sentence-test
 gen/word.h: data/WordBreakProperty.txt gen/word
 gen/word-test.h: data/WordBreakTest.txt gen/word-test
 
-data/EastAsianWidth.txt: data/LICENSE
+data/DerivedCoreProperties.txt:
+	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/DerivedCoreProperties.txt
+
+data/EastAsianWidth.txt:
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/EastAsianWidth.txt
 
-data/emoji-data.txt: data/LICENSE
+data/emoji-data.txt:
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/emoji/emoji-data.txt
 
-data/GraphemeBreakProperty.txt: data/LICENSE
+data/GraphemeBreakProperty.txt:
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/GraphemeBreakProperty.txt
 
-data/GraphemeBreakTest.txt: data/LICENSE
+data/GraphemeBreakTest.txt:
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/GraphemeBreakTest.txt
 
 data/LICENSE:
 	wget -O $@ https://www.unicode.org/license.txt
 
-data/LineBreak.txt: data/LICENSE
+data/LineBreak.txt:
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/LineBreak.txt
 
-data/LineBreakTest.txt: data/LICENSE
+data/LineBreakTest.txt:
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/LineBreakTest.txt
 
-data/SentenceBreakProperty.txt: data/LICENSE
+data/SentenceBreakProperty.txt:
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/SentenceBreakProperty.txt
 
-data/SentenceBreakTest.txt: data/LICENSE
+data/SentenceBreakTest.txt:
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/SentenceBreakTest.txt
 
-data/WordBreakProperty.txt: data/LICENSE
+data/SpecialCasing.txt:
+	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/SpecialCasing.txt
+
+data/UnicodeData.txt:
+	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/UnicodeData.txt
+
+data/WordBreakProperty.txt:
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/WordBreakProperty.txt
 
-data/WordBreakTest.txt: data/LICENSE
+data/WordBreakTest.txt:
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/WordBreakTest.txt
 
 $(BENCHMARK):

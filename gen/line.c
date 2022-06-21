@@ -450,7 +450,7 @@ main(int argc, char *argv[])
 	properties_generate_break_property(line_break_property,
 	                                   LEN(line_break_property),
 	                                   handle_conflict, post_process,
-	                                   "line", argv[0]);
+	                                   "line_break", argv[0]);
 
 	return 0;
 }

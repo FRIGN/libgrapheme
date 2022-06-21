@@ -91,7 +91,7 @@ main(int argc, char *argv[])
 
 	properties_generate_break_property(char_break_property,
 	                                   LEN(char_break_property),
-	                                   NULL, NULL, "char", argv[0]);
+	                                   NULL, NULL, "char_break", argv[0]);
 
 	return 0;
 }

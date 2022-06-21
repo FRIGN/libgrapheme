@@ -16,11 +16,33 @@ struct property_spec {
 };
 
 struct properties {
-	uint_least8_t break_property;
+	int_least64_t property;
 };
+
+struct properties_compressed {
+	size_t *offset;
+	struct properties *data;
+	size_t datalen;
+};
+
+struct properties_major_minor {
+	size_t *major;
+	size_t *minor;
+	size_t minorlen;
+};
+
+int hextocp(const char *, size_t, uint_least32_t *cp);
 
 void parse_file_with_callback(const char *, int (*callback)(const char *,
                               char **, size_t, char *, void *), void *payload);
+
+void properties_compress(const struct properties *, struct properties_compressed *comp);
+double properties_get_major_minor(const struct properties_compressed *,
+                                  struct properties_major_minor *);
+void properties_print_lookup_table(char *, size_t *, size_t);
+void properties_print_derived_lookup_table(char *, char *, size_t *, size_t,
+                                      int_least64_t (*get_value)(const struct properties *,
+                                      size_t), const void *);
 
 void properties_generate_break_property(const struct property_spec *,
                                         uint_least8_t, uint_least8_t

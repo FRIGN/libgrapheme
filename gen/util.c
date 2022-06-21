@@ -1,4 +1,5 @@
 /* See LICENSE file for copyright and license details. */
+#include <stdbool.h>
 #include <ctype.h>
 #include <errno.h>
 #include <inttypes.h>
@@ -20,20 +21,8 @@ struct properties_payload {
 	struct properties *prop;
 	const struct property_spec *spec;
 	uint_least8_t speclen;
-	int (*set_value)(struct properties_payload *, uint_least32_t, uint_least8_t);
+	int (*set_value)(struct properties_payload *, uint_least32_t, int_least64_t);
 	uint_least8_t (*handle_conflict)(uint_least32_t, uint_least8_t, uint_least8_t);
-};
-
-struct properties_compressed {
-	size_t *offset;
-	struct properties *data;
-	size_t datalen;
-};
-
-struct properties_major_minor {
-	size_t *major;
-	size_t *minor;
-	size_t minorlen;
 };
 
 struct break_test_payload
@@ -42,7 +31,7 @@ struct break_test_payload
 	size_t *testlen;
 };
 
-static int
+int
 hextocp(const char *str, size_t len, uint_least32_t *cp)
 {
 	size_t i;
@@ -137,31 +126,35 @@ parse_file_with_callback(const char *fname, int (*callback)(const char *,
 
 		/* tokenize line into fields */
 		for (i = 0, nfields = 0, comment = NULL; i < (size_t)len; i++) {
-			/* extend field buffer, if necessary */
-			if (++nfields > fieldbufsize) {
-				if ((field = realloc(field, nfields *
-                                     sizeof(*field))) == NULL) {
-					fprintf(stderr, "parse_file_with_"
-					        "callback: realloc: %s.\n",
-					        strerror(errno));
-					exit(1);
-				}
-				fieldbufsize = nfields;
-			}
-
 			/* skip leading whitespace */
 			while (line[i] == ' ') {
 				i++;
 			}
 
-			/* set current position as field start */
-			field[nfields - 1] = &line[i];
+			/* check if we crashed into the comment */
+			if (line[i] != '#') {
+				/* extend field buffer, if necessary */
+				if (++nfields > fieldbufsize) {
+					if ((field = realloc(field, nfields *
+					      sizeof(*field))) == NULL) {
+						fprintf(stderr, "parse_file_with_"
+						        "callback: realloc: %s.\n",
+						        strerror(errno));
+						exit(1);
+					}
+					fieldbufsize = nfields;
+				}
 
-			/* continue until we reach ';' or '#' or end */
-			while (line[i] != ';' && line[i] != '#' &&
-			       line[i] != '\0') {
-				i++;
+				/* set current position as field start */
+				field[nfields - 1] = &line[i];
+
+				/* continue until we reach ';' or '#' or end */
+				while (line[i] != ';' && line[i] != '#' &&
+				       line[i] != '\0') {
+					i++;
+				}
 			}
+
 			if (line[i] == '#') {
 				/* set comment-variable for later */
 				comment = &line[i + 1];
@@ -240,7 +233,7 @@ properties_callback(const char *file, char **field, size_t nfields,
 	return 0;
 }
 
-static void
+void
 properties_compress(const struct properties *prop,
                     struct properties_compressed *comp)
 {
@@ -282,7 +275,7 @@ properties_compress(const struct properties *prop,
 	}
 }
 
-static double
+double
 properties_get_major_minor(const struct properties_compressed *comp,
                            struct properties_major_minor *mm)
 {
@@ -308,8 +301,6 @@ properties_get_major_minor(const struct properties_compressed *comp,
 	}
 	mm->minor = NULL;
 	mm->minorlen = 0;
-
-	printf("#include <stdint.h>\n\n");
 
 	for (i = 0; i < (size_t)0x1100; i++) {
 		/*
@@ -353,7 +344,7 @@ properties_get_major_minor(const struct properties_compressed *comp,
 	return (double)compression_count / 0x1100 * 100;
 }
 
-static void
+void
 properties_print_lookup_table(char *name, size_t *data, size_t datalen)
 {
 	char *type;
@@ -385,16 +376,16 @@ properties_print_lookup_table(char *name, size_t *data, size_t datalen)
 	printf("};\n");
 }
 
-static void
-properties_print_derived_lookup_table(char *name, size_t *offset, size_t offsetlen,
-                                      uint_least8_t (*get_value)(const struct properties *,
+void
+properties_print_derived_lookup_table(char *name, char *type, size_t *offset, size_t offsetlen,
+                                      int_least64_t (*get_value)(const struct properties *,
                                       size_t), const void *payload)
 {
 	size_t i;
 
-	printf("static const uint_least8_t %s[] = {\n\t", name);
+	printf("static const %s %s[] = {\n\t", type, name);
 	for (i = 0; i < offsetlen; i++) {
-		printf("%"PRIuLEAST8, get_value(payload, offset[i]));
+		printf("%"PRIiLEAST64, get_value(payload, offset[i]));
 		if (i + 1 == offsetlen) {
 			printf("\n");
 		} else if ((i + 1) % 8 != 0) {
@@ -422,31 +413,32 @@ properties_print_enum(const struct property_spec *spec, size_t speclen,
 
 static int
 set_value_bp(struct properties_payload *payload, uint_least32_t cp,
-             uint_least8_t value)
+             int_least64_t value)
 {
-	if (payload->prop[cp].break_property != 0) {
+	if (payload->prop[cp].property != 0) {
 		if (payload->handle_conflict == NULL) {
 			fprintf(stderr, "set_value_bp: "
 	                        "Unhandled character break property "
 			        "overwrite for 0x%06X (%s <- %s).\n",
 		                cp, payload->spec[payload->prop[cp].
-			        break_property].enumname,
+			        property].enumname,
 			        payload->spec[value].enumname);
 			return 1;
 		} else {
 			value = payload->handle_conflict(cp,
-			        payload->prop[cp].break_property, value);
+			        (uint_least8_t)payload->prop[cp].property,
+			        (uint_least8_t)value);
 		}
 	}
-	payload->prop[cp].break_property = value;
+	payload->prop[cp].property = value;
 
 	return 0;
 }
 
-static uint_least8_t
+static int_least64_t
 get_value_bp(const struct properties *prop, size_t offset)
 {
-	return prop[offset].break_property;
+	return (uint_least8_t)prop[offset].property;
 }
 
 void
@@ -498,19 +490,20 @@ properties_generate_break_property(const struct property_spec *spec,
 	/* post-processing */
 	if (post_process != NULL) {
 		for (i = 0; i < UINT32_C(0x110000); i++) {
-			payload.prop[i].break_property =
-				post_process(payload.prop[i].break_property);
+			payload.prop[i].property =
+				post_process((uint_least8_t)payload.prop[i].property);
 		}
 	}
 
 	/* compress data */
+	printf("/* Automatically generated by %s */\n#include <stdint.h>\n\n", argv0);
 	properties_compress(prop, &comp);
 
 	fprintf(stderr, "%s: %s-LUT compression-ratio: %.2f%%\n", argv0,
 	        prefix, properties_get_major_minor(&comp, &mm));
 
 	/* prepare names */
-	if ((size_t)snprintf(buf1, LEN(buf1), "%s_break_property", prefix) >= LEN(buf1)) {
+	if ((size_t)snprintf(buf1, LEN(buf1), "%s_property", prefix) >= LEN(buf1)) {
 		fprintf(stderr, "snprintf: String truncated.\n");
 		exit(1);
 	}
@@ -522,9 +515,9 @@ properties_generate_break_property(const struct property_spec *spec,
 		prefix_uc[i] = (char)toupper(prefix[i]);
 	}
 	prefix_uc[prefixlen] = '\0';
-	if ((size_t)snprintf(buf2, LEN(buf2), "%s_BREAK_PROP", prefix_uc) >= LEN(buf2) ||
-	    (size_t)snprintf(buf3, LEN(buf3), "%s_break_major", prefix) >= LEN(buf3)   ||
-	    (size_t)snprintf(buf4, LEN(buf4), "%s_break_minor", prefix) >= LEN(buf4)) {
+	if ((size_t)snprintf(buf2, LEN(buf2), "%s_PROP", prefix_uc) >= LEN(buf2) ||
+	    (size_t)snprintf(buf3, LEN(buf3), "%s_major", prefix) >= LEN(buf3)   ||
+	    (size_t)snprintf(buf4, LEN(buf4), "%s_minor", prefix) >= LEN(buf4)) {
 		fprintf(stderr, "snprintf: String truncated.\n");
 		exit(1);
 	}
@@ -533,7 +526,7 @@ properties_generate_break_property(const struct property_spec *spec,
 	properties_print_enum(spec, speclen, buf1, buf2);
 	properties_print_lookup_table(buf3, mm.major, 0x1100);
 	printf("\n");
-	properties_print_derived_lookup_table(buf4, mm.minor, mm.minorlen,
+	properties_print_derived_lookup_table(buf4, "uint_least8_t", mm.minor, mm.minorlen,
 	                                      get_value_bp, comp.data);
 
 	/* free data */
