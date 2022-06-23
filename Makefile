@@ -187,11 +187,11 @@ $(TEST):
 	$(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $<
 
 libgrapheme.a: $(SRC:=.o)
-	$(AR) rc $@ $?
+	$(AR) rc $@ $(SRC:=.o)
 	$(RANLIB) $@
 
 libgrapheme.so: $(SRC:=.o)
-	$(CC) -o $@ -shared $?
+	$(CC) -o $@ -shared $(SRC:=.o)
 
 benchmark: $(BENCHMARK)
 	for m in $(BENCHMARK); do ./$$m; done
