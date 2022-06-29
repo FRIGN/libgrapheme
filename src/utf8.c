@@ -4,7 +4,7 @@
 #include "../grapheme.h"
 #include "util.h"
 
-#define BETWEEN(c, l, u) (c >= l && c <= u)
+#define BETWEEN(c, l, u) ((c) >= (l) && (c) <= (u))
 
 /* lookup-table for the types of sequence first bytes */
 static const struct {
