@@ -187,8 +187,7 @@ $(TEST):
 	$(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $<
 
 libgrapheme.a: $(SRC:=.o)
-	$(AR) -rc $@ $?
-	$(RANLIB) $@
+	$(AR) -rcs $@ $?
 
 libgrapheme.so: $(SRC:=.o)
 	$(CC) -o $@ -shared $(SRC:=.o)
