@@ -31,6 +31,16 @@ struct break_test_payload
 	size_t *testlen;
 };
 
+static void *
+reallocarray(void *p, size_t len, size_t size)
+{
+	if (len > 0 && size > SIZE_MAX/len) {
+		errno = ENOMEM;
+		return NULL;
+	}
+	return realloc(p, len*size);
+}
+
 int
 hextocp(const char *str, size_t len, uint_least32_t *cp)
 {
