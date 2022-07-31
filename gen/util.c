@@ -32,7 +32,7 @@ struct break_test_payload
 };
 
 static void *
-reallocarray(void *p, size_t len, size_t size)
+reallocate_array(void *p, size_t len, size_t size)
 {
 	if (len > 0 && size > SIZE_MAX/len) {
 		errno = ENOMEM;
@@ -271,10 +271,10 @@ properties_compress(const struct properties *prop,
 			 * add current properties to data and add the
 			 * offset in the offset-table
 			 */
-			if (!(comp->data = reallocarray(comp->data,
-			                                ++(comp->datalen),
-			                                sizeof(*(comp->data))))) {
-				fprintf(stderr, "reallocarray: %s\n",
+			if (!(comp->data = reallocate_array(comp->data,
+			                                    ++(comp->datalen),
+			                                    sizeof(*(comp->data))))) {
+				fprintf(stderr, "reallocate_array: %s\n",
 				        strerror(errno));
 				exit(1);
 			}
@@ -336,10 +336,10 @@ properties_get_major_minor(const struct properties_compressed *comp,
 			 * in major
 			 */
 			mm->minorlen += 0x100;
-			if (!(mm->minor = reallocarray(mm->minor,
-			                               mm->minorlen,
-			                               sizeof(*(mm->minor))))) {
-				fprintf(stderr, "reallocarray: %s\n",
+			if (!(mm->minor = reallocate_array(mm->minor,
+			                                   mm->minorlen,
+			                                   sizeof(*(mm->minor))))) {
+				fprintf(stderr, "reallocate_array: %s\n",
 				        strerror(errno));
 				exit(1);
 			}
