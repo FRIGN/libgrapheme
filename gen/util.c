@@ -34,7 +34,7 @@ struct break_test_payload
 static void *
 reallocate_array(void *p, size_t len, size_t size)
 {
-	if (len > 0 && size > (size_t)(-1) / len) {
+	if (len > 0 && size > SIZE_MAX / len) {
 		errno = ENOMEM;
 		return NULL;
 	}
