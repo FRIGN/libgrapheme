@@ -17,3 +17,4 @@ LDFLAGS  = -s
 # tools
 CC = cc
 AR = ar
+RANLIB = ranlib
