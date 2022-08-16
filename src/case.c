@@ -33,68 +33,6 @@ get_case_offset(uint_least32_t cp, const uint_least16_t *major,
 }
 
 static inline size_t
-get_codepoint(const void *str, size_t len, size_t offset, uint_least32_t *cp)
-{
-	if (offset < len) {
-		*cp = ((const uint_least32_t *)str)[offset];
-		return 1;
-	} else {
-		*cp = GRAPHEME_INVALID_CODEPOINT;
-		return 0;
-	}
-}
-
-static inline size_t
-get_codepoint_utf8(const void *str, size_t len, size_t offset, uint_least32_t *cp)
-{
-	size_t ret;
-
-	if (offset < len) {
-		ret = grapheme_decode_utf8((const char *)str + offset,
-		                           len - offset, cp);
-
-		if (unlikely(len == SIZE_MAX && cp == 0)) {
-			return 0;
-		} else {
-			return ret;
-		}
-	} else {
-		*cp = GRAPHEME_INVALID_CODEPOINT;
-		return 0;
-	}
-}
-
-static inline size_t
-set_codepoint(uint_least32_t cp, void *str, size_t len, size_t offset)
-{
-	if (str == NULL || len == 0) {
-		return 1;
-	}
-
-	if (offset < len) {
-		((uint_least32_t *)str)[offset] = cp;
-		return 1;
-	} else {
-		return 0;
-	}
-}
-
-static inline size_t
-set_codepoint_utf8(uint_least32_t cp, void *str, size_t len, size_t offset)
-{
-	if (str == NULL || len == 0) {
-		return grapheme_encode_utf8(cp, NULL, 0);
-	}
-
-	if (offset < len) {
-		return grapheme_encode_utf8(cp, (char *)str + offset,
-		                            len - offset);
-	} else {
-		return grapheme_encode_utf8(cp, NULL, 0);
-	}
-}
-
-static inline size_t
 to_case(const void *src, size_t srclen, void *dest, size_t destlen,
         size_t srcnumprocess, uint_least8_t final_sigma_level,
         size_t (*get_codepoint)(const void *, size_t, size_t, uint_least32_t *),

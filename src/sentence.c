@@ -20,30 +20,6 @@ get_break_prop(uint_least32_t cp)
 	}
 }
 
-static inline size_t
-get_codepoint(const void *str, size_t len, size_t offset, uint_least32_t *cp)
-{
-	if (offset < len) {
-		*cp = ((const uint_least32_t *)str)[offset];
-		return 1;
-	} else {
-		*cp = GRAPHEME_INVALID_CODEPOINT;
-		return 0;
-	}
-}
-
-static inline size_t
-get_codepoint_utf8(const void *str, size_t len, size_t offset, uint_least32_t *cp)
-{
-	if (offset < len) {
-		return grapheme_decode_utf8((const char *)str + offset,
-		                            len - offset, cp);
-	} else {
-		*cp = GRAPHEME_INVALID_CODEPOINT;
-		return 0;
-	}
-}
-
 static size_t
 next_sentence_break(const void *str, size_t len, size_t (*get_codepoint)
                     (const void *, size_t, size_t, uint_least32_t *))
@@ -142,7 +118,8 @@ next_sentence_break(const void *str, size_t len, size_t (*get_codepoint)
 			 *     left of the middle spot.
 			 *
 			 */
-			if (aterm_close_sp_level == 0 &&
+			if ((aterm_close_sp_level == 0 ||
+			     aterm_close_sp_level == 1) &&
 			    skip.b == SENTENCE_BREAK_PROP_ATERM) {
 			    	/* sequence has begun */
 				aterm_close_sp_level = 1;
@@ -162,7 +139,8 @@ next_sentence_break(const void *str, size_t len, size_t (*get_codepoint)
 				aterm_close_sp_level = 0;
 			}
 
-			if (saterm_close_sp_parasep_level == 0 &&
+			if ((saterm_close_sp_parasep_level == 0 ||
+			     saterm_close_sp_parasep_level == 1) &&
 			    (skip.b == SENTENCE_BREAK_PROP_STERM ||
 			     skip.b == SENTENCE_BREAK_PROP_ATERM)) {
 			    	/* sequence has begun */

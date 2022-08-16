@@ -25,4 +25,10 @@
 	#define unlikely(expr) (expr)
 #endif
 
+size_t get_codepoint(const void *, size_t, size_t, uint_least32_t *);
+size_t get_codepoint_utf8(const void *, size_t, size_t, uint_least32_t *);
+
+size_t set_codepoint(uint_least32_t, void *, size_t, size_t);
+size_t set_codepoint_utf8(uint_least32_t, void *, size_t, size_t);
+
 #endif /* UTIL_H */
