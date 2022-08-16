@@ -13,6 +13,7 @@ BENCHMARK =\
 	benchmark/word\
 
 DATA =\
+	data/DerivedBidiClass.txt\
 	data/DerivedCoreProperties.txt\
 	data/EastAsianWidth.txt\
 	data/emoji-data.txt\
@@ -29,6 +30,7 @@ DATA =\
 	data/WordBreakTest.txt\
 
 GEN =\
+	gen/bidirectional\
 	gen/case\
 	gen/character\
 	gen/character-test\
@@ -40,6 +42,7 @@ GEN =\
 	gen/word-test\
 
 SRC =\
+	src/bidirectional\
 	src/case\
 	src/character\
 	src/line\
@@ -72,6 +75,7 @@ benchmark/utf8-decode.o: benchmark/utf8-decode.c config.mk gen/character-test.h 
 benchmark/sentence.o: benchmark/sentence.c config.mk gen/sentence-test.h grapheme.h benchmark/util.h
 benchmark/util.o: benchmark/util.c config.mk benchmark/util.h
 benchmark/word.o: benchmark/word.c config.mk gen/word-test.h grapheme.h benchmark/util.h
+gen/bidirectional.o: gen/bidirectional.c config.mk gen/util.h
 gen/case.o: gen/case.c config.mk gen/util.h
 gen/character.o: gen/character.c config.mk gen/util.h
 gen/character-test.o: gen/character-test.c config.mk gen/util.h
@@ -82,6 +86,7 @@ gen/sentence-test.o: gen/sentence-test.c config.mk gen/util.h
 gen/word.o: gen/word.c config.mk gen/util.h
 gen/word-test.o: gen/word-test.c config.mk gen/util.h
 gen/util.o: gen/util.c config.mk gen/util.h
+src/bidirectional.o: src/bidirectional.c config.mk gen/bidirectional.h grapheme.h src/util.h
 src/case.o: src/case.c config.mk gen/case.h grapheme.h src/util.h
 src/character.o: src/character.c config.mk gen/character.h grapheme.h src/util.h
 src/line.o: src/line.c config.mk gen/line.h grapheme.h src/util.h
@@ -103,6 +108,7 @@ benchmark/line: benchmark/line.o benchmark/util.o libgrapheme.a
 benchmark/sentence: benchmark/sentence.o benchmark/util.o libgrapheme.a
 benchmark/utf8-decode: benchmark/utf8-decode.o benchmark/util.o libgrapheme.a
 benchmark/word: benchmark/word.o benchmark/util.o libgrapheme.a
+gen/bidirectional: gen/bidirectional.o gen/util.o
 gen/case: gen/case.o gen/util.o
 gen/character: gen/character.o gen/util.o
 gen/character-test: gen/character-test.o gen/util.o
@@ -119,6 +125,7 @@ test/utf8-encode: test/utf8-encode.o test/util.o libgrapheme.a
 test/utf8-decode: test/utf8-decode.o test/util.o libgrapheme.a
 test/word: test/word.o test/util.o libgrapheme.a
 
+gen/bidirectional.h: data/DerivedBidiClass.txt gen/bidirectional
 gen/case.h: data/DerivedCoreProperties.txt data/UnicodeData.txt data/SpecialCasing.txt gen/case
 gen/character.h: data/emoji-data.txt data/GraphemeBreakProperty.txt gen/character
 gen/character-test.h: data/GraphemeBreakTest.txt gen/character-test
@@ -128,6 +135,9 @@ gen/sentence.h: data/SentenceBreakProperty.txt gen/sentence
 gen/sentence-test.h: data/SentenceBreakTest.txt gen/sentence-test
 gen/word.h: data/WordBreakProperty.txt gen/word
 gen/word-test.h: data/WordBreakTest.txt gen/word-test
+
+data/DerivedBidiClass.txt:
+	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/extracted/DerivedBidiClass.txt
 
 data/DerivedCoreProperties.txt:
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/DerivedCoreProperties.txt
