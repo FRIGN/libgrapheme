@@ -171,27 +171,30 @@ data/WordBreakProperty.txt:
 data/WordBreakTest.txt:
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/WordBreakTest.txt
 
+$(BENCHMARK:=.o) $(GEN:=.o) $(TEST:=.o):
+	$(BUILD_CC) -c -o $@ $(BUILD_CPPFLAGS) $(BUILD_CFLAGS) $(@:.o=.c)
+
+$(SRC:=.o):
+	$(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(@:.o=.c)
+
 $(BENCHMARK):
-	$(CC) -o $@ $(LDFLAGS) $@.o benchmark/util.o libgrapheme.a -lutf8proc
+	$(BUILD_CC) -o $@ $(BUILD_LDFLAGS) $@.o benchmark/util.o libgrapheme.a -lutf8proc
 
 $(GEN):
-	$(CC) -o $@ $(LDFLAGS) $@.o gen/util.o
+	$(BUILD_CC) -o $@ $(BUILD_LDFLAGS) $@.o gen/util.o
+
+$(TEST):
+	$(BUILD_CC) -o $@ $(BUILD_LDFLAGS) $@.o test/util.o libgrapheme.a
 
 $(GEN:=.h):
 	$(@:.h=) > $@
-
-$(TEST):
-	$(CC) -o $@ $(LDFLAGS) $@.o test/util.o libgrapheme.a
-
-.c.o:
-	$(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $<
 
 libgrapheme.a: $(SRC:=.o)
 	$(AR) -rc $@ $?
 	$(RANLIB) $@
 
 libgrapheme.so: $(SRC:=.o)
-	$(CC) -o $@ -shared $(SRC:=.o)
+	$(CC) -o $@ -shared $(LDFLAGS) $(SRC:=.o)
 
 benchmark: $(BENCHMARK)
 	for m in $(BENCHMARK); do ./$$m; done
@@ -209,7 +212,7 @@ install: all
 	cp -f libgrapheme.a "$(DESTDIR)$(LIBPREFIX)"
 	cp -f libgrapheme.so "$(DESTDIR)$(LIBPREFIX)"
 	cp -f grapheme.h "$(DESTDIR)$(INCPREFIX)"
-	ldconfig || true
+	$(LDCONFIG)
 
 uninstall:
 	for m in $(MAN3); do rm -f "$(DESTDIR)$(MANPREFIX)/man3/`basename $$m`"; done
@@ -217,16 +220,13 @@ uninstall:
 	rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.a"
 	rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so"
 	rm -f "$(DESTDIR)$(INCPREFIX)/grapheme.h"
-	ldconfig || true
+	$(LDCONFIG)
 
 clean:
 	rm -f $(BENCHMARK:=.o) benchmark/util.o $(BENCHMARK) $(GEN:=.h) $(GEN:=.o) gen/util.o $(GEN) $(SRC:=.o) src/util.o $(TEST:=.o) test/util.o $(TEST) libgrapheme.a libgrapheme.so
 
 clean-data:
 	rm -f $(DATA)
-
-print:
-	@echo $(PREFIX)
 
 dist:
 	rm -rf "libgrapheme-$(VERSION)"

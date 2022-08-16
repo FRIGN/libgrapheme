@@ -12,9 +12,15 @@ MANPREFIX = $(PREFIX)/share/man
 # flags
 CPPFLAGS = -D_DEFAULT_SOURCE
 CFLAGS   = -std=c99 -Os -fPIC -Wall -Wextra -Wpedantic
-LDFLAGS  = -s
+LDFLAGS  = -Wl,--soname=libgrapheme.so
+
+BUILD_CPPFLAGS = $(CPPFLAGS)
+BUILD_CFLAGS   = $(CFLAGS)
+BUILD_LDFLAGS  = -s
 
 # tools
-CC = cc
-AR = ar
-RANLIB = ranlib
+CC       = cc
+BUILD_CC = $(CC)
+AR       = ar
+RANLIB   = ranlib
+LDCONFIG = ldconfig # unset to not call ldconfig(1) after install/uninstall
