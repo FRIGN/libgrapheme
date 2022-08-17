@@ -11,12 +11,15 @@ MANPREFIX = $(PREFIX)/share/man
 
 # flags
 CPPFLAGS = -D_DEFAULT_SOURCE
-CFLAGS   = -std=c99 -Os -fPIC -Wall -Wextra -Wpedantic
-LDFLAGS  = -Wl,--soname=libgrapheme.so
+CFLAGS   = -std=c99 -Os -Wall -Wextra -Wpedantic
+LDFLAGS  = -s
 
 BUILD_CPPFLAGS = $(CPPFLAGS)
 BUILD_CFLAGS   = $(CFLAGS)
-BUILD_LDFLAGS  = -s
+BUILD_LDFLAGS  = $(LDFLAGS)
+
+SHFLAGS  = -fPIC
+SOFLAGS  = -shared -Wl,--soname=libgrapheme.so
 
 # tools
 CC       = cc

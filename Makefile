@@ -171,20 +171,23 @@ data/WordBreakProperty.txt:
 data/WordBreakTest.txt:
 	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/WordBreakTest.txt
 
-$(BENCHMARK:=.o) $(GEN:=.o) $(TEST:=.o):
+$(GEN:=.o):
 	$(BUILD_CC) -c -o $@ $(BUILD_CPPFLAGS) $(BUILD_CFLAGS) $(@:.o=.c)
 
-$(SRC:=.o):
+$(BENCHMARK:=.o) $(TEST:=.o):
 	$(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(@:.o=.c)
 
+$(SRC:=.o):
+	$(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(SHFLAGS) $(@:.o=.c)
+
 $(BENCHMARK):
-	$(BUILD_CC) -o $@ $(BUILD_LDFLAGS) $@.o benchmark/util.o libgrapheme.a -lutf8proc
+	$(CC) -o $@ $(LDFLAGS) $@.o benchmark/util.o libgrapheme.a -lutf8proc
 
 $(GEN):
 	$(BUILD_CC) -o $@ $(BUILD_LDFLAGS) $@.o gen/util.o
 
 $(TEST):
-	$(BUILD_CC) -o $@ $(BUILD_LDFLAGS) $@.o test/util.o libgrapheme.a
+	$(CC) -o $@ $(LDFLAGS) $@.o test/util.o libgrapheme.a
 
 $(GEN:=.h):
 	$(@:.h=) > $@
@@ -194,7 +197,7 @@ libgrapheme.a: $(SRC:=.o)
 	$(RANLIB) $@
 
 libgrapheme.so: $(SRC:=.o)
-	$(CC) -o $@ -shared $(LDFLAGS) $(SRC:=.o)
+	$(CC) -o $@ $(SOFLAGS) $(LDFLAGS) $(SRC:=.o)
 
 benchmark: $(BENCHMARK)
 	for m in $(BENCHMARK); do ./$$m; done
