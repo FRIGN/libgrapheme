@@ -431,9 +431,13 @@ is_titlecase(const void *src, size_t srclen,
 				}
 			}
 
-			/* we consumed a character */
+			/*
+			 * we consumed a character (make sure to never
+			 * underflow next_wb; this should not happen,
+			 * but it's better to be sure)
+			 */
 			srcoff += res;
-			next_wb -= res;
+			next_wb -= (res <= next_wb) ? res : next_wb;
 		}
 
 		/* check if the rest of the codepoints in the word are lowercase */

@@ -64,7 +64,11 @@ next_word_break(const void *str, size_t len, size_t (*get_codepoint)
 	 */
 	raw.b = NUM_WORD_BREAK_PROPS;
 	if ((off = get_codepoint(str, len, 0, &cp)) >= len) {
-		return 1;
+		/*
+		 * A line is at least one codepoint long, so we can
+		 * safely return here
+		 */
+		return len;
 	}
 	raw.c = get_break_prop(cp);
 	(void)get_codepoint(str, len, off, &cp);

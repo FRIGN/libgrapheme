@@ -51,7 +51,11 @@ next_line_break(const void *str, size_t len, size_t (*get_codepoint)
 	 */
 	cp0_prop = NUM_LINE_BREAK_PROPS;
 	if ((off = get_codepoint(str, len, 0, &cp)) >= len) {
-		return 1;
+		/*
+		 * A line is at least one codepoint long, so we can
+		 * safely return here
+		 */
+		return len;
 	}
 	cp1_prop = get_break_prop(cp);
 	last_non_cm_or_zwj_prop = LINE_BREAK_PROP_AL; /* according to LB10 */
