@@ -1,4 +1,4 @@
-.Dd 2021-12-22
+.Dd 2022-08-26
 .Dt GRAPHEME_DECODE_UTF8 3
 .Os suckless.org
 .Sh NAME
@@ -11,7 +11,7 @@
 .Sh DESCRIPTION
 The
 .Fn grapheme_decode_utf8
-function decodes the next codepoint in the UTF-8-encoded string
+function decodes the first codepoint in the UTF-8-encoded string
 .Va str
 of length
 .Va len .
@@ -95,7 +95,6 @@ print_cps_nul_terminated(const char *str)
 .Ed
 .Sh SEE ALSO
 .Xr grapheme_encode_utf8 3 ,
-.Xr grapheme_is_character_break 3 ,
 .Xr libgrapheme 7
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de
