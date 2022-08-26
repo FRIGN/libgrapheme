@@ -60,6 +60,14 @@ MAN3 =\
 	man/grapheme_decode_utf8.3\
 	man/grapheme_encode_utf8.3\
 	man/grapheme_is_character_break.3\
+	man/grapheme_next_character_break.3\
+	man/grapheme_next_line_break.3\
+	man/grapheme_next_sentence_break.3\
+	man/grapheme_next_word_break.3\
+	man/grapheme_next_character_break_utf8.3\
+	man/grapheme_next_line_break_utf8.3\
+	man/grapheme_next_sentence_break_utf8.3\
+	man/grapheme_next_word_break_utf8.3\
 
 MAN7 = man/libgrapheme.7
 
