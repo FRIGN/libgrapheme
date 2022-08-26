@@ -1,3 +1,4 @@
+cat << EOF
 .Dd 2022-08-26
 .Dt GRAPHEME_NEXT_CHARACTER_BREAK 3
 .Os suckless.org
@@ -53,3 +54,4 @@ is
 is compliant with the Unicode 14.0.0 specification.
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de
+EOF

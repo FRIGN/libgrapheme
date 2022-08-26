@@ -56,22 +56,71 @@ TEST =\
 	test/utf8-encode\
 	test/word\
 
+MAN_TEMPLATE =\
+	man/template/to_case.sh
+
 MAN3 =\
-	man/grapheme_decode_utf8.3\
-	man/grapheme_encode_utf8.3\
-	man/grapheme_is_character_break.3\
-	man/grapheme_next_character_break.3\
-	man/grapheme_next_line_break.3\
-	man/grapheme_next_sentence_break.3\
-	man/grapheme_next_word_break.3\
-	man/grapheme_next_character_break_utf8.3\
-	man/grapheme_next_line_break_utf8.3\
-	man/grapheme_next_sentence_break_utf8.3\
-	man/grapheme_next_word_break_utf8.3\
+	man/grapheme_decode_utf8\
+	man/grapheme_encode_utf8\
+	man/grapheme_is_character_break\
+	man/grapheme_next_character_break\
+	man/grapheme_next_line_break\
+	man/grapheme_next_sentence_break\
+	man/grapheme_next_word_break\
+	man/grapheme_next_character_break_utf8\
+	man/grapheme_next_line_break_utf8\
+	man/grapheme_next_sentence_break_utf8\
+	man/grapheme_next_word_break_utf8\
+	man/grapheme_to_uppercase\
+	man/grapheme_to_lowercase\
+	man/grapheme_to_titlecase\
 
-MAN7 = man/libgrapheme.7
+MAN7 =\
+	man/libgrapheme\
 
-all: data/LICENSE libgrapheme.a libgrapheme.so
+all: data/LICENSE $(MAN3:=.3) $(MAN7:=.7) libgrapheme.a libgrapheme.so
+
+data/DerivedCoreProperties.txt:
+	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/DerivedCoreProperties.txt
+
+data/EastAsianWidth.txt:
+	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/EastAsianWidth.txt
+
+data/emoji-data.txt:
+	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/emoji/emoji-data.txt
+
+data/GraphemeBreakProperty.txt:
+	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/GraphemeBreakProperty.txt
+
+data/GraphemeBreakTest.txt:
+	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/GraphemeBreakTest.txt
+
+data/LICENSE:
+	wget -O $@ https://www.unicode.org/license.txt
+
+data/LineBreak.txt:
+	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/LineBreak.txt
+
+data/LineBreakTest.txt:
+	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/LineBreakTest.txt
+
+data/SentenceBreakProperty.txt:
+	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/SentenceBreakProperty.txt
+
+data/SentenceBreakTest.txt:
+	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/SentenceBreakTest.txt
+
+data/SpecialCasing.txt:
+	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/SpecialCasing.txt
+
+data/UnicodeData.txt:
+	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/UnicodeData.txt
+
+data/WordBreakProperty.txt:
+	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/WordBreakProperty.txt
+
+data/WordBreakTest.txt:
+	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/WordBreakTest.txt
 
 benchmark/case.o: benchmark/case.c config.mk gen/word-test.h grapheme.h benchmark/util.h
 benchmark/character.o: benchmark/character.c config.mk gen/character-test.h grapheme.h benchmark/util.h
@@ -137,47 +186,22 @@ gen/sentence-test.h: data/SentenceBreakTest.txt gen/sentence-test
 gen/word.h: data/WordBreakProperty.txt gen/word
 gen/word-test.h: data/WordBreakTest.txt gen/word-test
 
-data/DerivedCoreProperties.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/DerivedCoreProperties.txt
+man/grapheme_decode_utf8.3: man/grapheme_decode_utf8.sh config.mk
+man/grapheme_encode_utf8.3: man/grapheme_encode_utf8.sh config.mk
+man/grapheme_is_character_break.3: man/grapheme_is_character_break.sh config.mk
+man/grapheme_next_character_break.3: man/grapheme_next_character_break.sh config.mk
+man/grapheme_next_line_break.3: man/grapheme_next_line_break.sh config.mk
+man/grapheme_next_sentence_break.3: man/grapheme_next_sentence_break.sh config.mk
+man/grapheme_next_word_break.3: man/grapheme_next_word_break.sh config.mk
+man/grapheme_next_character_break_utf8.3: man/grapheme_next_character_break_utf8.sh config.mk
+man/grapheme_next_line_break_utf8.3: man/grapheme_next_line_break_utf8.sh config.mk
+man/grapheme_next_sentence_break_utf8.3: man/grapheme_next_sentence_break_utf8.sh config.mk
+man/grapheme_next_word_break_utf8.3: man/grapheme_next_word_break_utf8.sh config.mk
+man/grapheme_to_uppercase.3: man/grapheme_to_uppercase.sh man/template/to_case.sh config.mk
+man/grapheme_to_lowercase.3: man/grapheme_to_lowercase.sh man/template/to_case.sh config.mk
+man/grapheme_to_titlecase.3: man/grapheme_to_titlecase.sh man/template/to_case.sh config.mk
 
-data/EastAsianWidth.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/EastAsianWidth.txt
-
-data/emoji-data.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/emoji/emoji-data.txt
-
-data/GraphemeBreakProperty.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/GraphemeBreakProperty.txt
-
-data/GraphemeBreakTest.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/GraphemeBreakTest.txt
-
-data/LICENSE:
-	wget -O $@ https://www.unicode.org/license.txt
-
-data/LineBreak.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/LineBreak.txt
-
-data/LineBreakTest.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/LineBreakTest.txt
-
-data/SentenceBreakProperty.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/SentenceBreakProperty.txt
-
-data/SentenceBreakTest.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/SentenceBreakTest.txt
-
-data/SpecialCasing.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/SpecialCasing.txt
-
-data/UnicodeData.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/UnicodeData.txt
-
-data/WordBreakProperty.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/WordBreakProperty.txt
-
-data/WordBreakTest.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/WordBreakTest.txt
+man/libgrapheme.7: man/libgrapheme.sh config.mk
 
 $(GEN:=.o):
 	$(BUILD_CC) -c -o $@ $(BUILD_CPPFLAGS) $(BUILD_CFLAGS) $(@:.o=.c)
@@ -207,6 +231,12 @@ libgrapheme.a: $(SRC:=.o)
 libgrapheme.so: $(SRC:=.o)
 	$(CC) -o $@ $(SOFLAGS) $(LDFLAGS) $(SRC:=.o)
 
+$(MAN3:=.3):
+	SH=$(SH) $(SH) $(@:.3=.sh) > $@
+
+$(MAN7:=.7):
+	SH=$(SH) $(SH) $(@:.7=.sh) > $@
+
 benchmark: $(BENCHMARK)
 	for m in $(BENCHMARK); do ./$$m; done
 
@@ -218,23 +248,23 @@ install: all
 	mkdir -p "$(DESTDIR)$(INCPREFIX)"
 	mkdir -p "$(DESTDIR)$(MANPREFIX)/man3"
 	mkdir -p "$(DESTDIR)$(MANPREFIX)/man7"
-	cp -f $(MAN3) "$(DESTDIR)$(MANPREFIX)/man3"
-	cp -f $(MAN7) "$(DESTDIR)$(MANPREFIX)/man7"
+	cp -f $(MAN3:=.3) "$(DESTDIR)$(MANPREFIX)/man3"
+	cp -f $(MAN7:=.7) "$(DESTDIR)$(MANPREFIX)/man7"
 	cp -f libgrapheme.a "$(DESTDIR)$(LIBPREFIX)"
 	cp -f libgrapheme.so "$(DESTDIR)$(LIBPREFIX)"
 	cp -f grapheme.h "$(DESTDIR)$(INCPREFIX)"
 	$(LDCONFIG)
 
 uninstall:
-	for m in $(MAN3); do rm -f "$(DESTDIR)$(MANPREFIX)/man3/`basename $$m`"; done
-	for m in $(MAN7); do rm -f "$(DESTDIR)$(MANPREFIX)/man7/`basename $$m`"; done
+	for m in $(MAN3:=.3); do rm -f "$(DESTDIR)$(MANPREFIX)/man3/`basename $$m`"; done
+	for m in $(MAN7:=.7); do rm -f "$(DESTDIR)$(MANPREFIX)/man7/`basename $$m`"; done
 	rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.a"
 	rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so"
 	rm -f "$(DESTDIR)$(INCPREFIX)/grapheme.h"
 	$(LDCONFIG)
 
 clean:
-	rm -f $(BENCHMARK:=.o) benchmark/util.o $(BENCHMARK) $(GEN:=.h) $(GEN:=.o) gen/util.o $(GEN) $(SRC:=.o) src/util.o $(TEST:=.o) test/util.o $(TEST) libgrapheme.a libgrapheme.so
+	rm -f $(BENCHMARK:=.o) benchmark/util.o $(BENCHMARK) $(GEN:=.h) $(GEN:=.o) gen/util.o $(GEN) $(SRC:=.o) src/util.o $(TEST:=.o) test/util.o $(TEST) libgrapheme.a libgrapheme.so $(MAN3:=.3) $(MAN7:=.7)
 
 clean-data:
 	rm -f $(DATA)
@@ -242,12 +272,13 @@ clean-data:
 dist:
 	rm -rf "libgrapheme-$(VERSION)"
 	mkdir "libgrapheme-$(VERSION)"
-	for m in benchmark data gen man src test; do mkdir "libgrapheme-$(VERSION)/$$m"; done
+	for m in benchmark data gen man man/template src test; do mkdir "libgrapheme-$(VERSION)/$$m"; done
 	cp config.mk grapheme.h LICENSE Makefile README "libgrapheme-$(VERSION)"
 	cp $(BENCHMARK:=.c) benchmark/util.c benchmark/util.h "libgrapheme-$(VERSION)/benchmark"
 	cp $(DATA) "libgrapheme-$(VERSION)/data"
 	cp $(GEN:=.c) gen/util.c gen/types.h gen/util.h "libgrapheme-$(VERSION)/gen"
-	cp $(MAN3) $(MAN7) "libgrapheme-$(VERSION)/man"
+	cp $(MAN3:=.sh) $(MAN7:=.sh) "libgrapheme-$(VERSION)/man"
+	cp $(MAN_TEMPLATE) "libgrapheme-$(VERSION)/man/template"
 	cp $(SRC:=.c) src/util.h "libgrapheme-$(VERSION)/src"
 	cp $(TEST:=.c) test/util.c test/util.h "libgrapheme-$(VERSION)/test"
 	tar -cf - "libgrapheme-$(VERSION)" | gzip -c > "libgrapheme-$(VERSION).tar.gz"

@@ -1,3 +1,4 @@
+cat << EOF
 .Dd 2022-08-26
 .Dt GRAPHEME_ENCODE_UTF8 3
 .Os suckless.org
@@ -99,3 +100,4 @@ cps_to_utf8_alloc(const uint_least32_t *cp, size_t cplen)
 .Xr libgrapheme 7
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de
+EOF

@@ -27,3 +27,4 @@ BUILD_CC = $(CC)
 AR       = ar
 RANLIB   = ranlib
 LDCONFIG = ldconfig # unset to not call ldconfig(1) after install/uninstall
+SH       = sh

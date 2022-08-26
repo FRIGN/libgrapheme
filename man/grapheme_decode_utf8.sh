@@ -1,3 +1,4 @@
+cat << EOF
 .Dd 2022-08-26
 .Dt GRAPHEME_DECODE_UTF8 3
 .Os suckless.org
@@ -98,3 +99,4 @@ print_cps_nul_terminated(const char *str)
 .Xr libgrapheme 7
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de
+EOF

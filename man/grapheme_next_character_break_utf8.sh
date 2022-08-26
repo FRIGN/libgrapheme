@@ -1,23 +1,27 @@
+cat << EOF
 .Dd 2022-08-26
-.Dt GRAPHEME_NEXT_LINE_BREAK_UTF8 3
+.Dt GRAPHEME_NEXT_CHARACTER_BREAK_UTF8 3
 .Os suckless.org
 .Sh NAME
-.Nm grapheme_next_line_break_utf8
-.Nd determine byte-offset to next possible line break
+.Nm grapheme_next_character_break_utf8
+.Nd determine byte-offset to next grapheme cluster break
 .Sh SYNOPSIS
 .In grapheme.h
 .Ft size_t
-.Fn grapheme_next_line_break_utf8 "const char *str" "size_t len"
+.Fn grapheme_next_character_break_utf8 "const char *str" "size_t len"
 .Sh DESCRIPTION
 The
-.Fn grapheme_next_line_break_utf8
-function computes the offset (in bytes) to the next possible line
-break (see
+.Fn grapheme_next_character_break_utf8
+function computes the offset (in bytes) to the next grapheme
+cluster break (see
 .Xr libgrapheme 7 )
 in the UTF-8-encoded string
 .Va str
 of length
 .Va len .
+If a grapheme cluster begins at
+.Va str
+this offset is equal to the length of said grapheme cluster.
 .Pp
 If
 .Va len
@@ -29,12 +33,14 @@ is interpreted to be NUL-terminated and processing stops when a
 NUL-byte is encountered.
 .Pp
 For non-UTF-8 input data
-.Xr grapheme_next_line_break 3
+.Xr grapheme_is_character_break 3
+and
+.Xr grapheme_next_character_break 3
 can be used instead.
 .Sh RETURN VALUES
 The
-.Fn grapheme_next_line_break_utf8
-function returns the offset (in bytes) to the next possible line
+.Fn grapheme_next_character_break_utf8
+function returns the offset (in bytes) to the next grapheme cluster
 break in
 .Va str
 or 0 if
@@ -63,7 +69,7 @@ main(void)
 	/* print each grapheme cluster with byte-length */
 	printf("Grapheme clusters in NUL-delimited input:\\n");
 	for (off = 0; s[off] != '\\0'; off += ret) {
-		ret = grapheme_next_line_break_utf8(s + off, SIZE_MAX);
+		ret = grapheme_next_character_break_utf8(s + off, SIZE_MAX);
 		printf("%2zu bytes | %.*s\\n", ret, (int)ret, s + off, ret);
 	}
 	printf("\\n");
@@ -72,7 +78,7 @@ main(void)
 	len = 17;
 	printf("Grapheme clusters in input delimited to %zu bytes:\\n", len);
 	for (off = 0; off < len; off += ret) {
-		ret = grapheme_next_line_break_utf8(s + off, len - off);
+		ret = grapheme_next_character_break_utf8(s + off, len - off);
 		printf("%2zu bytes | %.*s\\n", ret, (int)ret, s + off, ret);
 	}
 
@@ -80,10 +86,12 @@ main(void)
 }
 .Ed
 .Sh SEE ALSO
-.Xr grapheme_next_line_break 3 ,
+.Xr grapheme_is_character_break 3 ,
+.Xr grapheme_next_character_break 3 ,
 .Xr libgrapheme 7
 .Sh STANDARDS
-.Fn grapheme_next_line_break_utf8
+.Fn grapheme_next_character_break_utf8
 is compliant with the Unicode 14.0.0 specification.
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de
+EOF

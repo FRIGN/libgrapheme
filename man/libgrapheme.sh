@@ -1,3 +1,6 @@
+#!/bin/sh
+
+cat << EOF
 .Dd 2022-08-26
 .Dt LIBGRAPHEME 7
 .Os suckless.org
@@ -39,12 +42,12 @@ example illustrating the possible usage.
 .Xr grapheme_encode_utf8 3 ,
 .Xr grapheme_is_character_break 3 ,
 .Xr grapheme_next_character_break 3 ,
-.Xr grapheme_next_line_break 3 ,
-.Xr grapheme_next_sentence_break 3 ,
-.Xr grapheme_next_word_break 3 ,
 .Xr grapheme_next_character_break_utf8 3 ,
+.Xr grapheme_next_line_break 3 ,
 .Xr grapheme_next_line_break_utf8 3 ,
+.Xr grapheme_next_sentence_break 3 ,
 .Xr grapheme_next_sentence_break_utf8 3 ,
+.Xr grapheme_next_word_break 3 ,
 .Xr grapheme_next_word_break_utf8 3
 .Sh STANDARDS
 .Nm
@@ -145,3 +148,4 @@ The motivation behind
 is to make unicode handling suck less and abide by the UNIX philosophy.
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de
+EOF
