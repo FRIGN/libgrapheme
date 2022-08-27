@@ -1,5 +1,3 @@
-#!/bin/sh
-
 cat << EOF
 .Dd 2022-08-26
 .Dt LIBGRAPHEME 7
