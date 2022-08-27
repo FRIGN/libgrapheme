@@ -51,7 +51,7 @@ example illustrating the possible usage.
 .Xr grapheme_next_word_break_utf8 3
 .Sh STANDARDS
 .Nm
-is compliant with the Unicode 14.0.0 specification.
+is compliant with the Unicode $UNICODE_VERSION specification.
 .Sh MOTIVATION
 The idea behind every character encoding scheme like ASCII or Unicode
 is to express abstract characters (which can be thought of as shapes

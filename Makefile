@@ -4,6 +4,8 @@
 
 include config.mk
 
+UNICODE_VERSION = 14.0.0
+
 BENCHMARK =\
 	benchmark/case\
 	benchmark/character\
@@ -81,46 +83,46 @@ MAN7 =\
 all: data/LICENSE $(MAN3:=.3) $(MAN7:=.7) libgrapheme.a libgrapheme.so
 
 data/DerivedCoreProperties.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/DerivedCoreProperties.txt
+	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/DerivedCoreProperties.txt
 
 data/EastAsianWidth.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/EastAsianWidth.txt
+	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/EastAsianWidth.txt
 
 data/emoji-data.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/emoji/emoji-data.txt
+	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/emoji/emoji-data.txt
 
 data/GraphemeBreakProperty.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/GraphemeBreakProperty.txt
+	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/auxiliary/GraphemeBreakProperty.txt
 
 data/GraphemeBreakTest.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/GraphemeBreakTest.txt
+	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/auxiliary/GraphemeBreakTest.txt
 
 data/LICENSE:
 	wget -O $@ https://www.unicode.org/license.txt
 
 data/LineBreak.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/LineBreak.txt
+	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/LineBreak.txt
 
 data/LineBreakTest.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/LineBreakTest.txt
+	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/auxiliary/LineBreakTest.txt
 
 data/SentenceBreakProperty.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/SentenceBreakProperty.txt
+	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/auxiliary/SentenceBreakProperty.txt
 
 data/SentenceBreakTest.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/SentenceBreakTest.txt
+	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/auxiliary/SentenceBreakTest.txt
 
 data/SpecialCasing.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/SpecialCasing.txt
+	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/SpecialCasing.txt
 
 data/UnicodeData.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/UnicodeData.txt
+	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/UnicodeData.txt
 
 data/WordBreakProperty.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/WordBreakProperty.txt
+	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/auxiliary/WordBreakProperty.txt
 
 data/WordBreakTest.txt:
-	wget -O $@ https://www.unicode.org/Public/14.0.0/ucd/auxiliary/WordBreakTest.txt
+	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/auxiliary/WordBreakTest.txt
 
 benchmark/case.o: benchmark/case.c config.mk gen/word-test.h grapheme.h benchmark/util.h
 benchmark/character.o: benchmark/character.c config.mk gen/character-test.h grapheme.h benchmark/util.h
@@ -232,10 +234,10 @@ libgrapheme.so: $(SRC:=.o)
 	$(CC) -o $@ $(SOFLAGS) $(LDFLAGS) $(SRC:=.o)
 
 $(MAN3:=.3):
-	SH=$(SH) $(SH) $(@:.3=.sh) > $@
+	SH=$(SH) UNICODE_VERSION=$(UNICODE_VERSION) $(SH) $(@:.3=.sh) > $@
 
 $(MAN7:=.7):
-	SH=$(SH) $(SH) $(@:.7=.sh) > $@
+	SH=$(SH) UNICODE_VERSION=$(UNICODE_VERSION) $(SH) $(@:.7=.sh) > $@
 
 benchmark: $(BENCHMARK)
 	for m in $(BENCHMARK); do ./$$m; done

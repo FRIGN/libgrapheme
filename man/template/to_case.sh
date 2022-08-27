@@ -52,7 +52,7 @@ is
 .Xr libgrapheme 7
 .Sh STANDARDS
 .Fn grapheme_to_$CASE
-is compliant with the Unicode 14.0.0 specification.
+is compliant with the Unicode $UNICODE_VERSION specification.
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de
 EOF
