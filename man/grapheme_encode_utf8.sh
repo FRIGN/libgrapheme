@@ -1,5 +1,5 @@
 cat << EOF
-.Dd 2022-08-26
+.Dd $MAN_DATE
 .Dt GRAPHEME_ENCODE_UTF8 3
 .Os suckless.org
 .Sh NAME

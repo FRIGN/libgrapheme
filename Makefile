@@ -58,8 +58,12 @@ TEST =\
 	test/utf8-encode\
 	test/word\
 
+MAN_DATE = 2022-08-28
+
 MAN_TEMPLATE =\
-	man/template/to_case.sh
+	man/template/next_break.sh\
+	man/template/next_break_utf8.sh\
+	man/template/to_case.sh\
 
 MAN3 =\
 	man/grapheme_decode_utf8\
@@ -234,10 +238,10 @@ libgrapheme.so: $(SRC:=.o)
 	$(CC) -o $@ $(SOFLAGS) $(LDFLAGS) $(SRC:=.o)
 
 $(MAN3:=.3):
-	SH=$(SH) UNICODE_VERSION=$(UNICODE_VERSION) $(SH) $(@:.3=.sh) > $@
+	SH=$(SH) MAN_DATE=$(MAN_DATE) UNICODE_VERSION=$(UNICODE_VERSION) $(SH) $(@:.3=.sh) > $@
 
 $(MAN7:=.7):
-	SH=$(SH) UNICODE_VERSION=$(UNICODE_VERSION) $(SH) $(@:.7=.sh) > $@
+	SH=$(SH) MAN_DATE=$(MAN_DATE) UNICODE_VERSION=$(UNICODE_VERSION) $(SH) $(@:.7=.sh) > $@
 
 benchmark: $(BENCHMARK)
 	for m in $(BENCHMARK); do ./$$m; done

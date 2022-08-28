@@ -1,5 +1,5 @@
 cat << EOF
-.Dd 2022-08-26
+.Dd $MAN_DATE
 .Dt LIBGRAPHEME 7
 .Os suckless.org
 .Sh NAME

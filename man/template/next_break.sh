@@ -1,5 +1,5 @@
 cat << EOF
-.Dd 2022-08-26
+.Dd $MAN_DATE
 .Dt GRAPHEME_NEXT_$(printf $TYPE | tr [:lower:] [:upper:])_BREAK 3
 .Os suckless.org
 .Sh NAME
