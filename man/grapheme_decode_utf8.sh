@@ -77,7 +77,7 @@ print_cps(const char *str, size_t len)
 			 */
 			break;
 		}
-		printf("%"PRIxLEAST32"\\n", cp);
+		printf("%"PRIxLEAST32"\\\\n", cp);
 	}
 }
 
@@ -90,7 +90,7 @@ print_cps_nul_terminated(const char *str)
 	for (off = 0; (ret = grapheme_decode_utf8(str + off,
 	                                          SIZE_MAX, &cp)) > 0 &&
 	     cp != 0; off += ret) {
-		printf("%"PRIxLEAST32"\\n", cp);
+		printf("%"PRIxLEAST32"\\\\n", cp);
 	}
 }
 .Ed

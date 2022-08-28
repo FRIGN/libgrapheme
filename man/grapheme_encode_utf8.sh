@@ -90,7 +90,7 @@ cps_to_utf8_alloc(const uint_least32_t *cp, size_t cplen)
 			break;
 		}
 	}
-	str[off] = '\\0';
+	str[off] = '\\\\0';
 
 	return str;
 }

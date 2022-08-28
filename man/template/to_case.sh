@@ -1,6 +1,6 @@
 cat << EOF
 .Dd 2022-08-26
-.Dt GRAPHEME_TO_$(echo $CASE | tr [:lower:] [:upper:]) 3
+.Dt GRAPHEME_TO_$(printf $CASE | tr [:lower:] [:upper:]) 3
 .Os suckless.org
 .Sh NAME
 .Nm grapheme_to_$CASE
