@@ -33,7 +33,7 @@ is interpreted to be NUL-terminated and processing stops when a
 NUL-byte is encountered.
 .Pp
 For UTF-8-encoded input data
-.Xr grapheme_to_$CASE_utf8 3
+.Xr grapheme_to_$(printf $CASE)_utf8 3
 can be used instead.
 .Sh RETURN VALUES
 The
@@ -48,7 +48,7 @@ is not large enough or
 is
 .Dv NULL .
 .Sh SEE ALSO
-.Xr grapheme_to_$CASE_utf8 3 ,
+.Xr grapheme_to_$(printf $CASE)_utf8 3 ,
 .Xr libgrapheme 7
 .Sh STANDARDS
 .Fn grapheme_to_$CASE
