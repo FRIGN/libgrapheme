@@ -191,14 +191,14 @@ gen/word-test.h: data/WordBreakTest.txt gen/word-test
 man/grapheme_decode_utf8.3: man/grapheme_decode_utf8.sh config.mk
 man/grapheme_encode_utf8.3: man/grapheme_encode_utf8.sh config.mk
 man/grapheme_is_character_break.3: man/grapheme_is_character_break.sh config.mk
-man/grapheme_next_character_break.3: man/grapheme_next_character_break.sh config.mk
-man/grapheme_next_line_break.3: man/grapheme_next_line_break.sh config.mk
-man/grapheme_next_sentence_break.3: man/grapheme_next_sentence_break.sh config.mk
-man/grapheme_next_word_break.3: man/grapheme_next_word_break.sh config.mk
-man/grapheme_next_character_break_utf8.3: man/grapheme_next_character_break_utf8.sh config.mk
-man/grapheme_next_line_break_utf8.3: man/grapheme_next_line_break_utf8.sh config.mk
-man/grapheme_next_sentence_break_utf8.3: man/grapheme_next_sentence_break_utf8.sh config.mk
-man/grapheme_next_word_break_utf8.3: man/grapheme_next_word_break_utf8.sh config.mk
+man/grapheme_next_character_break.3: man/grapheme_next_character_break.sh man/template/next_break.sh config.mk
+man/grapheme_next_line_break.3: man/grapheme_next_line_break.sh man/template/next_break.sh config.mk
+man/grapheme_next_sentence_break.3: man/grapheme_next_sentence_break.sh man/template/next_break.sh config.mk
+man/grapheme_next_word_break.3: man/grapheme_next_word_break.sh man/template/next_break.sh config.mk
+man/grapheme_next_character_break_utf8.3: man/grapheme_next_character_break_utf8.sh man/template/next_break_utf8.sh config.mk
+man/grapheme_next_line_break_utf8.3: man/grapheme_next_line_break_utf8.sh man/template/next_break_utf8.sh config.mk
+man/grapheme_next_sentence_break_utf8.3: man/grapheme_next_sentence_break_utf8.sh man/template/next_break_utf8.sh config.mk
+man/grapheme_next_word_break_utf8.3: man/grapheme_next_word_break_utf8.sh man/template/next_break_utf8.sh config.mk
 man/grapheme_to_uppercase.3: man/grapheme_to_uppercase.sh man/template/to_case.sh config.mk
 man/grapheme_to_lowercase.3: man/grapheme_to_lowercase.sh man/template/to_case.sh config.mk
 man/grapheme_to_titlecase.3: man/grapheme_to_titlecase.sh man/template/to_case.sh config.mk
