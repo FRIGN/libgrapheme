@@ -46,7 +46,13 @@ example illustrating the possible usage.
 .Xr grapheme_next_sentence_break 3 ,
 .Xr grapheme_next_sentence_break_utf8 3 ,
 .Xr grapheme_next_word_break 3 ,
-.Xr grapheme_next_word_break_utf8 3
+.Xr grapheme_next_word_break_utf8 3 ,
+.Xr grapheme_to_lowercase 3 ,
+.Xr grapheme_to_lowercase_utf8 3 ,
+.Xr grapheme_to_uppercase 3 ,
+.Xr grapheme_to_uppercase_utf8 3 ,
+.Xr grapheme_to_titlecase 3 ,
+.Xr grapheme_to_titlecase_utf8 3
 .Sh STANDARDS
 .Nm
 is compliant with the Unicode $UNICODE_VERSION specification.

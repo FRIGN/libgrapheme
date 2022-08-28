@@ -1,18 +1,30 @@
+if [ "$ENCODING" = "utf8" ]; then
+	UNIT="byte"
+	SUFFIX="_utf8"
+	ANTISUFFIX=""
+	DATATYPE="char"
+else
+	UNIT="codepoint"
+	SUFFIX=""
+	ANTISUFFIX="_utf8"
+	DATATYPE="uint_least32_t"
+fi
+
 cat << EOF
 .Dd $MAN_DATE
-.Dt GRAPHEME_TO_$(printf $CASE | tr [:lower:] [:upper:]) 3
+.Dt GRAPHEME_TO_$(printf "%s%s" "$CASE" "$SUFFIX" | tr [:lower:] [:upper:]) 3
 .Os suckless.org
 .Sh NAME
-.Nm grapheme_to_$CASE
+.Nm grapheme_to_$CASE$SUFFIX
 .Nd convert codepoint array to $CASE
 .Sh SYNOPSIS
 .In grapheme.h
 .Ft size_t
-.Fn grapheme_to_$CASE "const uint_least32_t *src" "size_t srclen" "uint_least32_t *dest" "size_t destlen"
+.Fn grapheme_to_$CASE$SUFFIX "const $DATATYPE *src" "size_t srclen" "$DATATYPE *dest" "size_t destlen"
 .Sh DESCRIPTION
 The
-.Fn grapheme_to_$CASE
-function converts the codepoint array
+.Fn grapheme_to_$CASE$SUFFIX
+function converts the $(if [ "$ENCODING" = "utf8" ]; then printf "UTF-8-encoded string"; else printf "codepoint array"; fi)
 .Va str
 to $CASE and writes the result to
 .Va dest
@@ -32,13 +44,13 @@ is set to
 is interpreted to be NUL-terminated and processing stops when a
 NUL-byte is encountered.
 .Pp
-For UTF-8-encoded input data
-.Xr grapheme_to_$(printf $CASE)_utf8 3
+For $(if [ "$ENCODING" != "utf8" ]; then printf "UTF-8-encoded"; else printf "non-UTF-8"; fi) input data
+.Xr grapheme_to_$ANTISUFFIX 3
 can be used instead.
 .Sh RETURN VALUES
 The
-.Fn grapheme_to_$CASE
-function returns the number of codepoints in the array resulting
+.Fn grapheme_to_$CASE$SUFFIX
+function returns the number of $(printf $UNIT)s in the array resulting
 from converting
 .Va src
 to $CASE, even if
@@ -48,10 +60,10 @@ is not large enough or
 is
 .Dv NULL .
 .Sh SEE ALSO
-.Xr grapheme_to_$(printf $CASE)_utf8 3 ,
+.Xr grapheme_to_$ANTISUFFIX 3 ,
 .Xr libgrapheme 7
 .Sh STANDARDS
-.Fn grapheme_to_$CASE
+.Fn grapheme_to_$CASE$SUFFIX
 is compliant with the Unicode $UNICODE_VERSION specification.
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de
