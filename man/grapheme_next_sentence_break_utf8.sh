@@ -1,3 +1,4 @@
+ENCODING="utf8" \
 TYPE="sentence" \
 REALTYPE="sentence" \
-	$SH man/template/next_break_utf8.sh
+	$SH man/template/next_break.sh
