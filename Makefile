@@ -243,10 +243,10 @@ libgrapheme.so: $(SRC:=.o)
 	$(CC) -o $@ $(SOFLAGS) $(LDFLAGS) $(SRC:=.o)
 
 $(MAN3:=.3):
-	SH=$(SH) MAN_DATE=$(MAN_DATE) UNICODE_VERSION=$(UNICODE_VERSION) $(SH) $(@:.3=.sh) > $@
+	SH="$(SH)" MAN_DATE="$(MAN_DATE)" UNICODE_VERSION="$(UNICODE_VERSION)" $(SH) $(@:.3=.sh) > $@
 
 $(MAN7:=.7):
-	SH=$(SH) MAN_DATE=$(MAN_DATE) UNICODE_VERSION=$(UNICODE_VERSION) $(SH) $(@:.7=.sh) > $@
+	SH="$(SH)" MAN_DATE="$(MAN_DATE)" UNICODE_VERSION="$(UNICODE_VERSION)" $(SH) $(@:.7=.sh) > $@
 
 benchmark: $(BENCHMARK)
 	for m in $(BENCHMARK); do ./$$m; done
