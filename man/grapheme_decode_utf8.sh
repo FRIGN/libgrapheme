@@ -1,5 +1,5 @@
 cat << EOF
-.Dd $MAN_DATE
+.Dd ${MAN_DATE}
 .Dt GRAPHEME_DECODE_UTF8 3
 .Os suckless.org
 .Sh NAME

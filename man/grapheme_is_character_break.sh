@@ -1,5 +1,5 @@
 cat << EOF
-.Dd $MAN_DATE
+.Dd ${MAN_DATE}
 .Dt GRAPHEME_IS_CHARACTER_BREAK 3
 .Os suckless.org
 .Sh NAME
@@ -77,7 +77,7 @@ main(void)
 .Xr libgrapheme 7
 .Sh STANDARDS
 .Fn grapheme_is_character_break
-is compliant with the Unicode 14.0.0 specification.
+is compliant with the Unicode ${UNICODE_VERSION} specification.
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de
 EOF

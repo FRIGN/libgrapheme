@@ -11,22 +11,22 @@ else
 fi
 
 cat << EOF
-.Dd $MAN_DATE
+.Dd ${MAN_DATE}
 .Dt GRAPHEME_TO_$(printf "%s%s" "$CASE" "$SUFFIX" | tr [:lower:] [:upper:]) 3
 .Os suckless.org
 .Sh NAME
-.Nm grapheme_to_$CASE$SUFFIX
-.Nd convert codepoint array to $CASE
+.Nm grapheme_to_${CASE}${SUFFIX}
+.Nd convert codepoint array to ${CASE}
 .Sh SYNOPSIS
 .In grapheme.h
 .Ft size_t
-.Fn grapheme_to_$CASE$SUFFIX "const $DATATYPE *src" "size_t srclen" "$DATATYPE *dest" "size_t destlen"
+.Fn grapheme_to_${CASE}${SUFFIX} "const ${DATATYPE} *src" "size_t srclen" "${DATATYPE} *dest" "size_t destlen"
 .Sh DESCRIPTION
 The
-.Fn grapheme_to_$CASE$SUFFIX
+.Fn grapheme_to_${CASE}${SUFFIX}
 function converts the $(if [ "$ENCODING" = "utf8" ]; then printf "UTF-8-encoded string"; else printf "codepoint array"; fi)
 .Va str
-to $CASE and writes the result to
+to ${CASE} and writes the result to
 .Va dest
 up to
 .Va destlen ,
@@ -45,26 +45,26 @@ is interpreted to be NUL-terminated and processing stops when a
 NUL-byte is encountered.
 .Pp
 For $(if [ "$ENCODING" != "utf8" ]; then printf "UTF-8-encoded"; else printf "non-UTF-8"; fi) input data
-.Xr grapheme_to_$ANTISUFFIX 3
+.Xr grapheme_to_${ANTISUFFIX} 3
 can be used instead.
 .Sh RETURN VALUES
 The
-.Fn grapheme_to_$CASE$SUFFIX
-function returns the number of $(printf $UNIT)s in the array resulting
+.Fn grapheme_to_${CASE}${SUFFIX}
+function returns the number of ${UNIT}s in the array resulting
 from converting
 .Va src
-to $CASE, even if
+to ${CASE}, even if
 .Va len
 is not large enough or
 .Va dest
 is
 .Dv NULL .
 .Sh SEE ALSO
-.Xr grapheme_to_$ANTISUFFIX 3 ,
+.Xr grapheme_to_${ANTISUFFIX} 3 ,
 .Xr libgrapheme 7
 .Sh STANDARDS
-.Fn grapheme_to_$CASE$SUFFIX
-is compliant with the Unicode $UNICODE_VERSION specification.
+.Fn grapheme_to_${CASE}${SUFFIX}
+is compliant with the Unicode ${UNICODE_VERSION} specification.
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de
 EOF

@@ -1,5 +1,5 @@
 cat << EOF
-.Dd $MAN_DATE
+.Dd ${MAN_DATE}
 .Dt LIBGRAPHEME 7
 .Os suckless.org
 .Sh NAME
@@ -55,7 +55,7 @@ example illustrating the possible usage.
 .Xr grapheme_to_titlecase_utf8 3
 .Sh STANDARDS
 .Nm
-is compliant with the Unicode $UNICODE_VERSION specification.
+is compliant with the Unicode ${UNICODE_VERSION} specification.
 .Sh MOTIVATION
 The idea behind every character encoding scheme like ASCII or Unicode
 is to express abstract characters (which can be thought of as shapes
