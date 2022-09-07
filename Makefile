@@ -2,9 +2,11 @@
 # libgrapheme - unicode string library
 .POSIX:
 
-include config.mk
-
+VERSION = 1
+MAN_DATE = 2022-09-07
 UNICODE_VERSION = 14.0.0
+
+include config.mk
 
 BENCHMARK =\
 	benchmark/case\
@@ -57,8 +59,6 @@ TEST =\
 	test/utf8-decode\
 	test/utf8-encode\
 	test/word\
-
-MAN_DATE = 2022-08-28
 
 MAN_TEMPLATE =\
 	man/template/next_break.sh\
