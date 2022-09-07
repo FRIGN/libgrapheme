@@ -1,10 +1,12 @@
 if [ "$ENCODING" = "utf8" ]; then
 	UNIT="byte"
+	ARRAYTYPE="UTF-8-encoded string"
 	SUFFIX="_utf8"
 	ANTISUFFIX=""
 	DATATYPE="char"
 else
 	UNIT="codepoint"
+	ARRAYTYPE="codepoint array"
 	SUFFIX=""
 	ANTISUFFIX="_utf8"
 	DATATYPE="uint_least32_t"
@@ -16,7 +18,7 @@ cat << EOF
 .Os suckless.org
 .Sh NAME
 .Nm grapheme_to_${CASE}${SUFFIX}
-.Nd convert codepoint array to ${CASE}
+.Nd convert ${ARRAYTYPE} to ${CASE}
 .Sh SYNOPSIS
 .In grapheme.h
 .Ft size_t
@@ -24,7 +26,7 @@ cat << EOF
 .Sh DESCRIPTION
 The
 .Fn grapheme_to_${CASE}${SUFFIX}
-function converts the $(if [ "$ENCODING" = "utf8" ]; then printf "UTF-8-encoded string"; else printf "codepoint array"; fi)
+function converts the ${ARRAYTYPE}
 .Va str
 to ${CASE} and writes the result to
 .Va dest
@@ -39,13 +41,13 @@ If
 .Va len
 is set to
 .Dv SIZE_MAX
-(stdint.h is already included by grapheme.h) the string
+(stdint.h is already included by grapheme.h) the ${ARRAYTYPE}
 .Va src
 is interpreted to be NUL-terminated and processing stops when a
 NUL-byte is encountered.
 .Pp
 For $(if [ "$ENCODING" != "utf8" ]; then printf "UTF-8-encoded"; else printf "non-UTF-8"; fi) input data
-.Xr grapheme_to_${ANTISUFFIX} 3
+.Xr grapheme_to_${CASE}${ANTISUFFIX} 3
 can be used instead.
 .Sh RETURN VALUES
 The
@@ -60,7 +62,7 @@ is not large enough or
 is
 .Dv NULL .
 .Sh SEE ALSO
-.Xr grapheme_to_${ANTISUFFIX} 3 ,
+.Xr grapheme_to_${CASE}${ANTISUFFIX} 3 ,
 .Xr libgrapheme 7
 .Sh STANDARDS
 .Fn grapheme_to_${CASE}${SUFFIX}
