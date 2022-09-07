@@ -82,6 +82,12 @@ MAN3 =\
 	man/grapheme_to_uppercase_utf8\
 	man/grapheme_to_lowercase_utf8\
 	man/grapheme_to_titlecase_utf8\
+	man/grapheme_is_uppercase\
+	man/grapheme_is_lowercase\
+	man/grapheme_is_titlecase\
+	man/grapheme_is_uppercase_utf8\
+	man/grapheme_is_lowercase_utf8\
+	man/grapheme_is_titlecase_utf8\
 
 MAN7 =\
 	man/libgrapheme\
@@ -195,6 +201,12 @@ gen/word.h: data/WordBreakProperty.txt gen/word
 gen/word-test.h: data/WordBreakTest.txt gen/word-test
 
 man/grapheme_is_character_break.3: man/grapheme_is_character_break.sh config.mk
+man/grapheme_is_uppercase.3: man/grapheme_is_uppercase.sh man/template/is_case.sh config.mk
+man/grapheme_is_lowercase.3: man/grapheme_is_lowercase.sh man/template/is_case.sh config.mk
+man/grapheme_is_titlecase.3: man/grapheme_is_titlecase.sh man/template/is_case.sh config.mk
+man/grapheme_is_uppercase_utf8.3: man/grapheme_is_uppercase_utf8.sh man/template/is_case.sh config.mk
+man/grapheme_is_lowercase_utf8.3: man/grapheme_is_lowercase_utf8.sh man/template/is_case.sh config.mk
+man/grapheme_is_titlecase_utf8.3: man/grapheme_is_titlecase_utf8.sh man/template/is_case.sh config.mk
 man/grapheme_next_character_break.3: man/grapheme_next_character_break.sh man/template/next_break.sh config.mk
 man/grapheme_next_line_break.3: man/grapheme_next_line_break.sh man/template/next_break.sh config.mk
 man/grapheme_next_sentence_break.3: man/grapheme_next_sentence_break.sh man/template/next_break.sh config.mk
