@@ -4,7 +4,7 @@
 
 VERSION = 1
 MAN_DATE = 2022-09-07
-UNICODE_VERSION = 14.0.0
+UNICODE_VERSION = 15.0.0
 
 include config.mk
 
