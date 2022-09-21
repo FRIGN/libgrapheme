@@ -33,22 +33,18 @@ get_case_offset(uint_least32_t cp, const uint_least16_t *major,
 }
 
 static inline size_t
-to_case(const void *src, size_t srclen, void *dest, size_t destlen,
-        size_t srcnumprocess, uint_least8_t final_sigma_level,
-        size_t (*get_codepoint)(const void *, size_t, size_t, uint_least32_t *),
-        size_t (*set_codepoint)(uint_least32_t, void *, size_t, size_t),
-        const uint_least16_t *major, const int_least32_t *minor,
-        const struct special_case *sc)
+to_case(HERODOTUS_READER *r, HERODOTUS_WRITER *w,
+        uint_least8_t final_sigma_level, const uint_least16_t *major,
+        const int_least32_t *minor, const struct special_case *sc)
 {
+	HERODOTUS_READER tmp;
 	enum case_property prop;
-	size_t srcoff, destoff, res, tmp, off, i;
+	enum herodotus_status s;
+	size_t off, i;
 	uint_least32_t cp, tmp_cp;
 	int_least32_t map;
 
-	for (srcoff = 0, destoff = 0; srcoff < srcnumprocess; srcoff += res) {
-		/* read in next source codepoint */
-		res = get_codepoint((const char *)src, srclen, srcoff, &cp);
-
+	for (; herodotus_read_codepoint(r, true, &cp) == HERODOTUS_STATUS_SUCCESS;) {
 		if (sc == lower_special) {
 			/*
 			 * For the special Final_Sigma-rule (see SpecialCasing.txt),
@@ -72,8 +68,10 @@ to_case(const void *src, size_t srclen, void *dest, size_t destlen,
 				 * if the succeeding character is cased, invalidating
 				 * the after-condition
 				 */
-				for (tmp = srcoff + res, prop = NUM_CASE_PROPS; tmp < srclen; ) {
-					tmp += get_codepoint(src, srclen, tmp, &tmp_cp);
+				herodotus_reader_copy(r, &tmp);
+				for (prop = NUM_CASE_PROPS;
+				     (s = herodotus_read_codepoint(&tmp, true, &tmp_cp)) ==
+				     HERODOTUS_STATUS_SUCCESS; ) {
 					prop = get_case_property(tmp_cp);
 
 					if (prop != CASE_PROP_CASE_IGNORABLE &&
@@ -83,20 +81,19 @@ to_case(const void *src, size_t srclen, void *dest, size_t destlen,
 				}
 
 				/*
-				 * Now prop is something other than case-ignorable.
+				 * Now prop is something other than case-ignorable or
+				 * the source-string ended.
 				 * If it is something other than cased, we know
 				 * that the after-condition holds
 				 */
-				if (prop != CASE_PROP_CASED &&
-				    prop != CASE_PROP_BOTH_CASED_CASE_IGNORABLE) {
+				if (s != HERODOTUS_STATUS_SUCCESS ||
+				    (prop != CASE_PROP_CASED &&
+				     prop != CASE_PROP_BOTH_CASED_CASE_IGNORABLE)) {
 					/*
 					 * write GREEK SMALL LETTER FINAL SIGMA to
 					 * destination
 					 */
-					destoff += set_codepoint(UINT32_C(0x03C2),
-					                         dest,
-					                         destlen,
-					                         destoff);
+					herodotus_write_codepoint(w, UINT32_C(0x03C2));
 					
 					/* reset Final_Sigma-state and continue */
 					final_sigma_level = 0;
@@ -132,191 +129,163 @@ to_case(const void *src, size_t srclen, void *dest, size_t destlen,
 			off = (uint_least32_t)map - UINT32_C(0x110000);
 
 			for (i = 0; i < sc[off].cplen; i++) {
-				if (likely(destoff < destlen)) {
-					/*
-					 * write special mapping to destination
-					 */
-					destoff += set_codepoint(sc[off].cp[i],
-					                         dest,
-					                         destlen,
-					                         destoff);
-				} else {
-					/*
-					 * further increase destoff to indicate
-					 * how much buffer space we need
-					 */
-					destoff += set_codepoint(sc[off].cp[i],
-					                         NULL, 0, 0);
-				}
+				herodotus_write_codepoint(w, sc[off].cp[i]);
 			}
 		} else {
 			/* we have a simple mapping */
-			if (likely(destoff < destlen)) {
-				destoff += set_codepoint((uint_least32_t)((int_least32_t)cp + map),
-				                         dest, destlen, destoff);
-			} else {
-				destoff += set_codepoint((uint_least32_t)((int_least32_t)cp + map),
-				                         NULL, 0, 0);
-			}
+			herodotus_write_codepoint(w, (uint_least32_t)
+			                          ((int_least32_t)cp + map));
 		}
 	}
 
-	if (set_codepoint == set_codepoint_utf8 && destlen > 0) {
-		/*
-		 * NUL-terminate destination to always ensure NUL-termination,
-		 * unless in check mode.
-		 * Just like with snprintf() a return value >= destlen indicates
-		 * truncation.
-		 */
-		((char *)dest)[(destoff < destlen) ? destoff : (destlen - 1)] = '\0';
+	herodotus_writer_nul_terminate(w);
+
+	return herodotus_writer_number_written(w);
+}
+
+static size_t
+herodotus_next_word_break(const HERODOTUS_READER *r)
+{
+	if (r->src == NULL || r->off > r->srclen) {
+		return 0;
 	}
 
-	return destoff;
+	if (r->type == HERODOTUS_TYPE_CODEPOINT) {
+		return grapheme_next_word_break(
+			((const uint_least32_t *)(r->src)) + r->off,
+			r->srclen - r->off);
+	} else { /* r->type == HERODOTUS_TYPE_UTF8 */
+		return grapheme_next_word_break_utf8(
+			((const char *)(r->src)) + r->off,
+			r->srclen - r->off);
+	}
 }
 
 static inline size_t
-to_titlecase(const void *src, size_t srclen, void *dest, size_t destlen,
-             size_t (*get_codepoint)(const void *, size_t, size_t, uint_least32_t *),
-             size_t (*set_codepoint)(uint_least32_t, void *, size_t, size_t))
+to_titlecase(HERODOTUS_READER *r, HERODOTUS_WRITER *w)
 {
 	enum case_property prop;
-	size_t next_wb, srcoff, destoff, res;
+	enum herodotus_status s;
 	uint_least32_t cp;
 
-	for (srcoff = destoff = 0; ; ) {
-		if (get_codepoint == get_codepoint_utf8) {
-			if ((next_wb = grapheme_next_word_break_utf8((const char *)src + srcoff,
-			                                             srclen - srcoff)) == 0) {
-				/* we consumed all of the string */
-				break;
-			}
-		} else {
-			if ((next_wb = grapheme_next_word_break((const uint_least32_t *)src + srcoff,
-			                                        srclen - srcoff)) == 0) {
-				/* we consumed all of the string */
-				break;
-			}
-		}
-
-		for (; next_wb > 0 && srcoff < srclen; next_wb -= res, srcoff += res) {
+	for (;;) {
+		herodotus_reader_push_advance_limit(r, herodotus_next_word_break(r));
+		for (; (s = herodotus_read_codepoint(r, false, &cp)) == HERODOTUS_STATUS_SUCCESS;) {
 			/* check if we have a cased character */
-			res = get_codepoint(src, srclen, srcoff, &cp);
 			prop = get_case_property(cp);
 			if (prop == CASE_PROP_CASED ||
 			    prop == CASE_PROP_BOTH_CASED_CASE_IGNORABLE) {
 				break;
 			} else {
 				/* write the data to the output verbatim, it if permits */
-				destoff += set_codepoint_utf8(cp, dest, destlen, destoff);
+				herodotus_write_codepoint(w, cp);
+
+				/* increment reader */
+				herodotus_read_codepoint(r, true, &cp);
 			}
 		}
 
-		if (next_wb > 0) {
-			/* get character length */
-			res = get_codepoint(src, srclen, srcoff, &cp);
-
-			/* we have a cased character at srcoff, map it to titlecase */
-			if (get_codepoint == get_codepoint_utf8) {
-				destoff += to_case((const char *)src + srcoff,
-				                   srclen - srcoff,
-				                   (char *)dest + destoff,
-			                           (destoff < destlen) ? (destlen - destoff) : 0,
-				                   res, 0,
-					           get_codepoint_utf8,
-			                           set_codepoint_utf8, title_major,
-			                           title_minor, title_special);
-			} else {
-				destoff += to_case((const uint_least32_t *)src + srcoff,
-				                   srclen - srcoff,
-				                   (uint_least32_t *)dest + destoff,
-			                           (destoff < destlen) ? (destlen - destoff) : 0,
-				                   res, 0,
-					           get_codepoint,
-			                           set_codepoint, title_major,
-			                           title_minor, title_special);
-			}
-
-			/* we consumed a character */
-			srcoff += res;
-			next_wb -= res;
+		if (s == HERODOTUS_STATUS_END_OF_BUFFER) {
+			/* we are done */
+			break;
+		} else if (s == HERODOTUS_STATUS_SOFT_LIMIT_REACHED) {
+			/*
+			 * we did not encounter any cased character
+			 * up to the word break
+			 */
+			continue;
+		} else {
+			/*
+			 * we encountered a cased character before the word
+			 * break, convert it to titlecase
+			 */
+			herodotus_reader_push_advance_limit(r,
+				herodotus_reader_next_codepoint_break(r));
+			to_case(r, w, 0, title_major, title_minor, title_special);
+			herodotus_reader_pop_limit(r);
 		}
 
 		/* cast the rest of the codepoints in the word to lowercase */
-		if (get_codepoint == get_codepoint_utf8) {
-			destoff += to_case((const char *)src + srcoff,
-			                   srclen - srcoff,
-			                   (char *)dest + destoff,
-		                           (destoff < destlen) ? (destlen - destoff) : 0,
-			                   next_wb, 1,
-				           get_codepoint_utf8,
-		                           set_codepoint_utf8, lower_major,
-		                           lower_minor, lower_special);
-		} else {
-			destoff += to_case((const uint_least32_t *)src + srcoff,
-			                   srclen - srcoff,
-			                   (uint_least32_t *)dest + destoff,
-		                           (destoff < destlen) ? (destlen - destoff) : 0,
-			                   next_wb, 1,
-				           get_codepoint,
-		                           set_codepoint, lower_major,
-		                           lower_minor, lower_special);
-		}
-		srcoff += next_wb;
+		to_case(r, w, 1, lower_major, lower_minor, lower_special);
+
+		herodotus_reader_pop_limit(r);
 	}
 
-	if (set_codepoint == set_codepoint_utf8) {
-		/*
-		 * NUL-terminate destination to always ensure NUL-termination.
-		 * Just like with snprintf() a return value >= destlen indicates
-		 * truncation.
-		 */
-		((char *)dest)[(destoff < destlen) ? destoff : (destlen - 1)] = '\0';
-	}
+	herodotus_writer_nul_terminate(w);
 
-	return destoff;
+	return herodotus_writer_number_written(w);
 }
 
 size_t
 grapheme_to_uppercase(const uint_least32_t *src, size_t srclen, uint_least32_t *dest, size_t destlen)
 {
-	return to_case(src, srclen, dest, destlen, srclen, 0, get_codepoint, set_codepoint,
-	               upper_major, upper_minor, upper_special);
+	HERODOTUS_READER r;
+	HERODOTUS_WRITER w;
+
+	herodotus_reader_init(&r, HERODOTUS_TYPE_CODEPOINT, src, srclen);
+	herodotus_writer_init(&w, HERODOTUS_TYPE_CODEPOINT, dest, destlen);
+
+	return to_case(&r, &w, 0, upper_major, upper_minor, upper_special);
 }
 
 size_t
 grapheme_to_lowercase(const uint_least32_t *src, size_t srclen, uint_least32_t *dest, size_t destlen)
 {
-	return to_case(src, srclen, dest, destlen, srclen, 0, get_codepoint, set_codepoint,
-	               lower_major, lower_minor, lower_special);
+	HERODOTUS_READER r;
+	HERODOTUS_WRITER w;
+
+	herodotus_reader_init(&r, HERODOTUS_TYPE_CODEPOINT, src, srclen);
+	herodotus_writer_init(&w, HERODOTUS_TYPE_CODEPOINT, dest, destlen);
+
+	return to_case(&r, &w, 0, lower_major, lower_minor, lower_special);
 }
 
 size_t
 grapheme_to_titlecase(const uint_least32_t *src, size_t srclen, uint_least32_t *dest, size_t destlen)
 {
-	return to_titlecase(src, srclen, dest, destlen, get_codepoint,
-	                    set_codepoint);
+	HERODOTUS_READER r;
+	HERODOTUS_WRITER w;
+
+	herodotus_reader_init(&r, HERODOTUS_TYPE_CODEPOINT, src, srclen);
+	herodotus_writer_init(&w, HERODOTUS_TYPE_CODEPOINT, dest, destlen);
+
+	return to_titlecase(&r, &w);
 }
 
 size_t
 grapheme_to_uppercase_utf8(const char *src, size_t srclen, char *dest, size_t destlen)
 {
-	return to_case(src, srclen, dest, destlen, srclen, 0, get_codepoint_utf8, set_codepoint_utf8,
-	               upper_major, upper_minor, upper_special);
+	HERODOTUS_READER r;
+	HERODOTUS_WRITER w;
+
+	herodotus_reader_init(&r, HERODOTUS_TYPE_UTF8, src, srclen);
+	herodotus_writer_init(&w, HERODOTUS_TYPE_UTF8, dest, destlen);
+
+	return to_case(&r, &w, 0, upper_major, upper_minor, upper_special);
 }
 
 size_t
 grapheme_to_lowercase_utf8(const char *src, size_t srclen, char *dest, size_t destlen)
 {
-	return to_case(src, srclen, dest, destlen, srclen, 0, get_codepoint_utf8, set_codepoint_utf8,
-	               lower_major, lower_minor, lower_special);
+	HERODOTUS_READER r;
+	HERODOTUS_WRITER w;
 
+	herodotus_reader_init(&r, HERODOTUS_TYPE_UTF8, src, srclen);
+	herodotus_writer_init(&w, HERODOTUS_TYPE_UTF8, dest, destlen);
+
+	return to_case(&r, &w, 0, lower_major, lower_minor, lower_special);
 }
 
 size_t
 grapheme_to_titlecase_utf8(const char *src, size_t srclen, char *dest, size_t destlen)
 {
-	return to_titlecase(src, srclen, dest, destlen, get_codepoint_utf8,
-	                    set_codepoint_utf8);
+	HERODOTUS_READER r;
+	HERODOTUS_WRITER w;
+
+	herodotus_reader_init(&r, HERODOTUS_TYPE_UTF8, src, srclen);
+	herodotus_writer_init(&w, HERODOTUS_TYPE_UTF8, dest, destlen);
+
+	return to_titlecase(&r, &w);
 }
 
 static inline bool
