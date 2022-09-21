@@ -301,7 +301,6 @@ unit_test_callback_to_case_utf8(void *t, size_t off, const char *name, const cha
 	/* check that none of the canary values have been overwritten */
 	for (i = test->input.destlen; i < LEN(buf); i++) {
 		if (buf[i] != 0x7f) {
-fprintf(stderr, "REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n");
 			goto err;
 		}
 	}
