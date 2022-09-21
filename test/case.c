@@ -20,7 +20,7 @@ struct unit_test_to_case_utf8 {
 	} output;
 };
 
-struct unit_test_to_case_utf8 lowercase_utf8[] = {
+static struct unit_test_to_case_utf8 lowercase_utf8[] = {
 	{
 		.description = "empty input",
 		.input =  { "", 0, 10 },
@@ -93,7 +93,7 @@ struct unit_test_to_case_utf8 lowercase_utf8[] = {
 	},
 };
 
-struct unit_test_to_case_utf8 uppercase_utf8[] = {
+static struct unit_test_to_case_utf8 uppercase_utf8[] = {
 	{
 		.description = "empty input",
 		.input =  { "", 0, 10 },
@@ -166,7 +166,7 @@ struct unit_test_to_case_utf8 uppercase_utf8[] = {
 	},
 };
 
-struct unit_test_to_case_utf8 titlecase_utf8[] = {
+static struct unit_test_to_case_utf8 titlecase_utf8[] = {
 	{
 		.description = "empty input",
 		.input =  { "", 0, 10 },
