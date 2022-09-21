@@ -2,12 +2,16 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
 #include "../gen/types.h"
 #include "../grapheme.h"
 
+#undef MIN
+#define MIN(x,y)  ((x) < (y) ? (x) : (y))
+#undef LEN
 #define LEN(x) (sizeof(x) / sizeof(*(x)))
 
 #undef likely
@@ -24,6 +28,66 @@
 	#define likely(expr) (expr)
 	#define unlikely(expr) (expr)
 #endif
+
+/*
+ * Herodotus, the ancient greek historian and geographer,
+ * was criticized for including legends and other fantastic
+ * accounts into his works, among others by his contemporary
+ * Thucydides.
+ *
+ * The Herodotus readers and writers are tailored towards the needs
+ * of the library interface, doing all the dirty work behind the
+ * scenes. While the reader is relatively faithful in his accounts,
+ * the Herodotus writer will never fail and always claim to write the
+ * data. Internally, it only writes as much as it can, and will simply
+ * keep account of the rest. This way, we can properly signal truncation.
+ *
+ * In this sense, explaining the naming, the writer is always a bit
+ * inaccurate in his accounts.
+ *
+ */
+enum herodotus_status {
+	HERODOTUS_STATUS_SUCCESS,
+	HERODOTUS_STATUS_END_OF_BUFFER,
+	HERODOTUS_STATUS_SOFT_LIMIT_REACHED,
+};
+
+enum herodotus_type {
+	HERODOTUS_TYPE_CODEPOINT,
+	HERODOTUS_TYPE_UTF8,
+};
+
+typedef struct herodotus_reader {
+	enum herodotus_type type;
+	const void *src;
+	size_t srclen;
+	size_t off;
+	bool terminated_by_null;
+	size_t soft_limit[10];
+} HERODOTUS_READER;
+
+typedef struct herodotus_writer {
+	enum herodotus_type type;
+	void *dest;
+	size_t destlen;
+	size_t off;
+	size_t first_unwritable_offset;
+} HERODOTUS_WRITER;
+
+void herodotus_reader_init(HERODOTUS_READER *, enum herodotus_type,
+                           const void *, size_t);
+void herodotus_reader_copy(const HERODOTUS_READER *, HERODOTUS_READER *);
+void herodotus_reader_push_advance_limit(HERODOTUS_READER *, size_t);
+void herodotus_reader_pop_limit(HERODOTUS_READER *);
+size_t herodotus_reader_next_word_break(const HERODOTUS_READER *);
+size_t herodotus_reader_next_codepoint_break(const HERODOTUS_READER *);
+enum herodotus_status herodotus_read_codepoint(HERODOTUS_READER *, bool, uint_least32_t *);
+
+void herodotus_writer_init(HERODOTUS_WRITER *, enum herodotus_type, void *,
+                           size_t);
+void herodotus_writer_nul_terminate(HERODOTUS_WRITER *);
+size_t herodotus_writer_number_written(HERODOTUS_WRITER *);
+void herodotus_write_codepoint(HERODOTUS_WRITER *, uint_least32_t);
 
 size_t get_codepoint(const void *, size_t, size_t, uint_least32_t *);
 size_t get_codepoint_utf8(const void *, size_t, size_t, uint_least32_t *);
