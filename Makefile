@@ -53,6 +53,7 @@ SRC =\
 	src/word\
 
 TEST =\
+	test/case\
 	test/character\
 	test/line\
 	test/sentence\
@@ -160,6 +161,7 @@ src/sentence.o: src/sentence.c config.mk gen/sentence.h grapheme.h src/util.h
 src/utf8.o: src/utf8.c config.mk grapheme.h
 src/util.o: src/util.c config.mk gen/types.h grapheme.h src/util.h
 src/word.o: src/word.c config.mk gen/word.h grapheme.h src/util.h
+test/case.o: test/case.c config.mk grapheme.h test/util.h
 test/character.o: test/character.c config.mk gen/character-test.h grapheme.h test/util.h
 test/line.o: test/line.c config.mk gen/line-test.h grapheme.h test/util.h
 test/sentence.o: test/sentence.c config.mk gen/sentence-test.h grapheme.h test/util.h
@@ -183,6 +185,7 @@ gen/sentence: gen/sentence.o gen/util.o
 gen/sentence-test: gen/sentence-test.o gen/util.o
 gen/word: gen/word.o gen/util.o
 gen/word-test: gen/word-test.o gen/util.o
+test/case: test/case.o test/util.o libgrapheme.a
 test/character: test/character.o test/util.o libgrapheme.a
 test/line: test/line.o test/util.o libgrapheme.a
 test/sentence: test/sentence.o test/util.o libgrapheme.a
