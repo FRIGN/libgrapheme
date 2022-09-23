@@ -15,8 +15,8 @@ BUILD_CPPFLAGS = $(CPPFLAGS)
 BUILD_CFLAGS   = $(CFLAGS)
 BUILD_LDFLAGS  = $(LDFLAGS)
 
-SHFLAGS  = -fPIC
-SOFLAGS  = -shared -Wl,--soname=libgrapheme.so
+SHFLAGS  = -fPIC -ffreestanding
+SOFLAGS  = -shared -nostdlib -Wl,--soname=libgrapheme.so
 
 # tools
 CC       = cc

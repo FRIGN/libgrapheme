@@ -1,8 +1,6 @@
 /* See LICENSE file for copyright and license details. */
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "../gen/word.h"
 #include "../grapheme.h"

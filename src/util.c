@@ -1,7 +1,8 @@
 /* See LICENSE file for copyright and license details. */
+#include <limits.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
-#include <stdlib.h>
 
 #include "../gen/types.h"
 #include "../grapheme.h"
@@ -86,6 +87,12 @@ herodotus_reader_next_codepoint_break(const HERODOTUS_READER *r)
 			(const char *)(r->src) + r->off,
 			MIN(r->srclen, r->soft_limit[0]) - r->off, NULL);
 	}
+}
+
+size_t
+herodotus_reader_number_read(const HERODOTUS_READER *r)
+{
+	return r->off;
 }
 
 enum herodotus_status
@@ -202,7 +209,7 @@ herodotus_writer_nul_terminate(HERODOTUS_WRITER *w)
 }
 
 size_t
-herodotus_writer_number_written(HERODOTUS_WRITER *w)
+herodotus_writer_number_written(const HERODOTUS_WRITER *w)
 {
 	return w->off;
 }

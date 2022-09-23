@@ -1,5 +1,6 @@
 /* See LICENSE file for copyright and license details. */
-#include <stdio.h>
+#include <stddef.h>
+#include <stdint.h>
 
 #include "../grapheme.h"
 #include "util.h"
