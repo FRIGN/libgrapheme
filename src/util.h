@@ -79,6 +79,7 @@ void herodotus_reader_init(HERODOTUS_READER *, enum herodotus_type,
 void herodotus_reader_copy(const HERODOTUS_READER *, HERODOTUS_READER *);
 void herodotus_reader_push_advance_limit(HERODOTUS_READER *, size_t);
 void herodotus_reader_pop_limit(HERODOTUS_READER *);
+size_t herodotus_reader_number_read(const HERODOTUS_READER *);
 size_t herodotus_reader_next_word_break(const HERODOTUS_READER *);
 size_t herodotus_reader_next_codepoint_break(const HERODOTUS_READER *);
 enum herodotus_status herodotus_read_codepoint(HERODOTUS_READER *, bool, uint_least32_t *);
@@ -86,7 +87,7 @@ enum herodotus_status herodotus_read_codepoint(HERODOTUS_READER *, bool, uint_le
 void herodotus_writer_init(HERODOTUS_WRITER *, enum herodotus_type, void *,
                            size_t);
 void herodotus_writer_nul_terminate(HERODOTUS_WRITER *);
-size_t herodotus_writer_number_written(HERODOTUS_WRITER *);
+size_t herodotus_writer_number_written(const HERODOTUS_WRITER *);
 void herodotus_write_codepoint(HERODOTUS_WRITER *, uint_least32_t);
 
 size_t get_codepoint(const void *, size_t, size_t, uint_least32_t *);
