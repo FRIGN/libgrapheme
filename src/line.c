@@ -18,21 +18,14 @@ get_break_prop(uint_least32_t cp)
 }
 
 static size_t
-next_line_break(const void *str, size_t len, size_t (*get_codepoint)
-                (const void *, size_t, size_t, uint_least32_t *))
+next_line_break(HERODOTUS_READER *r)
 {
+	HERODOTUS_READER tmp;
 	enum line_break_property cp0_prop, cp1_prop, last_non_cm_or_zwj_prop,
 	                         last_non_sp_prop, last_non_sp_cm_or_zwj_prop;
-	enum line_break_property res;
 	uint_least32_t cp;
 	uint_least8_t lb25_level = 0;
-	size_t off, new_off;
 	bool lb21a_flag = false, ri_even = true;
-
-	/* check degenerate cases */
-	if (str == NULL || len == 0) {
-		return 0;
-	}
 
 	/*
 	 * Apply line breaking algorithm (UAX #14), see
@@ -47,28 +40,14 @@ next_line_break(const void *str, size_t len, size_t (*get_codepoint)
 	 * Initialize the different properties such that we have
 	 * a good state after the state-update in the loop
 	 */
-	cp0_prop = NUM_LINE_BREAK_PROPS;
-	if ((off = get_codepoint(str, len, 0, &cp)) >= len) {
-		/*
-		 * A line is at least one codepoint long, so we can
-		 * safely return here
-		 */
-		return len;
-	}
-	cp1_prop = get_break_prop(cp);
 	last_non_cm_or_zwj_prop = LINE_BREAK_PROP_AL; /* according to LB10 */
 	last_non_sp_prop = last_non_sp_cm_or_zwj_prop = NUM_LINE_BREAK_PROPS;
 
-	for (; off < len; off = new_off) {
-		/* update state */
-		cp0_prop = cp1_prop;
-		if ((new_off = off + get_codepoint(str, len, off, &cp)) <= len) {
-			get_codepoint(str, len, off, &cp);
-			cp1_prop = get_break_prop(cp);
-		} else {
-			/* LB3 */
-			break;
-		}
+	for (herodotus_read_codepoint(r, true, &cp), cp0_prop = get_break_prop(cp);
+	     herodotus_read_codepoint(r, false, &cp) == HERODOTUS_STATUS_SUCCESS;
+	     herodotus_read_codepoint(r, true, &cp), cp0_prop = cp1_prop) {
+		/* get property of the right codepoint */
+		cp1_prop = get_break_prop(cp);
 
 		/* update retention-states */
 
@@ -380,14 +359,14 @@ next_line_break(const void *str, size_t len, size_t (*get_codepoint)
 			 * two adjacent codepoints as we have it with
 			 * characters.
 			 */
-			if (new_off < len &&
+			herodotus_reader_copy(r, &tmp);
+			herodotus_read_codepoint(&tmp, true, &cp);
+			if (herodotus_read_codepoint(&tmp, true, &cp) ==
+			    HERODOTUS_STATUS_SUCCESS &&
 			    (cp1_prop == LINE_BREAK_PROP_OP_WITHOUT_EAW_HWF ||
 			     cp1_prop == LINE_BREAK_PROP_OP_WITH_EAW_HWF    ||
 			     cp1_prop == LINE_BREAK_PROP_HY)) {
-				get_codepoint(str, len, new_off, &cp);
-				res = get_break_prop(cp);
-
-				if (res == LINE_BREAK_PROP_NU) {
+				if (get_break_prop(cp) == LINE_BREAK_PROP_NU) {
 					continue;
 				}
 			}
@@ -507,17 +486,25 @@ next_line_break(const void *str, size_t len, size_t (*get_codepoint)
 		break;
 	}
 
-	return off;
+	return herodotus_reader_number_read(r);
 }
 
 size_t
 grapheme_next_line_break(const uint_least32_t *str, size_t len)
 {
-	return next_line_break(str, len, get_codepoint);
+	HERODOTUS_READER r;
+
+	herodotus_reader_init(&r, HERODOTUS_TYPE_CODEPOINT, str, len);
+
+	return next_line_break(&r);
 }
 
 size_t
 grapheme_next_line_break_utf8(const char *str, size_t len)
 {
-	return next_line_break(str, len, get_codepoint_utf8);
+	HERODOTUS_READER r;
+
+	herodotus_reader_init(&r, HERODOTUS_TYPE_UTF8, str, len);
+
+	return next_line_break(&r);
 }
