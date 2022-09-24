@@ -37,8 +37,8 @@ Afterwards enter the following command to build and install libgrapheme
 
 Conformance
 -----------
-The libgrapheme library is compliant with the Unicode 14.0.0
-specification (September 2021).
+The libgrapheme library is compliant with the Unicode 15.0.0
+specification (September 2022).
 
 To ensure conformance, libgrapheme includes hundreds of tests including
 all provided with the standard-provided test-data that is parsed
