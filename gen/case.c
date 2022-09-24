@@ -166,7 +166,8 @@ specialcasing_callback(const char *file, char **field, size_t nfields,
 
 	/*
 	 * overwrite value in "single mapping" property table by the
-	 * special value 0x110000 + (offset in special case array)
+	 * special value 0x110000 + (offset in special case array),
+	 * even if the special case has length 1
 	 */
 	prop_upper[cp].property = (int_least64_t)(UINT32_C(0x110000) + (sclen - 1));
 	prop_lower[cp].property = (int_least64_t)(UINT32_C(0x110000) + (sclen - 1));
