@@ -111,7 +111,11 @@ herodotus_read_codepoint(HERODOTUS_READER *r, bool advance, uint_least32_t *cp)
 	}
 
 	if (r->type == HERODOTUS_TYPE_CODEPOINT) {
-		*cp = ((const uint_least32_t *)(r->src))[r->off++];
+		*cp = ((const uint_least32_t *)(r->src))[r->off];
+
+		if (advance) {
+			r->off++;
+		}
 	} else { /* r->type == HERODOTUS_TYPE_UTF8 */
 		ret = grapheme_decode_utf8((const char *)r->src + r->off,
 		                           MIN(r->srclen, r->soft_limit[0]) -

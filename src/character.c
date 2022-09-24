@@ -175,61 +175,39 @@ grapheme_is_character_break(uint_least32_t cp0, uint_least32_t cp1, GRAPHEME_STA
 	return !notbreak;
 }
 
-size_t
-grapheme_next_character_break(const uint_least32_t *str, size_t len)
+static size_t
+next_character_break(HERODOTUS_READER *r)
 {
 	GRAPHEME_STATE state = { 0 };
-	size_t off;
+	uint_least32_t cp0 = 0, cp1 = 0;
 
-	if (str == NULL || len == 0) {
-		return 0;
-	}
-
-	for (off = 1; off < len; off++) {
-		if (grapheme_is_character_break(str[off - 1], str[off], &state)) {
+	for (herodotus_read_codepoint(r, true, &cp0);
+	     herodotus_read_codepoint(r, false, &cp1) == HERODOTUS_STATUS_SUCCESS;
+	     herodotus_read_codepoint(r, true, &cp0)) {
+		if (grapheme_is_character_break(cp0, cp1, &state)) {
 			break;
 		}
 	}
 
-	return off;
+	return herodotus_reader_number_read(r);
+}
+
+size_t
+grapheme_next_character_break(const uint_least32_t *str, size_t len)
+{
+	HERODOTUS_READER r;
+
+	herodotus_reader_init(&r, HERODOTUS_TYPE_CODEPOINT, str, len);
+
+	return next_character_break(&r);
 }
 
 size_t
 grapheme_next_character_break_utf8(const char *str, size_t len)
 {
-	GRAPHEME_STATE state = { 0 };
-	uint_least32_t cp0 = 0, cp1 = 0;
-	size_t off, ret;
+	HERODOTUS_READER r;
 
-	if (str == NULL || len == 0) {
-		return 0;
-	}
+	herodotus_reader_init(&r, HERODOTUS_TYPE_UTF8, str, len);
 
-	for (off = 0; (len == SIZE_MAX) || off < len; off += ret) {
-		cp0 = cp1;
-		ret = grapheme_decode_utf8(str + off, (len == SIZE_MAX) ?
-		                           SIZE_MAX : len - off, &cp1);
-
-		if (len != SIZE_MAX && ret > (len - off)) {
-			/* string ended abruptly, simply accept cropping */
-			ret = len - off;
-		}
-
-		if (len == SIZE_MAX && cp1 == 0) {
-			/* we hit a NUL-byte and are done */
-			break;
-		}
-
-		if (off == 0) {
-			/*
-			 * we skip the first round, as we need both
-			 * cp0 and cp1 to be initialized
-			 */
-			continue;
-		} else if (grapheme_is_character_break(cp0, cp1, &state)) {
-			break;
-		}
-	}
-
-	return off;
+	return next_character_break(&r);
 }
