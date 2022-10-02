@@ -38,12 +38,12 @@ is set to
 .Dv SIZE_MAX
 (stdint.h is already included by grapheme.h) the string
 .Va str
-is interpreted to be NUL-terminated and processing stops when a
-NUL-byte is encountered.
+is interpreted to be NUL-terminated and processing stops when
+a $(if [ "$ENCODING" = "utf8" ]; then printf "NUL-byte"; else printf "codepoint with the value 0"; fi) is encountered.
 .Pp
 For $(if [ "$ENCODING" != "utf8" ]; then printf "UTF-8-encoded"; else printf "non-UTF-8"; fi) input
 data$(if [ "$TYPE" = "character" ] && [ "$ENCODING" = "utf8" ]; then printf "\n.Xr grapheme_is_character_break 3 and"; fi)
-.Xr grapheme_next_${TYPE}_break${ANTISUFFIX}
+.Xr grapheme_next_${TYPE}_break${ANTISUFFIX} 3
 can be used instead.
 .Sh RETURN VALUES
 The
@@ -102,7 +102,7 @@ fi
 
 cat << EOF
 .Sh SEE ALSO$(if [ "$TYPE" = "character" ] && [ "$ENCODING" != "utf8" ]; then printf "\n.Xr grapheme_is_character_break 3 ,"; fi)
-.Xr grapheme_next_${TYPE}_break${ANTISUFFIX}
+.Xr grapheme_next_${TYPE}_break${ANTISUFFIX} 3 ,
 .Xr libgrapheme 7
 .Sh STANDARDS
 .Fn grapheme_next_${TYPE}_break${SUFFIX}

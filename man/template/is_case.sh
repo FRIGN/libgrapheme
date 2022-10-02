@@ -22,7 +22,7 @@ cat << EOF
 .Sh SYNOPSIS
 .In grapheme.h
 .Ft size_t
-.Fn grapheme_is_${CASE}${SUFFIX} "const ${DATATYPE} *str" "size_t len" "size_t caselen"
+.Fn grapheme_is_${CASE}${SUFFIX} "const ${DATATYPE} *str" "size_t len" "size_t *caselen"
 .Sh DESCRIPTION
 The
 .Fn grapheme_is_${CASE}${SUFFIX}
@@ -54,7 +54,7 @@ function returns
 .Dv true
 if the ${ARRAYTYPE}
 .Va str
-is ${CASE}, otherwise 
+is ${CASE}, otherwise
 .Dv false .
 .Sh SEE ALSO
 .Xr grapheme_is_${CASE}${ANTISUFFIX} 3 ,

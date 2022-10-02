@@ -38,7 +38,7 @@ is set to
 .Dv NULL .
 .Pp
 If
-.Va len
+.Va srclen
 is set to
 .Dv SIZE_MAX
 (stdint.h is already included by grapheme.h) the ${ARRAYTYPE}
@@ -56,7 +56,7 @@ function returns the number of ${UNIT}s in the array resulting
 from converting
 .Va src
 to ${CASE}, even if
-.Va len
+.Va destlen
 is not large enough or
 .Va dest
 is
