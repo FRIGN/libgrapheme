@@ -74,6 +74,22 @@ typedef struct herodotus_writer {
 	size_t first_unwritable_offset;
 } HERODOTUS_WRITER;
 
+struct proper {
+	/*
+	 * prev_prop[1] prev_prop[0] | next_prop[0] next_prop[1]
+	 */
+	struct {
+		uint_least8_t prev_prop[2];
+		uint_least8_t next_prop[2];
+	} raw, skip;
+	HERODOTUS_READER mid_reader, raw_reader, skip_reader;
+	void *state;
+	uint_least8_t no_prop;
+	uint_least8_t (*get_break_prop)(uint_least32_t);
+	bool (*is_skippable_prop)(uint_least8_t);
+	void (*skip_shift_callback)(uint_least8_t, void *);
+};
+
 void herodotus_reader_init(HERODOTUS_READER *, enum herodotus_type,
                            const void *, size_t);
 void herodotus_reader_copy(const HERODOTUS_READER *, HERODOTUS_READER *);
@@ -89,6 +105,13 @@ void herodotus_writer_init(HERODOTUS_WRITER *, enum herodotus_type, void *,
 void herodotus_writer_nul_terminate(HERODOTUS_WRITER *);
 size_t herodotus_writer_number_written(const HERODOTUS_WRITER *);
 void herodotus_write_codepoint(HERODOTUS_WRITER *, uint_least32_t);
+
+void proper_init(const HERODOTUS_READER *, void *, uint_least8_t,
+                 uint_least8_t (*get_break_prop)(uint_least32_t),
+                 bool (*is_skippable_prop)(uint_least8_t),
+                 void (*skip_shift_callback)(uint_least8_t, void *),
+                 struct proper *);
+int proper_advance(struct proper *);
 
 size_t get_codepoint(const void *, size_t, size_t, uint_least32_t *);
 size_t get_codepoint_utf8(const void *, size_t, size_t, uint_least32_t *);

@@ -147,18 +147,14 @@ to_case(HERODOTUS_READER *r, HERODOTUS_WRITER *w,
 static size_t
 herodotus_next_word_break(const HERODOTUS_READER *r)
 {
-	if (r->src == NULL || r->off > r->srclen) {
-		return 0;
-	}
+	HERODOTUS_READER tmp;
+
+	herodotus_reader_copy(r, &tmp);
 
 	if (r->type == HERODOTUS_TYPE_CODEPOINT) {
-		return grapheme_next_word_break(
-			((const uint_least32_t *)(r->src)) + r->off,
-			r->srclen - r->off);
+		return grapheme_next_word_break(tmp.src, tmp.srclen);
 	} else { /* r->type == HERODOTUS_TYPE_UTF8 */
-		return grapheme_next_word_break_utf8(
-			((const char *)(r->src)) + r->off,
-			r->srclen - r->off);
+		return grapheme_next_word_break_utf8(tmp.src, tmp.srclen);
 	}
 }
 
@@ -168,9 +164,10 @@ to_titlecase(HERODOTUS_READER *r, HERODOTUS_WRITER *w)
 	enum case_property prop;
 	enum herodotus_status s;
 	uint_least32_t cp;
+	size_t nwb;
 
-	for (;;) {
-		herodotus_reader_push_advance_limit(r, herodotus_next_word_break(r));
+	for (; (nwb = herodotus_next_word_break(r)) > 0;) {
+		herodotus_reader_push_advance_limit(r, nwb);
 		for (; (s = herodotus_read_codepoint(r, false, &cp)) == HERODOTUS_STATUS_SUCCESS;) {
 			/* check if we have a cased character */
 			prop = get_case_property(cp);
@@ -354,9 +351,10 @@ is_titlecase(HERODOTUS_READER *r, size_t *output)
 	enum herodotus_status s;
 	bool ret = true;
 	uint_least32_t cp;
+	size_t nwb;
 
-	for (;;) {
-		herodotus_reader_push_advance_limit(r, herodotus_next_word_break(r));
+	for (; (nwb = herodotus_next_word_break(r)) > 0;) {
+		herodotus_reader_push_advance_limit(r, nwb);
 		for (; (s = herodotus_read_codepoint(r, false, &cp)) == HERODOTUS_STATUS_SUCCESS;) {
 			/* check if we have a cased character */
 			prop = get_case_property(cp);
@@ -377,6 +375,7 @@ is_titlecase(HERODOTUS_READER *r, size_t *output)
 			 * we did not encounter any cased character
 			 * up to the word break
 			 */
+			herodotus_reader_pop_limit(r);
 			continue;
 		} else {
 			/*
