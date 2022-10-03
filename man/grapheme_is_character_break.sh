@@ -8,7 +8,7 @@ cat << EOF
 .Sh SYNOPSIS
 .In grapheme.h
 .Ft size_t
-.Fn grapheme_is_character_break "uint_least32_t cp1" "uint_least32_t cp2" "GRAPHEME_STATE *state"
+.Fn grapheme_is_character_break "uint_least32_t cp1" "uint_least32_t cp2" "uint_least16_t *state"
 .Sh DESCRIPTION
 The
 .Fn grapheme_is_character_break
@@ -52,7 +52,7 @@ if there is not.
 int
 main(void)
 {
-	GRAPHEME_STATE state = { 0 };
+	uint_least16_t state = 0;
 	uint_least32_t s1[] = ..., s2[] = ...; /* two input arrays */
 	size_t i;
 

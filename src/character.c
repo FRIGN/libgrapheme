@@ -7,6 +7,13 @@
 #include "../grapheme.h"
 #include "util.h"
 
+struct character_break_state {
+	uint_least8_t prop;
+	bool prop_set;
+	bool gb11_flag;
+	bool gb12_13_flag;
+};
+
 static const uint_least16_t dont_break[NUM_CHAR_BREAK_PROPS] = {
 	[CHAR_BREAK_PROP_OTHER] =
 		UINT16_C(1) << CHAR_BREAK_PROP_EXTEND       | /* GB9  */
@@ -106,38 +113,59 @@ get_break_prop(uint_least32_t cp)
 {
 	if (likely(cp <= 0x10FFFF)) {
 		return (enum char_break_property)
-		       char_break_minor[char_break_major[cp >> 8] + (cp & 0xff)];
+		       char_break_minor[char_break_major[cp >> 8] + (cp & 0xFF)];
 	} else {
 		return CHAR_BREAK_PROP_OTHER;
 	}
 }
 
-bool
-grapheme_is_character_break(uint_least32_t cp0, uint_least32_t cp1, GRAPHEME_STATE *state)
+static inline void
+state_serialize(const struct character_break_state *in, uint_least16_t *out)
 {
+	*out = (uint_least16_t)(in->prop & UINT8_C(0xFF))                   | /* first 8 bits */
+	       (uint_least16_t)(((uint_least16_t)(in->prop_set))     <<  8) | /* 9th bit */
+	       (uint_least16_t)(((uint_least16_t)(in->gb11_flag))    <<  9) | /* 10th bit */
+	       (uint_least16_t)(((uint_least16_t)(in->gb12_13_flag)) << 10);  /* 11th bit */
+}
+
+static inline void
+state_deserialize(uint_least16_t in, struct character_break_state *out)
+{
+	out->prop         = in & UINT8_C(0xFF);
+	out->prop_set     = in & (((uint_least16_t)(1)) <<  8);
+	out->gb11_flag    = in & (((uint_least16_t)(1)) <<  9);
+	out->gb12_13_flag = in & (((uint_least16_t)(1)) << 10);
+}
+
+bool
+grapheme_is_character_break(uint_least32_t cp0, uint_least32_t cp1, uint_least16_t *s)
+{
+	struct character_break_state state;
 	enum char_break_property cp0_prop, cp1_prop;
 	bool notbreak = false;
 
-	if (likely(state)) {
-		if (likely(state->prop_set)) {
-			cp0_prop = state->prop;
+	if (likely(s)) {
+		state_deserialize(*s, &state);
+
+		if (likely(state.prop_set)) {
+			cp0_prop = state.prop;
 		} else {
 			cp0_prop = get_break_prop(cp0);
 		}
 		cp1_prop = get_break_prop(cp1);
 
 		/* preserve prop of right codepoint for next iteration */
-		state->prop = (uint_least8_t)cp1_prop;
-		state->prop_set = true;
+		state.prop = (uint_least8_t)cp1_prop;
+		state.prop_set = true;
 
 		/* update flags */
-		state->gb11_flag =
+		state.gb11_flag =
 			flag_update_gb11[cp0_prop + NUM_CHAR_BREAK_PROPS *
-			                 state->gb11_flag] &
+			                 state.gb11_flag] &
 			UINT16_C(1) << cp1_prop;
-		state->gb12_13_flag =
+		state.gb12_13_flag =
 			flag_update_gb12_13[cp0_prop + NUM_CHAR_BREAK_PROPS *
-		                            state->gb12_13_flag] &
+		                            state.gb12_13_flag] &
 		        UINT16_C(1) << cp1_prop;
 
 		/*
@@ -145,17 +173,19 @@ grapheme_is_character_break(uint_least32_t cp0, uint_least32_t cp1, GRAPHEME_STA
 		 * http://unicode.org/reports/tr29/#Grapheme_Cluster_Boundary_Rules
 		 */
 		notbreak = (dont_break[cp0_prop] & (UINT16_C(1) << cp1_prop)) ||
-		           (dont_break_gb11[cp0_prop + state->gb11_flag *
+		           (dont_break_gb11[cp0_prop + state.gb11_flag *
 		                            NUM_CHAR_BREAK_PROPS] &
 		            (UINT16_C(1) << cp1_prop)) ||
-		           (dont_break_gb12_13[cp0_prop + state->gb12_13_flag *
+		           (dont_break_gb12_13[cp0_prop + state.gb12_13_flag *
 		                               NUM_CHAR_BREAK_PROPS] &
 		            (UINT16_C(1) << cp1_prop));
 
 		/* update or reset flags (when we have a break) */
 		if (likely(!notbreak)) {
-			state->gb11_flag = state->gb12_13_flag = false;
+			state.gb11_flag = state.gb12_13_flag = false;
 		}
+
+		state_serialize(&state, s);
 	} else {
 		cp0_prop = get_break_prop(cp0);
 		cp1_prop = get_break_prop(cp1);
@@ -178,7 +208,7 @@ grapheme_is_character_break(uint_least32_t cp0, uint_least32_t cp1, GRAPHEME_STA
 static size_t
 next_character_break(HERODOTUS_READER *r)
 {
-	GRAPHEME_STATE state = { 0 };
+	uint_least16_t state = 0;
 	uint_least32_t cp0 = 0, cp1 = 0;
 
 	for (herodotus_read_codepoint(r, true, &cp0);
