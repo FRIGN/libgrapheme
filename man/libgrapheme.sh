@@ -11,12 +11,14 @@ cat << EOF
 The
 .Nm
 library provides functions to properly handle Unicode strings according
-to the Unicode specification.
+to the Unicode specification in regard to character, word, sentence and
+line segmentation and case detection and conversion.
+.Pp
 Unicode strings are made up of user-perceived characters (so-called
 .Dq grapheme clusters ,
 see
 .Sx MOTIVATION )
-that are made up of one or more Unicode codepoints, which in turn
+that are composed of one or more Unicode codepoints, which in turn
 are encoded in one or more bytes in an encoding like UTF-8.
 .Pp
 There is a widespread misconception that it was enough to simply
@@ -32,6 +34,10 @@ Despite this complicated multilevel structure of Unicode strings,
 provides methods to work with them at the byte-level (i.e. UTF-8
 .Sq char
 arrays) while also offering codepoint-level methods.
+Additionally, it is a
+.Dq freestanding
+library (see ISO/IEC 9899:1999 section 4.6) and thus does not depend on
+a standard library. This makes it easy to use in bare-metal environments.
 .Pp
 Every documented function's manual page provides a self-contained
 example illustrating the possible usage.
