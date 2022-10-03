@@ -310,7 +310,7 @@ main(int argc, char *argv[])
 			failed++;
 		}
 	}
-	printf("%s: %zu/%zu tests passed.\n", argv[0],
+	printf("%s: %zu/%zu unit tests passed.\n", argv[0],
 	       LEN(dec_test) - failed, LEN(dec_test));
 
 	return (failed > 0) ? 1 : 0;

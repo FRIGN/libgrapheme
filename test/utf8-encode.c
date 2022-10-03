@@ -86,7 +86,7 @@ main(int argc, char *argv[])
 			failed++;
 		}
 	}
-	printf("%s: %zu/%zu tests passed.\n", argv[0],
+	printf("%s: %zu/%zu unit tests passed.\n", argv[0],
 	       LEN(enc_test) - failed, LEN(enc_test));
 
 	return (failed > 0) ? 1 : 0;

@@ -38,8 +38,8 @@ run_break_tests(size_t (*next_break)(const uint_least32_t *, size_t),
 }
 
 int
-run_unit_tests(int (*unit_test_callback)(void *, size_t, const char *,
-               const char *), void *test, size_t testlen, const char *name,
+run_unit_tests(int (*unit_test_callback)(const void *, size_t, const char *,
+               const char *), const void *test, size_t testlen, const char *name,
                const char *argv0)
 {
 	size_t i, failed;
@@ -52,4 +52,47 @@ run_unit_tests(int (*unit_test_callback)(void *, size_t, const char *,
 	       testlen - failed, testlen);
 
 	return (failed > 0) ? 1 : 0;
+}
+
+int
+unit_test_callback_next_break(const struct unit_test_next_break *t, size_t off,
+                                   size_t (*next_break)(const uint_least32_t *, size_t),
+                                   const char *name, const char *argv0)
+{
+	const struct unit_test_next_break *test = t + off;
+
+	size_t ret = next_break(test->input.src, test->input.srclen);
+
+	if (ret != test->output.ret) {
+		goto err;
+	}
+
+	return 0;
+err:
+	fprintf(stderr, "%s: %s: Failed unit test %zu \"%s\" "
+	        "(returned %zu instead of %zu).\n", argv0,
+	        name, off, test->description, ret, test->output.ret);
+	return 1;
+}
+
+int
+unit_test_callback_next_break_utf8(const struct unit_test_next_break_utf8 *t,
+                                   size_t off,
+                                   size_t (*next_break_utf8)(const char *, size_t),
+                                   const char *name, const char *argv0)
+{
+	const struct unit_test_next_break_utf8 *test = t + off;
+
+	size_t ret = next_break_utf8(test->input.src, test->input.srclen);
+
+	if (ret != test->output.ret) {
+		goto err;
+	}
+
+	return 0;
+err:
+	fprintf(stderr, "%s: %s: Failed unit test %zu \"%s\" "
+	        "(returned %zu instead of %zu).\n", argv0,
+	        name, off, test->description, ret, test->output.ret);
+	return 1;
 }
