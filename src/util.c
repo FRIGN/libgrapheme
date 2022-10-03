@@ -31,9 +31,9 @@ herodotus_reader_copy(const HERODOTUS_READER *src, HERODOTUS_READER *dest)
 	size_t i;
 
 	/*
-	 * we copy such that we have a "fresh" start and build
-	 * on the fact that src->soft_limit[i] for any i and src->srclen
-	 * are always larger or equal to src->off
+	 * we copy such that we have a "fresh" start and build on the
+	 * fact that src->soft_limit[i] for any i and src->srclen are
+	 * always larger or equal to src->off
 	 */
 	dest->type = src->type;
 	if (src->type == HERODOTUS_TYPE_CODEPOINT) {
@@ -129,40 +129,37 @@ herodotus_read_codepoint(HERODOTUS_READER *r, bool advance, uint_least32_t *cp)
 
 	if (r->type == HERODOTUS_TYPE_CODEPOINT) {
 		*cp = ((const uint_least32_t *)(r->src))[r->off];
-
-		if (advance) {
-			r->off++;
-		}
+		ret = 1;
 	} else { /* r->type == HERODOTUS_TYPE_UTF8 */
 		ret = grapheme_decode_utf8((const char *)r->src + r->off,
 		                           MIN(r->srclen, r->soft_limit[0]) -
 		                           r->off, cp);
+	}
 
-		if (unlikely(r->srclen == SIZE_MAX && *cp == 0)) {
-			/*
-			 * We encountered a NUL-byte. Don't increment
-			 * offset and return as if the buffer had ended
-			 * here all along
-			 */
-			r->terminated_by_null = true;
-			return HERODOTUS_STATUS_END_OF_BUFFER;
-		}
-
-		if (r->off + ret > MIN(r->srclen, r->soft_limit[0])) {
-			/*
-			 * we want more than we have; instead of
-			 * returning garbage we terminate here.
-			 */
-			return HERODOTUS_STATUS_END_OF_BUFFER;
-		}
-
+	if (unlikely(r->srclen == SIZE_MAX && *cp == 0)) {
 		/*
-		 * Increase offset which we now know won't surpass
-		 * the limits, unless we got told otherwise
+		 * We encountered a null-codepoint. Don't increment
+		 * offset and return as if the buffer had ended here all
+		 * along
 		 */
-		if (advance) {
-			r->off += ret;
-		}
+		r->terminated_by_null = true;
+		return HERODOTUS_STATUS_END_OF_BUFFER;
+	}
+
+	if (r->off + ret > MIN(r->srclen, r->soft_limit[0])) {
+		/*
+		 * we want more than we have; instead of returning
+		 * garbage we terminate here.
+		 */
+		return HERODOTUS_STATUS_END_OF_BUFFER;
+	}
+
+	/*
+	 * Increase offset which we now know won't surpass the limits,
+	 * unless we got told otherwise
+	 */
+	if (advance) {
+		r->off += ret;
 	}
 
 	return HERODOTUS_STATUS_SUCCESS;
