@@ -37,7 +37,7 @@ arrays) while also offering codepoint-level methods.
 Additionally, it is a
 .Dq freestanding
 library (see ISO/IEC 9899:1999 section 4.6) and thus does not depend on
-a standard library. This makes it easy to use in bare-metal environments.
+a standard library. This makes it easy to use in bare metal environments.
 .Pp
 Every documented function's manual page provides a self-contained
 example illustrating the possible usage.
@@ -47,10 +47,10 @@ example illustrating the possible usage.
 .Xr grapheme_is_character_break 3 ,
 .Xr grapheme_is_lowercase 3 ,
 .Xr grapheme_is_lowercase_utf8 3 ,
-.Xr grapheme_is_uppercase 3 ,
-.Xr grapheme_is_uppercase_utf8 3 ,
 .Xr grapheme_is_titlecase 3 ,
 .Xr grapheme_is_titlecase_utf8 3 ,
+.Xr grapheme_is_uppercase 3 ,
+.Xr grapheme_is_uppercase_utf8 3 ,
 .Xr grapheme_next_character_break 3 ,
 .Xr grapheme_next_character_break_utf8 3 ,
 .Xr grapheme_next_line_break 3 ,
@@ -61,10 +61,10 @@ example illustrating the possible usage.
 .Xr grapheme_next_word_break_utf8 3 ,
 .Xr grapheme_to_lowercase 3 ,
 .Xr grapheme_to_lowercase_utf8 3 ,
-.Xr grapheme_to_uppercase 3 ,
-.Xr grapheme_to_uppercase_utf8 3 ,
 .Xr grapheme_to_titlecase 3 ,
 .Xr grapheme_to_titlecase_utf8 3
+.Xr grapheme_to_uppercase 3 ,
+.Xr grapheme_to_uppercase_utf8 3 ,
 .Sh STANDARDS
 .Nm
 is compliant with the Unicode ${UNICODE_VERSION} specification.
