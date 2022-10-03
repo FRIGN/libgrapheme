@@ -32,7 +32,7 @@ struct unit_test_to_case_utf8 {
 	} output;
 };
 
-static struct unit_test_is_case_utf8 is_lowercase_utf8[] = {
+static const struct unit_test_is_case_utf8 is_lowercase_utf8[] = {
 	{
 		.description = "empty input",
 		.input =  { "", 0 },
@@ -45,7 +45,7 @@ static struct unit_test_is_case_utf8 is_lowercase_utf8[] = {
 	},
 	{
 		.description = "one character, confirmation",
-		.input =  { "\xc3\x9f", 2 },
+		.input =  { "\xC3\x9F", 2 },
 		.output = { true, 2 },
 	},
 	{
@@ -55,7 +55,7 @@ static struct unit_test_is_case_utf8 is_lowercase_utf8[] = {
 	},
 	{
 		.description = "one character, confirmation, NUL-terminated",
-		.input =  { "\xc3\x9f", SIZE_MAX },
+		.input =  { "\xC3\x9F", SIZE_MAX },
 		.output = { true, 2 },
 	},
 	{
@@ -65,12 +65,12 @@ static struct unit_test_is_case_utf8 is_lowercase_utf8[] = {
 	},
 	{
 		.description = "one word, partial confirmation",
-		.input =  { "gru" "\xc3\x9f" "fOrmel", 11 },
+		.input =  { "gru" "\xC3\x9F" "fOrmel", 11 },
 		.output = { false, 6 },
 	},
 	{
 		.description = "one word, full confirmation",
-		.input =  { "gru" "\xc3\x9f" "formel", 11 },
+		.input =  { "gru" "\xC3\x9F" "formel", 11 },
 		.output = { true, 11 },
 	},
 	{
@@ -80,17 +80,17 @@ static struct unit_test_is_case_utf8 is_lowercase_utf8[] = {
 	},
 	{
 		.description = "one word, partial confirmation, NUL-terminated",
-		.input =  { "gru" "\xc3\x9f" "fOrmel", SIZE_MAX },
+		.input =  { "gru" "\xC3\x9F" "fOrmel", SIZE_MAX },
 		.output = { false, 6 },
 	},
 	{
 		.description = "one word, full confirmation, NUL-terminated",
-		.input =  { "gru" "\xc3\x9f" "formel", SIZE_MAX },
+		.input =  { "gru" "\xC3\x9F" "formel", SIZE_MAX },
 		.output = { true, 11 },
 	},
 };
 
-static struct unit_test_is_case_utf8 is_uppercase_utf8[] = {
+static const struct unit_test_is_case_utf8 is_uppercase_utf8[] = {
 	{
 		.description = "empty input",
 		.input =  { "", 0 },
@@ -98,7 +98,7 @@ static struct unit_test_is_case_utf8 is_uppercase_utf8[] = {
 	},
 	{
 		.description = "one character, violation",
-		.input =  { "\xc3\x9f", 2 },
+		.input =  { "\xC3\x9F", 2 },
 		.output = { false, 0 },
 	},
 	{
@@ -108,7 +108,7 @@ static struct unit_test_is_case_utf8 is_uppercase_utf8[] = {
 	},
 	{
 		.description = "one character, violation, NUL-terminated",
-		.input =  { "\xc3\x9f", SIZE_MAX },
+		.input =  { "\xC3\x9F", SIZE_MAX },
 		.output = { false, 0 },
 	},
 	{
@@ -123,7 +123,7 @@ static struct unit_test_is_case_utf8 is_uppercase_utf8[] = {
 	},
 	{
 		.description = "one word, partial confirmation",
-		.input =  { "GRU" "\xc3\x9f" "formel", 11 },
+		.input =  { "GRU" "\xC3\x9F" "formel", 11 },
 		.output = { false, 3 },
 	},
 	{
@@ -138,7 +138,7 @@ static struct unit_test_is_case_utf8 is_uppercase_utf8[] = {
 	},
 	{
 		.description = "one word, partial confirmation, NUL-terminated",
-		.input =  { "GRU" "\xc3\x9f" "formel", SIZE_MAX },
+		.input =  { "GRU" "\xC3\x9F" "formel", SIZE_MAX },
 		.output = { false, 3 },
 	},
 	{
@@ -148,7 +148,7 @@ static struct unit_test_is_case_utf8 is_uppercase_utf8[] = {
 	},
 };
 
-static struct unit_test_is_case_utf8 is_titlecase_utf8[] = {
+static const struct unit_test_is_case_utf8 is_titlecase_utf8[] = {
 	{
 		.description = "empty input",
 		.input =  { "", 0 },
@@ -156,7 +156,7 @@ static struct unit_test_is_case_utf8 is_titlecase_utf8[] = {
 	},
 	{
 		.description = "one character, violation",
-		.input =  { "\xc3\x9f", 2 },
+		.input =  { "\xC3\x9F", 2 },
 		.output = { false, 0 },
 	},
 	{
@@ -166,7 +166,7 @@ static struct unit_test_is_case_utf8 is_titlecase_utf8[] = {
 	},
 	{
 		.description = "one character, violation, NUL-terminated",
-		.input =  { "\xc3\x9f", SIZE_MAX },
+		.input =  { "\xC3\x9F", SIZE_MAX },
 		.output = { false, 0 },
 	},
 	{
@@ -181,12 +181,12 @@ static struct unit_test_is_case_utf8 is_titlecase_utf8[] = {
 	},
 	{
 		.description = "one word, partial confirmation",
-		.input =  { "Gru" "\xc3\x9f" "fOrmel", 11 },
+		.input =  { "Gru" "\xC3\x9F" "fOrmel", 11 },
 		.output = { false, 6 },
 	},
 	{
 		.description = "one word, full confirmation",
-		.input =  { "Gru" "\xc3\x9f" "formel", 11 },
+		.input =  { "Gru" "\xC3\x9F" "formel", 11 },
 		.output = { true, 11 },
 	},
 	{
@@ -196,37 +196,37 @@ static struct unit_test_is_case_utf8 is_titlecase_utf8[] = {
 	},
 	{
 		.description = "one word, partial confirmation, NUL-terminated",
-		.input =  { "Gru" "\xc3\x9f" "fOrmel", SIZE_MAX },
+		.input =  { "Gru" "\xC3\x9F" "fOrmel", SIZE_MAX },
 		.output = { false, 6 },
 	},
 	{
 		.description = "one word, full confirmation, NUL-terminated",
-		.input =  { "Gru" "\xc3\x9f" "formel", SIZE_MAX },
+		.input =  { "Gru" "\xC3\x9F" "formel", SIZE_MAX },
 		.output = { true, 11 },
 	},
 	{
 		.description = "multiple words, partial confirmation",
-		.input =  { "Hello Gru" "\xc3\x9f" "fOrmel!", 18 },
+		.input =  { "Hello Gru" "\xC3\x9F" "fOrmel!", 18 },
 		.output = { false, 12 },
 	},
 	{
 		.description = "multiple words, full confirmation",
-		.input =  { "Hello Gru" "\xc3\x9f" "formel!", 18 },
+		.input =  { "Hello Gru" "\xC3\x9F" "formel!", 18 },
 		.output = { true, 18 },
 	},
 	{
 		.description = "multiple words, partial confirmation, NUL-terminated",
-		.input =  { "Hello Gru" "\xc3\x9f" "fOrmel!", SIZE_MAX },
+		.input =  { "Hello Gru" "\xC3\x9F" "fOrmel!", SIZE_MAX },
 		.output = { false, 12 },
 	},
 	{
 		.description = "multiple words, full confirmation, NUL-terminated",
-		.input =  { "Hello Gru" "\xc3\x9f" "formel!", SIZE_MAX },
+		.input =  { "Hello Gru" "\xC3\x9F" "formel!", SIZE_MAX },
 		.output = { true, 18 },
 	},
 };
 
-static struct unit_test_to_case_utf8 to_lowercase_utf8[] = {
+static const struct unit_test_to_case_utf8 to_lowercase_utf8[] = {
 	{
 		.description = "empty input",
 		.input =  { "", 0, 10 },
@@ -244,8 +244,8 @@ static struct unit_test_to_case_utf8 to_lowercase_utf8[] = {
 	},
 	{
 		.description = "one character, no conversion",
-		.input =  { "\xc3\x9f", 2, 10 },
-		.output = { "\xc3\x9f", 2 },
+		.input =  { "\xC3\x9F", 2, 10 },
+		.output = { "\xC3\x9F", 2 },
 	},
 	{
 		.description = "one character, conversion, truncation",
@@ -259,8 +259,8 @@ static struct unit_test_to_case_utf8 to_lowercase_utf8[] = {
 	},
 	{
 		.description = "one character, no conversion, NUL-terminated",
-		.input =  { "\xc3\x9f", SIZE_MAX, 10 },
-		.output = { "\xc3\x9f", 2 },
+		.input =  { "\xC3\x9F", SIZE_MAX, 10 },
+		.output = { "\xC3\x9F", 2 },
 	},
 	{
 		.description = "one character, conversion, NUL-terminated, truncation",
@@ -299,7 +299,7 @@ static struct unit_test_to_case_utf8 to_lowercase_utf8[] = {
 	},
 };
 
-static struct unit_test_to_case_utf8 to_uppercase_utf8[] = {
+static const struct unit_test_to_case_utf8 to_uppercase_utf8[] = {
 	{
 		.description = "empty input",
 		.input =  { "", 0, 10 },
@@ -312,7 +312,7 @@ static struct unit_test_to_case_utf8 to_uppercase_utf8[] = {
 	},
 	{
 		.description = "one character, conversion",
-		.input =  { "\xc3\x9f", 2, 10 },
+		.input =  { "\xC3\x9F", 2, 10 },
 		.output = { "SS", 2 },
 	},
 	{
@@ -322,12 +322,12 @@ static struct unit_test_to_case_utf8 to_uppercase_utf8[] = {
 	},
 	{
 		.description = "one character, conversion, truncation",
-		.input =  { "\xc3\x9f", 2, 0 },
+		.input =  { "\xC3\x9F", 2, 0 },
 		.output = { "", 2 },
 	},
 	{
 		.description = "one character, conversion, NUL-terminated",
-		.input =  { "\xc3\x9f", SIZE_MAX, 10 },
+		.input =  { "\xC3\x9F", SIZE_MAX, 10 },
 		.output = { "SS", 2 },
 	},
 	{
@@ -337,12 +337,12 @@ static struct unit_test_to_case_utf8 to_uppercase_utf8[] = {
 	},
 	{
 		.description = "one character, conversion, NUL-terminated, truncation",
-		.input =  { "\xc3\x9f", SIZE_MAX, 0 },
+		.input =  { "\xC3\x9F", SIZE_MAX, 0 },
 		.output = { "", 2 },
 	},
 	{
 		.description = "one word, conversion",
-		.input =  { "gRu" "\xc3\x9f" "fOrMel", 11, 15 },
+		.input =  { "gRu" "\xC3\x9F" "fOrMel", 11, 15 },
 		.output = { "GRUSSFORMEL", 11 },
 	},
 	{
@@ -352,12 +352,12 @@ static struct unit_test_to_case_utf8 to_uppercase_utf8[] = {
 	},
 	{
 		.description = "one word, conversion, truncation",
-		.input =  { "gRu" "\xc3\x9f" "formel", 11, 5 },
+		.input =  { "gRu" "\xC3\x9F" "formel", 11, 5 },
 		.output = { "GRUS", 11 },
 	},
 	{
 		.description = "one word, conversion, NUL-terminated",
-		.input =  { "gRu" "\xc3\x9f" "formel", SIZE_MAX, 15 },
+		.input =  { "gRu" "\xC3\x9F" "formel", SIZE_MAX, 15 },
 		.output = { "GRUSSFORMEL", 11 },
 	},
 	{
@@ -367,12 +367,12 @@ static struct unit_test_to_case_utf8 to_uppercase_utf8[] = {
 	},
 	{
 		.description = "one word, conversion, NUL-terminated, truncation",
-		.input =  { "gRu" "\xc3\x9f" "formel", SIZE_MAX, 5 },
+		.input =  { "gRu" "\xC3\x9F" "formel", SIZE_MAX, 5 },
 		.output = { "GRUS", 11 },
 	},
 };
 
-static struct unit_test_to_case_utf8 to_titlecase_utf8[] = {
+static const struct unit_test_to_case_utf8 to_titlecase_utf8[] = {
 	{
 		.description = "empty input",
 		.input =  { "", 0, 10 },
@@ -476,9 +476,11 @@ static struct unit_test_to_case_utf8 to_titlecase_utf8[] = {
 };
 
 static int
-unit_test_callback_is_case_utf8(void *t, size_t off, const char *name, const char *argv0)
+unit_test_callback_is_case_utf8(const void *t, size_t off, const char *name,
+                                const char *argv0)
 {
-	struct unit_test_is_case_utf8 *test = (struct unit_test_is_case_utf8 *)t + off;
+	const struct unit_test_is_case_utf8 *test =
+		(const struct unit_test_is_case_utf8 *)t + off;
 	bool ret = false;
 	size_t caselen = 0x7f;
 
@@ -512,9 +514,11 @@ err:
 }
 
 static int
-unit_test_callback_to_case_utf8(void *t, size_t off, const char *name, const char *argv0)
+unit_test_callback_to_case_utf8(const void *t, size_t off, const char *name,
+                                const char *argv0)
 {
-	struct unit_test_to_case_utf8 *test = (struct unit_test_to_case_utf8 *)t + off;
+	const struct unit_test_to_case_utf8 *test =
+		(const struct unit_test_to_case_utf8 *)t + off;
 	size_t ret = 0, i;
 	char buf[512];
 
