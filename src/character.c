@@ -132,9 +132,9 @@ static inline void
 state_deserialize(uint_least16_t in, struct character_break_state *out)
 {
 	out->prop         = in & UINT8_C(0xFF);
-	out->prop_set     = in & (((uint_least16_t)(1)) <<  8);
-	out->gb11_flag    = in & (((uint_least16_t)(1)) <<  9);
-	out->gb12_13_flag = in & (((uint_least16_t)(1)) << 10);
+	out->prop_set     = in & (UINT16_C(1) <<  8);
+	out->gb11_flag    = in & (UINT16_C(1) <<  9);
+	out->gb12_13_flag = in & (UINT16_C(1) << 10);
 }
 
 bool
