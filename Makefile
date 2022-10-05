@@ -2,11 +2,9 @@
 # libgrapheme - unicode string library
 .POSIX:
 
-VERSION = 1
-MAN_DATE = 2022-09-07
-UNICODE_VERSION = 15.0.0
-
 include config.mk
+
+VERSION = $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)
 
 BENCHMARK =\
 	benchmark/case\
@@ -277,7 +275,10 @@ install: all
 	cp -f $(MAN3:=.3) "$(DESTDIR)$(MANPREFIX)/man3"
 	cp -f $(MAN7:=.7) "$(DESTDIR)$(MANPREFIX)/man7"
 	cp -f libgrapheme.a "$(DESTDIR)$(LIBPREFIX)"
-	cp -f libgrapheme.so "$(DESTDIR)$(LIBPREFIX)"
+	cp -f libgrapheme.so "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so.$(VERSION)"
+	i=0; while [ "$$i" -le $(VERSION_MINOR) ]; do ln -sf "libgrapheme.so.$(VERSION)" "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so.$(VERSION_MAJOR).$$i"; i=$$((i+1)); done
+	ln -sf "libgrapheme.so.$(VERSION)" "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so.$(VERSION_MAJOR)"
+	ln -sf "libgrapheme.so.$(VERSION)" "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so"
 	cp -f grapheme.h "$(DESTDIR)$(INCPREFIX)"
 	$(LDCONFIG)
 
@@ -285,6 +286,9 @@ uninstall:
 	for m in $(MAN3:=.3); do rm -f "$(DESTDIR)$(MANPREFIX)/man3/`basename $$m`"; done
 	for m in $(MAN7:=.7); do rm -f "$(DESTDIR)$(MANPREFIX)/man7/`basename $$m`"; done
 	rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.a"
+	rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so.$(VERSION)"
+	i=0; while [ "$$i" -le $(VERSION_MINOR) ]; do rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so.$(VERSION_MAJOR).$$i"; i=$$((i+1)); done
+	rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so.$(VERSION_MAJOR)"
 	rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so"
 	rm -f "$(DESTDIR)$(INCPREFIX)/grapheme.h"
 	$(LDCONFIG)

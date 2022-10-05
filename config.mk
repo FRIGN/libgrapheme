@@ -1,3 +1,10 @@
+# libgrapheme version
+VERSION_MAJOR = 1
+VERSION_MINOR = 0
+VERSION_PATCH = 0
+UNICODE_VERSION = 15.0.0
+MAN_DATE = 2022-09-07
+
 # Customize below to fit your system
 
 # paths
@@ -16,7 +23,7 @@ BUILD_CFLAGS   = $(CFLAGS)
 BUILD_LDFLAGS  = $(LDFLAGS)
 
 SHFLAGS  = -fPIC -ffreestanding
-SOFLAGS  = -shared -nostdlib -Wl,--soname=libgrapheme.so
+SOFLAGS  = -shared -nostdlib -Wl,--soname=libgrapheme.so.$(VERSION_MAJOR).$(VERSION_MINOR)
 
 # tools
 CC       = cc
