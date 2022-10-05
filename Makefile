@@ -231,7 +231,7 @@ man/libgrapheme.7: man/libgrapheme.sh config.mk
 $(GEN:=.o) gen/util.o:
 	$(BUILD_CC) -c -o $@ $(BUILD_CPPFLAGS) $(BUILD_CFLAGS) $(@:.o=.c)
 
-$(BENCHMARK:=.o) $(TEST:=.o):
+$(BENCHMARK:=.o) benchmark/util.o $(TEST:=.o) test/util.o:
 	$(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(@:.o=.c)
 
 $(SRC:=.o):
