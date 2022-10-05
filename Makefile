@@ -1,6 +1,7 @@
 # See LICENSE file for copyright and license details
 # libgrapheme - unicode string library
 .POSIX:
+.SUFFIXES:
 
 include config.mk
 
@@ -227,7 +228,7 @@ man/grapheme_encode_utf8.3: man/grapheme_encode_utf8.sh config.mk
 
 man/libgrapheme.7: man/libgrapheme.sh config.mk
 
-$(GEN:=.o):
+$(GEN:=.o) gen/util.o:
 	$(BUILD_CC) -c -o $@ $(BUILD_CPPFLAGS) $(BUILD_CFLAGS) $(@:.o=.c)
 
 $(BENCHMARK:=.o) $(TEST:=.o):
