@@ -61,6 +61,7 @@ TEST =\
 	test/word\
 
 MAN_TEMPLATE =\
+	man/template/is_case.sh\
 	man/template/next_break.sh\
 	man/template/to_case.sh\
 
