@@ -76,7 +76,7 @@ hextocp(const char *str, size_t len, uint_least32_t *cp)
 		       (uint_least32_t)(str[i] - relative + off);
 	}
 
-	if (*cp > 0x10ffff) {
+	if (*cp > UINT32_C(0x10FFFF)) {
 		fprintf(stderr, "hextocp: '%.*s' is too large.\n",
 		        (int)len, str);
 		return 1;
@@ -251,14 +251,14 @@ properties_compress(const struct properties *prop,
 	uint_least32_t cp, i;
 
 	/* initialization */
-	if (!(comp->offset = malloc((size_t)0x110000 * sizeof(*(comp->offset))))) {
+	if (!(comp->offset = malloc((size_t)UINT32_C(0x110000) * sizeof(*(comp->offset))))) {
 		fprintf(stderr, "malloc: %s\n", strerror(errno));
 		exit(1);
 	}
 	comp->data = NULL;
 	comp->datalen = 0;
 
-	for (cp = 0; cp < 0x110000; cp++) {
+	for (cp = 0; cp < UINT32_C(0x110000); cp++) {
 		for (i = 0; i < comp->datalen; i++) {
 			if (!memcmp(&(prop[cp]), &(comp->data[i]), sizeof(*prop))) {
 				/* found a match! */

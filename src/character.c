@@ -111,7 +111,7 @@ static const uint_least16_t dont_break_gb12_13[2 * NUM_CHAR_BREAK_PROPS] = {
 static inline enum char_break_property
 get_break_prop(uint_least32_t cp)
 {
-	if (likely(cp <= 0x10FFFF)) {
+	if (likely(cp <= UINT32_C(0x10FFFF))) {
 		return (enum char_break_property)
 		       char_break_minor[char_break_major[cp >> 8] + (cp & 0xFF)];
 	} else {

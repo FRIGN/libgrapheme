@@ -9,7 +9,7 @@
 static inline enum line_break_property
 get_break_prop(uint_least32_t cp)
 {
-	if (likely(cp <= 0x10FFFF)) {
+	if (likely(cp <= UINT32_C(0x10FFFF))) {
 		return (enum line_break_property)
 		       line_break_minor[line_break_major[cp >> 8] + (cp & 0xff)];
 	} else {

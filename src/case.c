@@ -9,9 +9,9 @@
 static inline enum case_property
 get_case_property(uint_least32_t cp)
 {
-	if (likely(cp <= 0x10FFFF)) {
+	if (likely(cp <= UINT32_C(0x10FFFF))) {
 		return (enum case_property)
-		       case_minor[case_major[cp >> 8] + (cp & 0xff)];
+		       case_minor[case_major[cp >> 8] + (cp & 0xFF)];
 	} else {
 		return CASE_PROP_OTHER;
 	}
@@ -21,13 +21,13 @@ static inline int_least32_t
 get_case_offset(uint_least32_t cp, const uint_least16_t *major,
                 const int_least32_t *minor)
 {
-	if (likely(cp <= 0x10FFFF)) {
+	if (likely(cp <= UINT32_C(0x10FFFF))) {
 		/*
 		 * this value might be larger than or equal to 0x110000
 		 * for the special-case-mapping. This needs to be handled
 		 * separately
 		 */
-		return minor[major[cp >> 8] + (cp & 0xff)];
+		return minor[major[cp >> 8] + (cp & 0xFF)];
 	} else {
 		return 0;
 	}
