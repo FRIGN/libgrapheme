@@ -1,9 +1,9 @@
 # libgrapheme version
-VERSION_MAJOR = 1
+VERSION_MAJOR = 2
 VERSION_MINOR = 0
 VERSION_PATCH = 0
 UNICODE_VERSION = 15.0.0
-MAN_DATE = 2022-09-07
+MAN_DATE = 2022-10-06
 
 # Customize below to fit your system
 
