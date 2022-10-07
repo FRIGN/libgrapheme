@@ -207,7 +207,7 @@ herodotus_writer_nul_terminate(HERODOTUS_WRITER *w)
 		} else { /* w->type == HERODOTUS_TYPE_UTF8 */
 			((char *)(w->dest))[w->first_unwritable_offset] = '\0';
 		}
-	} else {
+	} else if (w->destlen > 0) {
 		/*
 		 * In this case, there is no more space in the buffer and
 		 * the last unwritable offset is larger than
