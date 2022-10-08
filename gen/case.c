@@ -119,10 +119,13 @@ parse_cp_list(const char *str, uint_least32_t **cp, size_t *cplen)
 	}
 
 	/* go through the string again, parsing the numbers */
-	for (i = 0, tmp1 = tmp2 = str; tmp2 != NULL; i++, tmp1 = tmp2 + 1) {
+	for (i = 0, tmp1 = tmp2 = str; tmp2 != NULL; i++) {
 		tmp2 = strchr(tmp1, ' ');
 		if (hextocp(tmp1, tmp2 ? (size_t)(tmp2 - tmp1) : strlen(tmp1), &((*cp)[i]))) {
 			return 1;
+		}
+		if (tmp2 != NULL) {
+			tmp1 = tmp2 + 1;
 		}
 	}
 
@@ -297,6 +300,19 @@ main(int argc, char *argv[])
 		printf("\t},\n");
 	}
 	printf("};\n\n");
+
+	free(comp_lower.data);
+	free(comp_lower.offset);
+	free(comp_title.data);
+	free(comp_title.offset);
+	free(comp_upper.data);
+	free(comp_upper.offset);
+	free(mm_lower.major);
+	free(mm_lower.minor);
+	free(mm_title.major);
+	free(mm_title.minor);
+	free(mm_upper.major);
+	free(mm_upper.minor);
 
 	return 0;
 }
