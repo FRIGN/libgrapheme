@@ -15,8 +15,23 @@ BUILD_CPPFLAGS = $(CPPFLAGS)
 BUILD_CFLAGS   = $(CFLAGS)
 BUILD_LDFLAGS  = $(LDFLAGS)
 
-SHFLAGS  = -fPIC -ffreestanding
-SOFLAGS  = -shared -nostdlib -Wl,--soname=libgrapheme.so.$(VERSION_MAJOR).$(VERSION_MINOR)
+SHFLAGS   = -fPIC -ffreestanding
+
+SOFLAGS   = -shared -nostdlib -Wl,--soname=libgrapheme.so.$(VERSION_MAJOR).$(VERSION_MINOR)
+SONAME    = libgrapheme.so.$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)
+SOSYMLINK = true
+
+# -- OpenBSD -- (also unset LDCONFIG)
+# SOFLAGS   = -shared -nostdlib
+# SONAME    = libgrapheme.so.$(VERSION_MAJOR).$(VERSION_MINOR)
+# SOSYMLINK = false
+
+# -- macOS -- (also unset LDCONFIG)
+# SOFLAGS   = -dynamiclib -install_name "libgrapheme.$(VERSION_MAJOR).dylib" \
+#             -current_version "$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)" \
+#             -compatibility_version "$(VERSION_MAJOR).$(VERSION_MINOR).0"
+# SONAME    = libgrapheme.$(VERSION_MAJOR).dylib
+# SOSYMLINK = false
 
 # tools
 CC       = cc

@@ -99,7 +99,7 @@ MAN3 =\
 MAN7 =\
 	man/libgrapheme\
 
-all: data/LICENSE $(MAN3:=.3) $(MAN7:=.7) libgrapheme.a libgrapheme.so
+all: data/LICENSE $(MAN3:=.3) $(MAN7:=.7) libgrapheme.a $(SONAME)
 
 data/DerivedCoreProperties.txt:
 	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/DerivedCoreProperties.txt
@@ -260,7 +260,7 @@ libgrapheme.a: $(SRC:=.o)
 	$(AR) -rc $@ $?
 	$(RANLIB) $@
 
-libgrapheme.so: $(SRC:=.o)
+$(SONAME): $(SRC:=.o)
 	$(CC) -o $@ $(SOFLAGS) $(LDFLAGS) $(SRC:=.o)
 
 $(MAN3:=.3):
@@ -283,10 +283,10 @@ install: all
 	cp -f $(MAN3:=.3) "$(DESTDIR)$(MANPREFIX)/man3"
 	cp -f $(MAN7:=.7) "$(DESTDIR)$(MANPREFIX)/man7"
 	cp -f libgrapheme.a "$(DESTDIR)$(LIBPREFIX)"
-	cp -f libgrapheme.so "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so.$(VERSION)"
-	i=0; while [ "$$i" -le $(VERSION_MINOR) ]; do ln -sf "libgrapheme.so.$(VERSION)" "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so.$(VERSION_MAJOR).$$i"; i=$$((i+1)); done
-	ln -sf "libgrapheme.so.$(VERSION)" "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so.$(VERSION_MAJOR)"
-	ln -sf "libgrapheme.so.$(VERSION)" "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so"
+	cp -f $(SONAME) "$(DESTDIR)$(LIBPREFIX)/$(SONAME)"
+	if [ "$(SOSYMLINK)" = "true" ]; then i=0; while [ "$$i" -le $(VERSION_MINOR) ]; do ln -sf "$(SONAME)" "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so.$(VERSION_MAJOR).$$i"; i=$$((i+1)); done; fi
+	if [ "$(SOSYMLINK)" = "true" ]; then ln -sf "$(SONAME)" "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so.$(VERSION_MAJOR)"; fi
+	if [ "$(SOSYMLINK)" = "true" ]; then ln -sf "$(SONAME)" "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so"; fi
 	cp -f grapheme.h "$(DESTDIR)$(INCPREFIX)"
 	$(LDCONFIG)
 
@@ -294,15 +294,15 @@ uninstall:
 	for m in $(MAN3:=.3); do rm -f "$(DESTDIR)$(MANPREFIX)/man3/`basename $$m`"; done
 	for m in $(MAN7:=.7); do rm -f "$(DESTDIR)$(MANPREFIX)/man7/`basename $$m`"; done
 	rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.a"
-	rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so.$(VERSION)"
-	i=0; while [ "$$i" -le $(VERSION_MINOR) ]; do rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so.$(VERSION_MAJOR).$$i"; i=$$((i+1)); done
-	rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so.$(VERSION_MAJOR)"
-	rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so"
+	rm -f "$(DESTDIR)$(LIBPREFIX)/$(SONAME)"
+	if [ "$(SOSYMLINK)" = "true" ]; then i=0; while [ "$$i" -le $(VERSION_MINOR) ]; do rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so.$(VERSION_MAJOR).$$i"; i=$$((i+1)); done; fi
+	if [ "$(SOSYMLINK)" = "true" ]; then rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so.$(VERSION_MAJOR)"; fi
+	if [ "$(SOSYMLINK)" = "true" ]; then rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so"; fi
 	rm -f "$(DESTDIR)$(INCPREFIX)/grapheme.h"
 	$(LDCONFIG)
 
 clean:
-	rm -f $(BENCHMARK:=.o) benchmark/util.o $(BENCHMARK) $(GEN:=.h) $(GEN:=.o) gen/util.o $(GEN) $(SRC:=.o) src/util.o $(TEST:=.o) test/util.o $(TEST) libgrapheme.a libgrapheme.so $(MAN3:=.3) $(MAN7:=.7)
+	rm -f $(BENCHMARK:=.o) benchmark/util.o $(BENCHMARK) $(GEN:=.h) $(GEN:=.o) gen/util.o $(GEN) $(SRC:=.o) src/util.o $(TEST:=.o) test/util.o $(TEST) libgrapheme.a $(SONAME) $(MAN3:=.3) $(MAN7:=.7)
 
 clean-data:
 	rm -f $(DATA)
