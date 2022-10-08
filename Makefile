@@ -3,6 +3,12 @@
 .POSIX:
 .SUFFIXES:
 
+VERSION_MAJOR = 2
+VERSION_MINOR = 0
+VERSION_PATCH = 0
+UNICODE_VERSION = 15.0.0
+MAN_DATE = 2022-10-06
+
 include config.mk
 
 VERSION = $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)
@@ -137,38 +143,38 @@ data/WordBreakProperty.txt:
 data/WordBreakTest.txt:
 	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/auxiliary/WordBreakTest.txt
 
-benchmark/case.o: benchmark/case.c config.mk gen/word-test.h grapheme.h benchmark/util.h
-benchmark/character.o: benchmark/character.c config.mk gen/character-test.h grapheme.h benchmark/util.h
-benchmark/line.o: benchmark/line.c config.mk gen/line-test.h grapheme.h benchmark/util.h
-benchmark/utf8-decode.o: benchmark/utf8-decode.c config.mk gen/character-test.h grapheme.h benchmark/util.h
-benchmark/sentence.o: benchmark/sentence.c config.mk gen/sentence-test.h grapheme.h benchmark/util.h
-benchmark/util.o: benchmark/util.c config.mk benchmark/util.h
-benchmark/word.o: benchmark/word.c config.mk gen/word-test.h grapheme.h benchmark/util.h
-gen/case.o: gen/case.c config.mk gen/util.h
-gen/character.o: gen/character.c config.mk gen/util.h
-gen/character-test.o: gen/character-test.c config.mk gen/util.h
-gen/line.o: gen/line.c config.mk gen/util.h
-gen/line-test.o: gen/line-test.c config.mk gen/util.h
-gen/sentence.o: gen/sentence.c config.mk gen/util.h
-gen/sentence-test.o: gen/sentence-test.c config.mk gen/util.h
-gen/word.o: gen/word.c config.mk gen/util.h
-gen/word-test.o: gen/word-test.c config.mk gen/util.h
-gen/util.o: gen/util.c config.mk gen/util.h
-src/case.o: src/case.c config.mk gen/case.h grapheme.h src/util.h
-src/character.o: src/character.c config.mk gen/character.h grapheme.h src/util.h
-src/line.o: src/line.c config.mk gen/line.h grapheme.h src/util.h
-src/sentence.o: src/sentence.c config.mk gen/sentence.h grapheme.h src/util.h
-src/utf8.o: src/utf8.c config.mk grapheme.h
-src/util.o: src/util.c config.mk gen/types.h grapheme.h src/util.h
-src/word.o: src/word.c config.mk gen/word.h grapheme.h src/util.h
-test/case.o: test/case.c config.mk grapheme.h test/util.h
-test/character.o: test/character.c config.mk gen/character-test.h grapheme.h test/util.h
-test/line.o: test/line.c config.mk gen/line-test.h grapheme.h test/util.h
-test/sentence.o: test/sentence.c config.mk gen/sentence-test.h grapheme.h test/util.h
-test/utf8-encode.o: test/utf8-encode.c config.mk grapheme.h test/util.h
-test/utf8-decode.o: test/utf8-decode.c config.mk grapheme.h test/util.h
-test/util.o: test/util.c config.mk test/util.h
-test/word.o: test/word.c config.mk gen/word-test.h grapheme.h test/util.h
+benchmark/case.o: benchmark/case.c Makefile config.mk gen/word-test.h grapheme.h benchmark/util.h
+benchmark/character.o: benchmark/character.c Makefile config.mk gen/character-test.h grapheme.h benchmark/util.h
+benchmark/line.o: benchmark/line.c Makefile config.mk gen/line-test.h grapheme.h benchmark/util.h
+benchmark/utf8-decode.o: benchmark/utf8-decode.c Makefile config.mk gen/character-test.h grapheme.h benchmark/util.h
+benchmark/sentence.o: benchmark/sentence.c Makefile config.mk gen/sentence-test.h grapheme.h benchmark/util.h
+benchmark/util.o: benchmark/util.c Makefile config.mk benchmark/util.h
+benchmark/word.o: benchmark/word.c Makefile config.mk gen/word-test.h grapheme.h benchmark/util.h
+gen/case.o: gen/case.c Makefile config.mk gen/util.h
+gen/character.o: gen/character.c Makefile config.mk gen/util.h
+gen/character-test.o: gen/character-test.c Makefile config.mk gen/util.h
+gen/line.o: gen/line.c Makefile config.mk gen/util.h
+gen/line-test.o: gen/line-test.c Makefile config.mk gen/util.h
+gen/sentence.o: gen/sentence.c Makefile config.mk gen/util.h
+gen/sentence-test.o: gen/sentence-test.c Makefile config.mk gen/util.h
+gen/word.o: gen/word.c Makefile config.mk gen/util.h
+gen/word-test.o: gen/word-test.c Makefile config.mk gen/util.h
+gen/util.o: gen/util.c Makefile config.mk gen/util.h
+src/case.o: src/case.c Makefile config.mk gen/case.h grapheme.h src/util.h
+src/character.o: src/character.c Makefile config.mk gen/character.h grapheme.h src/util.h
+src/line.o: src/line.c Makefile config.mk gen/line.h grapheme.h src/util.h
+src/sentence.o: src/sentence.c Makefile config.mk gen/sentence.h grapheme.h src/util.h
+src/utf8.o: src/utf8.c Makefile config.mk grapheme.h
+src/util.o: src/util.c Makefile config.mk gen/types.h grapheme.h src/util.h
+src/word.o: src/word.c Makefile config.mk gen/word.h grapheme.h src/util.h
+test/case.o: test/case.c Makefile config.mk grapheme.h test/util.h
+test/character.o: test/character.c Makefile config.mk gen/character-test.h grapheme.h test/util.h
+test/line.o: test/line.c Makefile config.mk gen/line-test.h grapheme.h test/util.h
+test/sentence.o: test/sentence.c Makefile config.mk gen/sentence-test.h grapheme.h test/util.h
+test/utf8-encode.o: test/utf8-encode.c Makefile config.mk grapheme.h test/util.h
+test/utf8-decode.o: test/utf8-decode.c Makefile config.mk grapheme.h test/util.h
+test/util.o: test/util.c Makefile config.mk test/util.h
+test/word.o: test/word.c Makefile config.mk gen/word-test.h grapheme.h test/util.h
 
 benchmark/case: benchmark/case.o benchmark/util.o libgrapheme.a
 benchmark/character: benchmark/character.o benchmark/util.o libgrapheme.a
@@ -203,31 +209,31 @@ gen/sentence-test.h: data/SentenceBreakTest.txt gen/sentence-test
 gen/word.h: data/WordBreakProperty.txt gen/word
 gen/word-test.h: data/WordBreakTest.txt gen/word-test
 
-man/grapheme_is_character_break.3: man/grapheme_is_character_break.sh config.mk
-man/grapheme_is_uppercase.3: man/grapheme_is_uppercase.sh man/template/is_case.sh config.mk
-man/grapheme_is_uppercase_utf8.3: man/grapheme_is_uppercase_utf8.sh man/template/is_case.sh config.mk
-man/grapheme_is_lowercase.3: man/grapheme_is_lowercase.sh man/template/is_case.sh config.mk
-man/grapheme_is_lowercase_utf8.3: man/grapheme_is_lowercase_utf8.sh man/template/is_case.sh config.mk
-man/grapheme_is_titlecase.3: man/grapheme_is_titlecase.sh man/template/is_case.sh config.mk
-man/grapheme_is_titlecase_utf8.3: man/grapheme_is_titlecase_utf8.sh man/template/is_case.sh config.mk
-man/grapheme_next_character_break.3: man/grapheme_next_character_break.sh man/template/next_break.sh config.mk
-man/grapheme_next_line_break.3: man/grapheme_next_line_break.sh man/template/next_break.sh config.mk
-man/grapheme_next_sentence_break.3: man/grapheme_next_sentence_break.sh man/template/next_break.sh config.mk
-man/grapheme_next_word_break.3: man/grapheme_next_word_break.sh man/template/next_break.sh config.mk
-man/grapheme_next_character_break_utf8.3: man/grapheme_next_character_break_utf8.sh man/template/next_break.sh config.mk
-man/grapheme_next_line_break_utf8.3: man/grapheme_next_line_break_utf8.sh man/template/next_break.sh config.mk
-man/grapheme_next_sentence_break_utf8.3: man/grapheme_next_sentence_break_utf8.sh man/template/next_break.sh config.mk
-man/grapheme_next_word_break_utf8.3: man/grapheme_next_word_break_utf8.sh man/template/next_break.sh config.mk
-man/grapheme_to_uppercase.3: man/grapheme_to_uppercase.sh man/template/to_case.sh config.mk
-man/grapheme_to_lowercase.3: man/grapheme_to_lowercase.sh man/template/to_case.sh config.mk
-man/grapheme_to_titlecase.3: man/grapheme_to_titlecase.sh man/template/to_case.sh config.mk
-man/grapheme_to_uppercase_utf8.3: man/grapheme_to_uppercase_utf8.sh man/template/to_case.sh config.mk
-man/grapheme_to_lowercase_utf8.3: man/grapheme_to_lowercase_utf8.sh man/template/to_case.sh config.mk
-man/grapheme_to_titlecase_utf8.3: man/grapheme_to_titlecase_utf8.sh man/template/to_case.sh config.mk
-man/grapheme_decode_utf8.3: man/grapheme_decode_utf8.sh config.mk
-man/grapheme_encode_utf8.3: man/grapheme_encode_utf8.sh config.mk
+man/grapheme_is_character_break.3: man/grapheme_is_character_break.sh Makefile config.mk
+man/grapheme_is_uppercase.3: man/grapheme_is_uppercase.sh man/template/is_case.sh Makefile config.mk
+man/grapheme_is_uppercase_utf8.3: man/grapheme_is_uppercase_utf8.sh man/template/is_case.sh Makefile config.mk
+man/grapheme_is_lowercase.3: man/grapheme_is_lowercase.sh man/template/is_case.sh Makefile config.mk
+man/grapheme_is_lowercase_utf8.3: man/grapheme_is_lowercase_utf8.sh man/template/is_case.sh Makefile config.mk
+man/grapheme_is_titlecase.3: man/grapheme_is_titlecase.sh man/template/is_case.sh Makefile config.mk
+man/grapheme_is_titlecase_utf8.3: man/grapheme_is_titlecase_utf8.sh man/template/is_case.sh Makefile config.mk
+man/grapheme_next_character_break.3: man/grapheme_next_character_break.sh man/template/next_break.sh Makefile config.mk
+man/grapheme_next_line_break.3: man/grapheme_next_line_break.sh man/template/next_break.sh Makefile config.mk
+man/grapheme_next_sentence_break.3: man/grapheme_next_sentence_break.sh man/template/next_break.sh Makefile config.mk
+man/grapheme_next_word_break.3: man/grapheme_next_word_break.sh man/template/next_break.sh Makefile config.mk
+man/grapheme_next_character_break_utf8.3: man/grapheme_next_character_break_utf8.sh man/template/next_break.sh Makefile config.mk
+man/grapheme_next_line_break_utf8.3: man/grapheme_next_line_break_utf8.sh man/template/next_break.sh Makefile config.mk
+man/grapheme_next_sentence_break_utf8.3: man/grapheme_next_sentence_break_utf8.sh man/template/next_break.sh Makefile config.mk
+man/grapheme_next_word_break_utf8.3: man/grapheme_next_word_break_utf8.sh man/template/next_break.sh Makefile config.mk
+man/grapheme_to_uppercase.3: man/grapheme_to_uppercase.sh man/template/to_case.sh Makefile config.mk
+man/grapheme_to_lowercase.3: man/grapheme_to_lowercase.sh man/template/to_case.sh Makefile config.mk
+man/grapheme_to_titlecase.3: man/grapheme_to_titlecase.sh man/template/to_case.sh Makefile config.mk
+man/grapheme_to_uppercase_utf8.3: man/grapheme_to_uppercase_utf8.sh man/template/to_case.sh Makefile config.mk
+man/grapheme_to_lowercase_utf8.3: man/grapheme_to_lowercase_utf8.sh man/template/to_case.sh Makefile config.mk
+man/grapheme_to_titlecase_utf8.3: man/grapheme_to_titlecase_utf8.sh man/template/to_case.sh Makefile config.mk
+man/grapheme_decode_utf8.3: man/grapheme_decode_utf8.sh Makefile config.mk
+man/grapheme_encode_utf8.3: man/grapheme_encode_utf8.sh Makefile config.mk
 
-man/libgrapheme.7: man/libgrapheme.sh config.mk
+man/libgrapheme.7: man/libgrapheme.sh Makefile config.mk
 
 $(GEN:=.o) gen/util.o:
 	$(BUILD_CC) -c -o $@ $(BUILD_CPPFLAGS) $(BUILD_CFLAGS) $(@:.o=.c)
