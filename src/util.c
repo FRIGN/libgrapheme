@@ -37,23 +37,33 @@ herodotus_reader_copy(const HERODOTUS_READER *src, HERODOTUS_READER *dest)
 	 */
 	dest->type = src->type;
 	if (src->type == HERODOTUS_TYPE_CODEPOINT) {
-		dest->src = ((const uint_least32_t *)(src->src)) + src->off;
+		dest->src = (src->src == NULL) ? NULL :
+		            ((const uint_least32_t *)(src->src)) + src->off;
 	} else { /* src->type == HERODOTUS_TYPE_UTF8 */
-		dest->src = ((const char *)(src->src)) + src->off;
+		dest->src = (src->src == NULL) ? NULL :
+		            ((const char *)(src->src)) + src->off;
 	}
 	if (src->srclen == SIZE_MAX) {
 		dest->srclen = SIZE_MAX;
 	} else {
-		dest->srclen = src->srclen - src->off;
+		dest->srclen = (src->off < src->srclen) ? src->srclen - src->off : 0;
 	}
 	dest->off = 0;
 	dest->terminated_by_null = src->terminated_by_null;
 
 	for (i = 0; i < LEN(src->soft_limit); i++) {
 		if (src->soft_limit[i] == SIZE_MAX) {
-			dest->soft_limit[i] = src->soft_limit[i];
+			dest->soft_limit[i] = SIZE_MAX;
 		} else {
-			dest->soft_limit[i] = src->soft_limit[i] - src->off;
+			/*
+			 * if we have a degenerate case where the offset is
+			 * higher than the soft-limit, we simply clamp the
+			 * soft-limit to zero given we can't decide here
+			 * to release the limit and, instead, we just
+			 * prevent any more reads
+			 */
+			dest->soft_limit[i] = (src->off < src->soft_limit[i]) ?
+				src->soft_limit[i] - src->off : 0;
 		}
 	}
 }
