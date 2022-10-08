@@ -185,12 +185,14 @@ to_titlecase(HERODOTUS_READER *r, HERODOTUS_WRITER *w)
 
 		if (s == HERODOTUS_STATUS_END_OF_BUFFER) {
 			/* we are done */
+			herodotus_reader_pop_limit(r);
 			break;
 		} else if (s == HERODOTUS_STATUS_SOFT_LIMIT_REACHED) {
 			/*
 			 * we did not encounter any cased character
 			 * up to the word break
 			 */
+			herodotus_reader_pop_limit(r);
 			continue;
 		} else {
 			/*
