@@ -80,6 +80,7 @@ main(int argc, char *argv[])
 	              &baseline, NUM_ITERATIONS, p.buflen - 1);
 
 	free(p.buf);
+	free(p.buf_utf8proc);
 
 	return 0;
 }
