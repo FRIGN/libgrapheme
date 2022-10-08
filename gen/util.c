@@ -692,7 +692,13 @@ break_test_list_print(const struct break_test *test, size_t testlen,
 void
 break_test_list_free(struct break_test *test, size_t testlen)
 {
-	(void)testlen;
+	size_t i;
+
+	for (i = 0; i < testlen; i++) {
+		free(test[i].cp);
+		free(test[i].len);
+		free(test[i].descr);
+	}
 
 	free(test);
 }
