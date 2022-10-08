@@ -288,7 +288,7 @@ install: all
 	if [ "$(SOSYMLINK)" = "true" ]; then ln -sf "$(SONAME)" "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so.$(VERSION_MAJOR)"; fi
 	if [ "$(SOSYMLINK)" = "true" ]; then ln -sf "$(SONAME)" "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so"; fi
 	cp -f grapheme.h "$(DESTDIR)$(INCPREFIX)"
-	if ! [ -z "$(LDCONFIG)" ]; then $(LDCONFIG); fi
+	if ! [ -z "$(LDCONFIG)" ]; then $(SHELL) -c "$(LDCONFIG)"; fi
 
 uninstall:
 	for m in $(MAN3:=.3); do rm -f "$(DESTDIR)$(MANPREFIX)/man3/`basename $$m`"; done
@@ -299,7 +299,7 @@ uninstall:
 	if [ "$(SOSYMLINK)" = "true" ]; then rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so.$(VERSION_MAJOR)"; fi
 	if [ "$(SOSYMLINK)" = "true" ]; then rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so"; fi
 	rm -f "$(DESTDIR)$(INCPREFIX)/grapheme.h"
-	if ! [ -z "$(LDCONFIG)" ]; then $(LDCONFIG); fi
+	if ! [ -z "$(LDCONFIG)" ]; then $(SHELL) -c "$(LDCONFIG)"; fi
 
 clean:
 	rm -f $(BENCHMARK:=.o) benchmark/util.o $(BENCHMARK) $(GEN:=.h) $(GEN:=.o) gen/util.o $(GEN) $(SRC:=.o) src/util.o $(TEST:=.o) test/util.o $(TEST) libgrapheme.a $(SONAME) $(MAN3:=.3) $(MAN7:=.7)
