@@ -36,8 +36,9 @@ A C99-compiler and POSIX make.
 
 Installation
 ------------
-Edit config.mk to match your local setup (usually not necessary, the
-default prefix is /usr/local).
+Run ./configure, which automatically edits config.mk to match your local
+setup. Edit config.mk by hand if necessary or desired for further
+customization.
 
 Afterwards enter the following command to build and install libgrapheme
 (if necessary as root):
