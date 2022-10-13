@@ -24,22 +24,26 @@ get_bidi_property(uint_least32_t cp)
  * https://unicode.org/reports/tr9/
  * https://github.com/omid/Persian-Log2Vis/blob/master/bidi.php
  * https://github.com/fribidi/fribidi/blob/master/lib/fribidi.h
+ *
+ * Apply transformation separately
+ * 	src, dest=1110001110000111 -> get contiguous blocks and apply
+ * investigate fribidi and refactor API
  */
 
 #define MAX_DEPTH 125
 
-#include <stdio.h> /* ------------------------------------------------------------------ */
-static size_t
-determine_paragraph_level(const void *src, size_t srclen,
-                          size_t (*get_codepoint)(const void *, size_t, size_t, uint_least32_t *),
-                          size_t (*set_codepoint)(uint_least32_t, void *, size_t, size_t))
+static uint8_t
+determine_paragraph_level(const HERODOTUS_READER *r)
 {
+	HERODOTUS_READER tmp;
 	enum bidi_property prop;
-	size_t srcoff, isolate_level;
+	uint8_t isolate_level;
 	uint_least32_t cp;
 
-	for (srcoff = 0, isolate_level = 0; srcoff < srclen; ) {
-		srcoff += get_codepoint(src, srclen, srcoff, &cp);
+	herodotus_reader_copy(r, &tmp);
+
+	for (isolate_level = 0; herodotus_read_codepoint(&tmp, true, &cp) ==
+	     HERODOTUS_STATUS_SUCCESS; ) {
 		prop = get_bidi_property(cp);
 
 		/* BD8/BD9 */
@@ -70,27 +74,21 @@ determine_paragraph_level(const void *src, size_t srclen,
 	return 0;
 }
 
-static size_t
-handle_paragraph(const void *src, size_t srclen, enum grapheme_bidirectional_override override,
-                 size_t (*get_codepoint)(const void *, size_t, size_t, uint_least32_t *),
-                 size_t (*set_codepoint)(uint_least32_t, void *, size_t, size_t),
-                 void *dest, size_t destlen)
+static void
+handle_paragraph(HERODOTUS_READER *r, enum grapheme_bidirectional_override override,
+                 HERODOTUS_WRITER *w)
 {
 	enum bidi_property prop;
-	size_t srcoff, destoff, paragraph_level;
+	uint8_t paragraph_level;
 
-fprintf(stderr, "paragraph-call: par='%.*s'\n", (int)srclen, (const char *)src);
 	/* determine paragraph level (rules P1-P3, HL1) */
 	if (override == GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR) {
 		paragraph_level = 0;
 	} else if (override == GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL) {
 		paragraph_level = 1;
 	} else { /* GRAPHEME_BIDIRECTIONAL_OVERRIDE_NONE and invalid */
-		paragraph_level = determine_paragraph_level(src, srclen,
-		                                            get_codepoint,
-		                                            set_codepoint);
+		paragraph_level = determine_paragraph_level(r);
 	}
-fprintf(stderr, "\tparagraph_level=%zu\n", paragraph_level);
 
 	/* determine_explicit_levels(...); X1-X8 */
 	/* prepare_implicit_processing(); X9-X10, BD13 */
@@ -98,53 +96,39 @@ fprintf(stderr, "\tparagraph_level=%zu\n", paragraph_level);
 	/* resolve_neutral_and_isolate_formatting_types() N0-N2 */
 	/* resolve_implicit_levels(); I1-I2 */
 	/* reorder_resolved_levels(); L1-L4 */
-
-	return destoff;
 }
 
 static size_t
-logical_to_visual(const void *src, size_t srclen, enum grapheme_bidirectional_override override,
-                  size_t (*get_codepoint)(const void *, size_t, size_t, uint_least32_t *),
-                  size_t (*set_codepoint)(uint_least32_t, void *, size_t, size_t),
-                  void *dest, size_t destlen)
+next_paragraph_break(const HERODOTUS_READER *r)
 {
-	size_t srcoff, destoff, lastparoff;
+	HERODOTUS_READER tmp;
 	uint_least32_t cp;
 
-	for (srcoff = destoff = lastparoff = 0; srcoff < srclen; ) {
-		srcoff += get_codepoint(src, srclen, srcoff, &cp);
+	herodotus_reader_copy(r, &tmp);
 
-		/* P1 */
-		if (get_bidi_property(cp) == BIDI_PROP_B ||
-		    srcoff == srclen ||
-		    (get_codepoint == get_codepoint_utf8 &&
-		     srclen == SIZE_MAX && cp == 0)) {
-			/*
-			 * we encountered a paragraph separator or
-			 * reached the end of the text.
-			 * Call the paragraph handling function on
-			 * the paragraph including the separator.
-			 */
-			if (get_codepoint == get_codepoint_utf8) {
-				destoff += handle_paragraph((const char *)src + lastparoff,
-				                            srcoff - lastparoff, override,
-						            get_codepoint, set_codepoint,
-				                            (char *)dest + destoff,
-						            (destoff < destlen) ?
-				                            (destlen - destoff) : 0);
-			} else {
-				destoff += handle_paragraph((const uint_least32_t *)src + lastparoff,
-				                            srcoff - lastparoff, override,
-				                            get_codepoint, set_codepoint,
-				                            (uint_least32_t *)dest + destoff,
-				                            (destoff < destlen) ?
-				                            (destlen - destoff) : 0);
-			}
-			lastparoff = srcoff;
+	for ( ; herodotus_read_codepoint(&tmp, true, &cp) == HERODOTUS_STATUS_SUCCESS; ) {
+		if (get_bidi_property(cp) == BIDI_PROP_B) {
+			break;
 		}
 	}
 
-	return destoff;
+	return herodotus_reader_number_read(&tmp);
+}
+
+static size_t
+logical_to_visual(HERODOTUS_READER *r, enum grapheme_bidirectional_override override,
+                  HERODOTUS_WRITER *w)
+{
+	size_t npb;
+
+	for (; (npb = next_paragraph_break(r)) > 0;) {
+		/* P1 */
+		herodotus_reader_push_advance_limit(r, npb);
+		handle_paragraph(r, override, w);
+		herodotus_reader_pop_limit(r);
+	}
+
+	return herodotus_writer_number_written(w);
 }
 
 size_t
@@ -154,8 +138,13 @@ grapheme_bidirectional_logical_to_visual(const uint_least32_t *src,
                                          uint_least32_t *dest,
                                          size_t destlen)
 {
-	return logical_to_visual(src, srclen, override,
-	                         get_codepoint, set_codepoint, dest, destlen);
+	HERODOTUS_READER r;
+	HERODOTUS_WRITER w;
+
+	herodotus_reader_init(&r, HERODOTUS_TYPE_CODEPOINT, src, srclen);
+	herodotus_writer_init(&w, HERODOTUS_TYPE_CODEPOINT, dest, destlen);
+
+	return logical_to_visual(&r, override, &w);
 }
 
 size_t
@@ -163,7 +152,11 @@ grapheme_bidirectional_logical_to_visual_utf8(const char *src, size_t srclen,
                                               enum grapheme_bidirectional_override override,
                                               char *dest, size_t destlen)
 {
-	return logical_to_visual(src, srclen, override,
-	                         get_codepoint_utf8, set_codepoint_utf8,
-	                         dest, destlen);
+	HERODOTUS_READER r;
+	HERODOTUS_WRITER w;
+
+	herodotus_reader_init(&r, HERODOTUS_TYPE_UTF8, src, srclen);
+	herodotus_writer_init(&w, HERODOTUS_TYPE_UTF8, dest, destlen);
+
+	return logical_to_visual(&r, override, &w);
 }
