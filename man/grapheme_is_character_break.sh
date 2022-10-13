@@ -1,4 +1,5 @@
-.Dd 2021-12-22
+cat << EOF
+.Dd ${MAN_DATE}
 .Dt GRAPHEME_IS_CHARACTER_BREAK 3
 .Os suckless.org
 .Sh NAME
@@ -7,7 +8,7 @@
 .Sh SYNOPSIS
 .In grapheme.h
 .Ft size_t
-.Fn grapheme_is_character_break "uint_least32_t cp1" "uint_least32_t cp2" "GRAPHEME_STATE *state"
+.Fn grapheme_is_character_break "uint_least32_t cp1" "uint_least32_t cp2" "uint_least16_t *state"
 .Sh DESCRIPTION
 The
 .Fn grapheme_is_character_break
@@ -51,7 +52,7 @@ if there is not.
 int
 main(void)
 {
-	GRAPHEME_STATE state = { 0 };
+	uint_least16_t state = 0;
 	uint_least32_t s1[] = ..., s2[] = ...; /* two input arrays */
 	size_t i;
 
@@ -72,9 +73,11 @@ main(void)
 .Ed
 .Sh SEE ALSO
 .Xr grapheme_next_character_break 3 ,
+.Xr grapheme_next_character_break_utf8 3 ,
 .Xr libgrapheme 7
 .Sh STANDARDS
 .Fn grapheme_is_character_break
-is compliant with the Unicode 14.0.0 specification.
+is compliant with the Unicode ${UNICODE_VERSION} specification.
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de
+EOF

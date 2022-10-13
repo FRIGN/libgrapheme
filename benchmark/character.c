@@ -23,7 +23,7 @@ struct break_benchmark_payload {
 void
 libgrapheme(const void *payload)
 {
-	GRAPHEME_STATE state = { 0 };
+	uint_least16_t state = 0;
 	const struct break_benchmark_payload *p = payload;
 	size_t i;
 
@@ -80,6 +80,7 @@ main(int argc, char *argv[])
 	              &baseline, NUM_ITERATIONS, p.buflen - 1);
 
 	free(p.buf);
+	free(p.buf_utf8proc);
 
 	return 0;
 }

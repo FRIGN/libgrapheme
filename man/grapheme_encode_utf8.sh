@@ -1,4 +1,5 @@
-.Dd 2021-12-22
+cat << EOF
+.Dd ${MAN_DATE}
 .Dt GRAPHEME_ENCODE_UTF8 3
 .Os suckless.org
 .Sh NAME
@@ -22,16 +23,19 @@ and
 .Va len
 is large enough it writes the UTF-8-string to the memory pointed to by
 .Va str .
+Otherwise no data is written.
 .Sh RETURN VALUES
 The
 .Fn grapheme_encode_utf8
 function returns the length (in bytes) of the UTF-8-string resulting
 from encoding
-.Va cp .
-When the returned value is larger than
+.Va cp ,
+even if
 .Va len
-it is indicated that the output string is too small and no data has been
-written.
+is not large enough or
+.Va str
+is
+.Dv NULL .
 .Sh EXAMPLES
 .Bd -literal
 /* cc (-static) -o example example.c -lgrapheme */
@@ -86,7 +90,7 @@ cps_to_utf8_alloc(const uint_least32_t *cp, size_t cplen)
 			break;
 		}
 	}
-	str[off] = '\\0';
+	str[off] = '\\\\0';
 
 	return str;
 }
@@ -96,3 +100,4 @@ cps_to_utf8_alloc(const uint_least32_t *cp, size_t cplen)
 .Xr libgrapheme 7
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de
+EOF

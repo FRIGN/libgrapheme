@@ -1,331 +1,242 @@
 /* See LICENSE file for copyright and license details. */
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "../gen/word.h"
 #include "../grapheme.h"
 #include "util.h"
 
-static inline enum word_break_property
-get_break_prop(uint_least32_t cp)
+struct word_break_state
+{
+	bool ri_even;
+};
+
+static inline uint_least8_t
+get_word_break_prop(uint_least32_t cp)
 {
 	if (likely(cp <= 0x10FFFF)) {
-		return (enum word_break_property)
+		return (uint_least8_t)
 		       word_break_minor[word_break_major[cp >> 8] + (cp & 0xff)];
 	} else {
 		return WORD_BREAK_PROP_OTHER;
 	}
 }
 
-static size_t
-next_word_break(const void *str, size_t len, size_t (*get_codepoint)
-                (const void *, size_t, size_t, uint_least32_t *))
+static bool
+is_skippable_word_prop(uint_least8_t prop)
 {
-	struct {
-		enum word_break_property a, b, c, d;
-	} raw, skip;
-	enum word_break_property res;
-	uint_least32_t cp;
-	size_t off, tmp, new_off;
-	bool ri_even = true;
+	return prop == WORD_BREAK_PROP_EXTEND ||
+	       prop == WORD_BREAK_PROP_FORMAT ||
+	       prop == WORD_BREAK_PROP_ZWJ;
+}
 
-	/* check degenerate cases */
-	if (str == NULL || len == 0) {
-		return 0;
+static void
+word_skip_shift_callback(uint_least8_t prop, void *s)
+{
+	struct word_break_state *state = (struct word_break_state *)s;
+
+	if (prop == WORD_BREAK_PROP_REGIONAL_INDICATOR) {
+		/*
+		 * The property we just shifted in is
+		 * a regional indicator, increasing the
+		 * number of consecutive RIs on the left
+		 * side of the breakpoint by one, changing
+		 * the oddness.
+		 *
+		 */
+		state->ri_even = !(state->ri_even);
+	} else {
+		/*
+		 * We saw no regional indicator, so the
+		 * number of consecutive RIs on the left
+		 * side of the breakpoint is zero, which
+		 * is an even number.
+		 *
+		 */
+		state->ri_even = true;
 	}
+}
+
+static size_t
+next_word_break(HERODOTUS_READER *r)
+{
+	struct proper p;
+	struct word_break_state state = { .ri_even = true };
 
 	/*
 	 * Apply word breaking algorithm (UAX #29), see
 	 * https://unicode.org/reports/tr29/#Word_Boundary_Rules
-	 *
-	 * There are 4 slots (a, b, c, d) of "break" properties and
-	 * we check if there is a break in the middle between b and c.
-	 *
-	 * The position of this middle spot is determined by off,
-	 * which gives the offset of the first element on the right
-	 * hand side of said spot, or, in other words, gives the number
-	 * of elements on the left hand side.
-	 *
-	 * It is further complicated by the fact that the algorithm
-	 * expects you to skip certain characters for the second
-	 * half of the rules (after WB4). Thus, we do not only have
-	 * the "raw" properties as described above, but also the "skip"
-	 * properties, where the skip.a and skip.b, for instance,
-	 * give the two preceding character properties behind the
-	 * currently investigated breakpoint.
-	 *
 	 */
+	proper_init(r, &state, NUM_WORD_BREAK_PROPS, get_word_break_prop,
+	            is_skippable_word_prop, word_skip_shift_callback, &p);
 
-	/*
-	 * Initialize the different properties such that we have
-	 * a good state after the state-update in the loop
-	 */
-	raw.b = NUM_WORD_BREAK_PROPS;
-	if ((off = get_codepoint(str, len, 0, &cp)) >= len) {
-		return 1;
-	}
-	raw.c = get_break_prop(cp);
-	(void)get_codepoint(str, len, off, &cp);
-	raw.d = get_break_prop(cp);
-	skip.a = skip.b = NUM_WORD_BREAK_PROPS;
-
-	for (; off < len; off = new_off) {
-		/*
-		 * Update left side (a and b) of the skip state by
-		 * "shifting in" the raw.c property as long as it is
-		 * not one of the "ignored" character properties.
-		 * While at it, update the RI-counter.
-		 *
-		 */
-		if (raw.c != WORD_BREAK_PROP_EXTEND &&
-		    raw.c != WORD_BREAK_PROP_FORMAT &&
-		    raw.c != WORD_BREAK_PROP_ZWJ) {
-		    	skip.a = skip.b;
-			skip.b = raw.c;
-
-			if (skip.b == WORD_BREAK_PROP_REGIONAL_INDICATOR) {
-				/*
-				 * The property we just shifted in is
-				 * a regional indicator, increasing the
-				 * number of consecutive RIs on the left
-				 * side of the breakpoint by one, changing
-				 * the oddness.
-				 *
-				 */
-				ri_even = !ri_even;
-			} else {
-				/*
-				 * We saw no regional indicator, so the
-				 * number of consecutive RIs on the left
-				 * side of the breakpoint is zero, which
-				 * is an even number.
-				 *
-				 */
-				ri_even = true;
-			}
-		}
-
-		/*
-		 * Update right side (b and c) of the skip state by
-		 * starting at the breakpoint and detecting the two
-		 * following non-ignored character classes
-		 *
-		 */
-		skip.c = NUM_WORD_BREAK_PROPS;
-		for (tmp = off; tmp < len; ) {
-			tmp += get_codepoint(str, len, tmp, &cp);
-			res = get_break_prop(cp);
-
-			if (res != WORD_BREAK_PROP_EXTEND &&
-			    res != WORD_BREAK_PROP_FORMAT &&
-			    res != WORD_BREAK_PROP_ZWJ) {
-				skip.c = res;
-				break;
-			}
-		}
-		skip.d = NUM_WORD_BREAK_PROPS;
-		for (; tmp < len; ) {
-			tmp += get_codepoint(str, len, tmp, &cp);
-			res = get_break_prop(cp);
-
-			if (res != WORD_BREAK_PROP_EXTEND &&
-			    res != WORD_BREAK_PROP_FORMAT &&
-			    res != WORD_BREAK_PROP_ZWJ) {
-				skip.d = res;
-				break;
-			}
-		}
-
-		/*
-		 * Update the raw state by simply shifting everything
-		 * in and, if we still have data left, determining
-		 * the character class of the next codepoint.
-		 *
-		 */
-		raw.a = raw.b;
-		raw.b = raw.c;
-		raw.c = raw.d;
-		if ((new_off = off + get_codepoint(str, len, off, &cp)) < len) {
-			get_codepoint(str, len, new_off, &cp);
-			raw.d = get_break_prop(cp);
-		} else {
-			raw.d = NUM_WORD_BREAK_PROPS;
-		}
-
+	while (!proper_advance(&p)) {
 		/* WB3 */
-		if (raw.b == WORD_BREAK_PROP_CR &&
-		    raw.c == WORD_BREAK_PROP_LF) {
+		if (p.raw.prev_prop[0] == WORD_BREAK_PROP_CR &&
+		    p.raw.next_prop[0] == WORD_BREAK_PROP_LF) {
 			continue;
 		}
 
 		/* WB3a */
-		if (raw.b == WORD_BREAK_PROP_NEWLINE ||
-		    raw.b == WORD_BREAK_PROP_CR      ||
-		    raw.b == WORD_BREAK_PROP_LF) {
+		if (p.raw.prev_prop[0] == WORD_BREAK_PROP_NEWLINE ||
+		    p.raw.prev_prop[0] == WORD_BREAK_PROP_CR      ||
+		    p.raw.prev_prop[0] == WORD_BREAK_PROP_LF) {
 			break;
 		}
 
 		/* WB3b */
-		if (raw.c == WORD_BREAK_PROP_NEWLINE ||
-		    raw.c == WORD_BREAK_PROP_CR      ||
-		    raw.c == WORD_BREAK_PROP_LF) {
+		if (p.raw.next_prop[0] == WORD_BREAK_PROP_NEWLINE ||
+		    p.raw.next_prop[0] == WORD_BREAK_PROP_CR      ||
+		    p.raw.next_prop[0] == WORD_BREAK_PROP_LF) {
 			break;
 		}
 
 		/* WB3c */
-		if (raw.b == WORD_BREAK_PROP_ZWJ &&
-		    (raw.c == WORD_BREAK_PROP_EXTENDED_PICTOGRAPHIC ||
-		     raw.c == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT)) {
+		if (p.raw.prev_prop[0] == WORD_BREAK_PROP_ZWJ &&
+		    (p.raw.next_prop[0] == WORD_BREAK_PROP_EXTENDED_PICTOGRAPHIC ||
+		     p.raw.next_prop[0] == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT)) {
 			continue;
 		}
 
 		/* WB3d */
-		if (raw.b == WORD_BREAK_PROP_WSEGSPACE &&
-		    raw.c == WORD_BREAK_PROP_WSEGSPACE) {
+		if (p.raw.prev_prop[0] == WORD_BREAK_PROP_WSEGSPACE &&
+		    p.raw.next_prop[0] == WORD_BREAK_PROP_WSEGSPACE) {
 			continue;
 		}
 
 		/* WB4 */
-		if (raw.c == WORD_BREAK_PROP_EXTEND ||
-		    raw.c == WORD_BREAK_PROP_FORMAT ||
-		    raw.c == WORD_BREAK_PROP_ZWJ) {
+		if (p.raw.next_prop[0] == WORD_BREAK_PROP_EXTEND ||
+		    p.raw.next_prop[0] == WORD_BREAK_PROP_FORMAT ||
+		    p.raw.next_prop[0] == WORD_BREAK_PROP_ZWJ) {
 			continue;
 		}
 
 		/* WB5 */
-		if ((skip.b == WORD_BREAK_PROP_ALETTER              ||
-		     skip.b == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
-		     skip.b == WORD_BREAK_PROP_HEBREW_LETTER) &&
-		    (skip.c == WORD_BREAK_PROP_ALETTER              ||
-		     skip.c == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
-		     skip.c == WORD_BREAK_PROP_HEBREW_LETTER)) {
+		if ((p.skip.prev_prop[0] == WORD_BREAK_PROP_ALETTER              ||
+		     p.skip.prev_prop[0] == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
+		     p.skip.prev_prop[0] == WORD_BREAK_PROP_HEBREW_LETTER) &&
+		    (p.skip.next_prop[0] == WORD_BREAK_PROP_ALETTER              ||
+		     p.skip.next_prop[0] == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
+		     p.skip.next_prop[0] == WORD_BREAK_PROP_HEBREW_LETTER)) {
 			continue;
 		}
 
 		/* WB6 */
-		if ((skip.b == WORD_BREAK_PROP_ALETTER              ||
-		     skip.b == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
-		     skip.b == WORD_BREAK_PROP_HEBREW_LETTER) &&
-		    (skip.c == WORD_BREAK_PROP_MIDLETTER    ||
-		     skip.c == WORD_BREAK_PROP_MIDNUMLET    ||
-		     skip.c == WORD_BREAK_PROP_SINGLE_QUOTE) &&
-		    len > 2 &&
-		    (skip.d == WORD_BREAK_PROP_ALETTER              ||
-		     skip.d == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
-		     skip.d == WORD_BREAK_PROP_HEBREW_LETTER)) {
+		if ((p.skip.prev_prop[0] == WORD_BREAK_PROP_ALETTER              ||
+		     p.skip.prev_prop[0] == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
+		     p.skip.prev_prop[0] == WORD_BREAK_PROP_HEBREW_LETTER) &&
+		    (p.skip.next_prop[0] == WORD_BREAK_PROP_MIDLETTER    ||
+		     p.skip.next_prop[0] == WORD_BREAK_PROP_MIDNUMLET    ||
+		     p.skip.next_prop[0] == WORD_BREAK_PROP_SINGLE_QUOTE) &&
+		    (p.skip.next_prop[1] == WORD_BREAK_PROP_ALETTER              ||
+		     p.skip.next_prop[1] == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
+		     p.skip.next_prop[1] == WORD_BREAK_PROP_HEBREW_LETTER)) {
 			continue;
 		}
 
 		/* WB7 */
-		if ((skip.b == WORD_BREAK_PROP_MIDLETTER    ||
-		     skip.b == WORD_BREAK_PROP_MIDNUMLET    ||
-		     skip.b == WORD_BREAK_PROP_SINGLE_QUOTE) &&
-		    (skip.c == WORD_BREAK_PROP_ALETTER              ||
-		     skip.c == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
-		     skip.c == WORD_BREAK_PROP_HEBREW_LETTER) &&
-		    len > 2 &&
-		    (skip.a == WORD_BREAK_PROP_ALETTER              ||
-		     skip.a == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
-		     skip.a == WORD_BREAK_PROP_HEBREW_LETTER)) {
+		if ((p.skip.prev_prop[0] == WORD_BREAK_PROP_MIDLETTER    ||
+		     p.skip.prev_prop[0] == WORD_BREAK_PROP_MIDNUMLET    ||
+		     p.skip.prev_prop[0] == WORD_BREAK_PROP_SINGLE_QUOTE) &&
+		    (p.skip.next_prop[0] == WORD_BREAK_PROP_ALETTER              ||
+		     p.skip.next_prop[0] == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
+		     p.skip.next_prop[0] == WORD_BREAK_PROP_HEBREW_LETTER) &&
+		    (p.skip.prev_prop[1] == WORD_BREAK_PROP_ALETTER              ||
+		     p.skip.prev_prop[1] == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
+		     p.skip.prev_prop[1] == WORD_BREAK_PROP_HEBREW_LETTER)) {
 			continue;
 		}
 
 		/* WB7a */
-		if (skip.b == WORD_BREAK_PROP_HEBREW_LETTER &&
-		    skip.c == WORD_BREAK_PROP_SINGLE_QUOTE) {
+		if (p.skip.prev_prop[0] == WORD_BREAK_PROP_HEBREW_LETTER &&
+		    p.skip.next_prop[0] == WORD_BREAK_PROP_SINGLE_QUOTE) {
 			continue;
 		}
 
 		/* WB7b */
-		if (skip.b == WORD_BREAK_PROP_HEBREW_LETTER &&
-		    skip.c == WORD_BREAK_PROP_DOUBLE_QUOTE &&
-		    len > 2 &&
-		    skip.d == WORD_BREAK_PROP_HEBREW_LETTER) {
+		if (p.skip.prev_prop[0] == WORD_BREAK_PROP_HEBREW_LETTER &&
+		    p.skip.next_prop[0] == WORD_BREAK_PROP_DOUBLE_QUOTE &&
+		    p.skip.next_prop[1] == WORD_BREAK_PROP_HEBREW_LETTER) {
 			continue;
 		}
 
 		/* WB7c */
-		if (skip.b == WORD_BREAK_PROP_DOUBLE_QUOTE &&
-		    skip.c == WORD_BREAK_PROP_HEBREW_LETTER &&
-		    off > 1 &&
-		    skip.a == WORD_BREAK_PROP_HEBREW_LETTER) {
+		if (p.skip.prev_prop[0] == WORD_BREAK_PROP_DOUBLE_QUOTE &&
+		    p.skip.next_prop[0] == WORD_BREAK_PROP_HEBREW_LETTER &&
+		    p.skip.prev_prop[1] == WORD_BREAK_PROP_HEBREW_LETTER) {
 			continue;
 		}
 
 		/* WB8 */
-		if (skip.b == WORD_BREAK_PROP_NUMERIC &&
-		    skip.c == WORD_BREAK_PROP_NUMERIC) {
+		if (p.skip.prev_prop[0] == WORD_BREAK_PROP_NUMERIC &&
+		    p.skip.next_prop[0] == WORD_BREAK_PROP_NUMERIC) {
 			continue;
 		}
 
 		/* WB9 */
-		if ((skip.b == WORD_BREAK_PROP_ALETTER              ||
-		     skip.b == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
-		     skip.b == WORD_BREAK_PROP_HEBREW_LETTER) &&
-		    skip.c == WORD_BREAK_PROP_NUMERIC) {
+		if ((p.skip.prev_prop[0] == WORD_BREAK_PROP_ALETTER              ||
+		     p.skip.prev_prop[0] == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
+		     p.skip.prev_prop[0] == WORD_BREAK_PROP_HEBREW_LETTER) &&
+		    p.skip.next_prop[0] == WORD_BREAK_PROP_NUMERIC) {
 			continue;
 		}
 
 		/* WB10 */
-		if (skip.b == WORD_BREAK_PROP_NUMERIC &&
-		    (skip.c == WORD_BREAK_PROP_ALETTER              ||
-		     skip.c == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
-		     skip.c == WORD_BREAK_PROP_HEBREW_LETTER)) {
+		if (p.skip.prev_prop[0] == WORD_BREAK_PROP_NUMERIC &&
+		    (p.skip.next_prop[0] == WORD_BREAK_PROP_ALETTER              ||
+		     p.skip.next_prop[0] == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
+		     p.skip.next_prop[0] == WORD_BREAK_PROP_HEBREW_LETTER)) {
 			continue;
 		}
 
 		/* WB11 */
-		if ((skip.b == WORD_BREAK_PROP_MIDNUM       ||
-		     skip.b == WORD_BREAK_PROP_MIDNUMLET    ||
-		     skip.b == WORD_BREAK_PROP_SINGLE_QUOTE) &&
-		    skip.c == WORD_BREAK_PROP_NUMERIC &&
-		    off > 1 &&
-		    skip.a == WORD_BREAK_PROP_NUMERIC) {
+		if ((p.skip.prev_prop[0] == WORD_BREAK_PROP_MIDNUM       ||
+		     p.skip.prev_prop[0] == WORD_BREAK_PROP_MIDNUMLET    ||
+		     p.skip.prev_prop[0] == WORD_BREAK_PROP_SINGLE_QUOTE) &&
+		    p.skip.next_prop[0] == WORD_BREAK_PROP_NUMERIC &&
+		    p.skip.prev_prop[1] == WORD_BREAK_PROP_NUMERIC) {
 			continue;
 		}
 
 		/* WB12 */
-		if (skip.b == WORD_BREAK_PROP_NUMERIC &&
-		    (skip.c == WORD_BREAK_PROP_MIDNUM       ||
-		     skip.c == WORD_BREAK_PROP_MIDNUMLET    ||
-		     skip.c == WORD_BREAK_PROP_SINGLE_QUOTE) &&
-		    len > 2 &&
-		    skip.d == WORD_BREAK_PROP_NUMERIC) {
+		if (p.skip.prev_prop[0] == WORD_BREAK_PROP_NUMERIC &&
+		    (p.skip.next_prop[0] == WORD_BREAK_PROP_MIDNUM       ||
+		     p.skip.next_prop[0] == WORD_BREAK_PROP_MIDNUMLET    ||
+		     p.skip.next_prop[0] == WORD_BREAK_PROP_SINGLE_QUOTE) &&
+		    p.skip.next_prop[1] == WORD_BREAK_PROP_NUMERIC) {
 			continue;
 		}
 
 		/* WB13 */
-		if (skip.b == WORD_BREAK_PROP_KATAKANA &&
-		    skip.c == WORD_BREAK_PROP_KATAKANA) {
+		if (p.skip.prev_prop[0] == WORD_BREAK_PROP_KATAKANA &&
+		    p.skip.next_prop[0] == WORD_BREAK_PROP_KATAKANA) {
 			continue;
 		}
 
 		/* WB13a */
-		if ((skip.b == WORD_BREAK_PROP_ALETTER              ||
-		     skip.b == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
-		     skip.b == WORD_BREAK_PROP_HEBREW_LETTER        ||
-		     skip.b == WORD_BREAK_PROP_NUMERIC              ||
-		     skip.b == WORD_BREAK_PROP_KATAKANA             ||
-		     skip.b == WORD_BREAK_PROP_EXTENDNUMLET) &&
-		    skip.c == WORD_BREAK_PROP_EXTENDNUMLET) {
+		if ((p.skip.prev_prop[0] == WORD_BREAK_PROP_ALETTER              ||
+		     p.skip.prev_prop[0] == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
+		     p.skip.prev_prop[0] == WORD_BREAK_PROP_HEBREW_LETTER        ||
+		     p.skip.prev_prop[0] == WORD_BREAK_PROP_NUMERIC              ||
+		     p.skip.prev_prop[0] == WORD_BREAK_PROP_KATAKANA             ||
+		     p.skip.prev_prop[0] == WORD_BREAK_PROP_EXTENDNUMLET) &&
+		    p.skip.next_prop[0] == WORD_BREAK_PROP_EXTENDNUMLET) {
 			continue;
 		}
 
 		/* WB13b */
-		if (skip.b == WORD_BREAK_PROP_EXTENDNUMLET &&
-		    (skip.c == WORD_BREAK_PROP_ALETTER              ||
-		     skip.c == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
-		     skip.c == WORD_BREAK_PROP_HEBREW_LETTER        ||
-		     skip.c == WORD_BREAK_PROP_NUMERIC              ||
-		     skip.c == WORD_BREAK_PROP_KATAKANA)) {
+		if (p.skip.prev_prop[0] == WORD_BREAK_PROP_EXTENDNUMLET &&
+		    (p.skip.next_prop[0] == WORD_BREAK_PROP_ALETTER              ||
+		     p.skip.next_prop[0] == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
+		     p.skip.next_prop[0] == WORD_BREAK_PROP_HEBREW_LETTER        ||
+		     p.skip.next_prop[0] == WORD_BREAK_PROP_NUMERIC              ||
+		     p.skip.next_prop[0] == WORD_BREAK_PROP_KATAKANA)) {
 			continue;
 		}
 
 		/* WB15 and WB16 */
-		if (!ri_even &&
-		    skip.c == WORD_BREAK_PROP_REGIONAL_INDICATOR) {
+		if (!state.ri_even &&
+		    p.skip.next_prop[0] == WORD_BREAK_PROP_REGIONAL_INDICATOR) {
 			continue;
 		}
 
@@ -333,17 +244,25 @@ next_word_break(const void *str, size_t len, size_t (*get_codepoint)
 		break;
 	}
 
-	return off;
+	return herodotus_reader_number_read(&(p.mid_reader));
 }
 
 size_t
 grapheme_next_word_break(const uint_least32_t *str, size_t len)
 {
-	return next_word_break(str, len, get_codepoint);
+	HERODOTUS_READER r;
+
+	herodotus_reader_init(&r, HERODOTUS_TYPE_CODEPOINT, str, len);
+
+	return next_word_break(&r);
 }
 
 size_t
 grapheme_next_word_break_utf8(const char *str, size_t len)
 {
-	return next_word_break(str, len, get_codepoint_utf8);
+	HERODOTUS_READER r;
+
+	herodotus_reader_init(&r, HERODOTUS_TYPE_UTF8, str, len);
+
+	return next_word_break(&r);
 }

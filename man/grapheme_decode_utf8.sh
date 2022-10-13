@@ -1,4 +1,5 @@
-.Dd 2021-12-22
+cat << EOF
+.Dd ${MAN_DATE}
 .Dt GRAPHEME_DECODE_UTF8 3
 .Os suckless.org
 .Sh NAME
@@ -11,7 +12,7 @@
 .Sh DESCRIPTION
 The
 .Fn grapheme_decode_utf8
-function decodes the next codepoint in the UTF-8-encoded string
+function decodes the first codepoint in the UTF-8-encoded string
 .Va str
 of length
 .Va len .
@@ -76,7 +77,7 @@ print_cps(const char *str, size_t len)
 			 */
 			break;
 		}
-		printf("%"PRIxLEAST32"\\n", cp);
+		printf("%"PRIxLEAST32"\\\\n", cp);
 	}
 }
 
@@ -89,13 +90,13 @@ print_cps_nul_terminated(const char *str)
 	for (off = 0; (ret = grapheme_decode_utf8(str + off,
 	                                          SIZE_MAX, &cp)) > 0 &&
 	     cp != 0; off += ret) {
-		printf("%"PRIxLEAST32"\\n", cp);
+		printf("%"PRIxLEAST32"\\\\n", cp);
 	}
 }
 .Ed
 .Sh SEE ALSO
 .Xr grapheme_encode_utf8 3 ,
-.Xr grapheme_is_character_break 3 ,
 .Xr libgrapheme 7
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de
+EOF

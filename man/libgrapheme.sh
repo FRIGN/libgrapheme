@@ -1,4 +1,5 @@
-.Dd 2021-12-22
+cat << EOF
+.Dd ${MAN_DATE}
 .Dt LIBGRAPHEME 7
 .Os suckless.org
 .Sh NAME
@@ -10,12 +11,14 @@
 The
 .Nm
 library provides functions to properly handle Unicode strings according
-to the Unicode specification.
+to the Unicode specification in regard to character, word, sentence and
+line segmentation and case detection and conversion.
+.Pp
 Unicode strings are made up of user-perceived characters (so-called
 .Dq grapheme clusters ,
 see
 .Sx MOTIVATION )
-that are made up of one or more Unicode codepoints, which in turn
+that are composed of one or more Unicode codepoints, which in turn
 are encoded in one or more bytes in an encoding like UTF-8.
 .Pp
 There is a widespread misconception that it was enough to simply
@@ -31,6 +34,10 @@ Despite this complicated multilevel structure of Unicode strings,
 provides methods to work with them at the byte-level (i.e. UTF-8
 .Sq char
 arrays) while also offering codepoint-level methods.
+Additionally, it is a
+.Dq freestanding
+library (see ISO/IEC 9899:1999 section 4.6) and thus does not depend on
+a standard library. This makes it easy to use in bare metal environments.
 .Pp
 Every documented function's manual page provides a self-contained
 example illustrating the possible usage.
@@ -38,10 +45,29 @@ example illustrating the possible usage.
 .Xr grapheme_decode_utf8 3 ,
 .Xr grapheme_encode_utf8 3 ,
 .Xr grapheme_is_character_break 3 ,
-.Xr grapheme_next_character_break 3
+.Xr grapheme_is_lowercase 3 ,
+.Xr grapheme_is_lowercase_utf8 3 ,
+.Xr grapheme_is_titlecase 3 ,
+.Xr grapheme_is_titlecase_utf8 3 ,
+.Xr grapheme_is_uppercase 3 ,
+.Xr grapheme_is_uppercase_utf8 3 ,
+.Xr grapheme_next_character_break 3 ,
+.Xr grapheme_next_character_break_utf8 3 ,
+.Xr grapheme_next_line_break 3 ,
+.Xr grapheme_next_line_break_utf8 3 ,
+.Xr grapheme_next_sentence_break 3 ,
+.Xr grapheme_next_sentence_break_utf8 3 ,
+.Xr grapheme_next_word_break 3 ,
+.Xr grapheme_next_word_break_utf8 3 ,
+.Xr grapheme_to_lowercase 3 ,
+.Xr grapheme_to_lowercase_utf8 3 ,
+.Xr grapheme_to_titlecase 3 ,
+.Xr grapheme_to_titlecase_utf8 3
+.Xr grapheme_to_uppercase 3 ,
+.Xr grapheme_to_uppercase_utf8 3 ,
 .Sh STANDARDS
 .Nm
-is compliant with the Unicode 14.0.0 specification.
+is compliant with the Unicode ${UNICODE_VERSION} specification.
 .Sh MOTIVATION
 The idea behind every character encoding scheme like ASCII or Unicode
 is to express abstract characters (which can be thought of as shapes
@@ -138,3 +164,4 @@ The motivation behind
 is to make unicode handling suck less and abide by the UNIX philosophy.
 .Sh AUTHORS
 .An Laslo Hunhold Aq Mt dev@frign.de
+EOF
