@@ -1,12 +1,12 @@
 # Customize below to fit your system (run ./configure for automatic presets)
 
-# paths
+# paths (unset $PCPREFIX to not install a pkg-config-file)
 DESTDIR   =
 PREFIX    = /usr/local
 INCPREFIX = $(PREFIX)/include
 LIBPREFIX = $(PREFIX)/lib
 MANPREFIX = $(PREFIX)/share/man
-PCPREFIX  = $(LIBPREFIX)/pkgconfig # unset to not install a pkg-config-file
+PCPREFIX  = $(LIBPREFIX)/pkgconfig
 
 # flags
 CPPFLAGS = -D_DEFAULT_SOURCE
@@ -23,10 +23,10 @@ SOFLAGS   = -shared -nostdlib -Wl,--soname=libgrapheme.so.$(VERSION_MAJOR).$(VER
 SONAME    = libgrapheme.so.$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)
 SOSYMLINK = true
 
-# tools
+# tools (unset $LDCONFIG to not call ldconfig(1) after install/uninstall)
 CC       = cc
 BUILD_CC = $(CC)
 AR       = ar
 RANLIB   = ranlib
-LDCONFIG = ldconfig # unset to not call ldconfig(1) after install/uninstall
+LDCONFIG = ldconfig
 SH       = sh
