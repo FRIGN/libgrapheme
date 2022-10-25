@@ -85,6 +85,42 @@ hextocp(const char *str, size_t len, uint_least32_t *cp)
 	return 0;
 }
 
+int
+parse_cp_list(const char *str, uint_least32_t **cp, size_t *cplen)
+{
+	size_t count, i;
+	const char *tmp1 = NULL, *tmp2 = NULL;
+
+	if (strlen(str) == 0) {
+		*cp = NULL;
+		*cplen = 0;
+		return 0;
+	}
+
+	/* count the number of spaces in the string and infer list length */
+	for (count = 1, tmp1 = str; (tmp2 = strchr(tmp1, ' ')) != NULL; count++, tmp1 = tmp2 + 1)
+		;
+
+	/* allocate resources */
+	if (!(*cp = calloc((*cplen = count), sizeof(**cp)))) {
+		fprintf(stderr, "calloc: %s\n", strerror(errno));
+		exit(1);
+	}
+
+	/* go through the string again, parsing the numbers */
+	for (i = 0, tmp1 = tmp2 = str; tmp2 != NULL; i++) {
+		tmp2 = strchr(tmp1, ' ');
+		if (hextocp(tmp1, tmp2 ? (size_t)(tmp2 - tmp1) : strlen(tmp1), &((*cp)[i]))) {
+			return 1;
+		}
+		if (tmp2 != NULL) {
+			tmp1 = tmp2 + 1;
+		}
+	}
+
+	return 0;
+}
+
 static int
 range_parse(const char *str, struct range *range)
 {
@@ -426,7 +462,7 @@ static int
 set_value_bp(struct properties_payload *payload, uint_least32_t cp,
              int_least64_t value)
 {
-	if (payload->prop[cp].property != 0) {
+	if (payload->prop[cp].property != payload->speclen) {
 		if (payload->handle_conflict == NULL) {
 			fprintf(stderr, "set_value_bp: "
 	                        "Unhandled character break property "
@@ -455,11 +491,14 @@ get_value_bp(const struct properties *prop, size_t offset)
 void
 properties_generate_break_property(const struct property_spec *spec,
                                    uint_least8_t speclen,
+                                   uint_least8_t (*fill_missing)(
+                                   uint_least32_t),
                                    uint_least8_t (*handle_conflict)(
                                    uint_least32_t, uint_least8_t,
                                    uint_least8_t), uint_least8_t
-                                   (*post_process)(uint_least8_t),
-                                   const char *prefix, const char *argv0)
+                                   (*post_process)(uint_least32_t,
+                                   uint_least8_t), const char *prefix,
+                                   const char *argv0)
 {
 	struct properties_compressed comp;
 	struct properties_major_minor mm;
@@ -468,10 +507,16 @@ properties_generate_break_property(const struct property_spec *spec,
 	size_t i, j, prefixlen = strlen(prefix);
 	char buf1[64], prefix_uc[64], buf2[64], buf3[64], buf4[64];
 
-	/* allocate property buffer for all 0x110000 codepoints */
+	/*
+	 * allocate property buffer for all 0x110000 codepoints and
+	 * initialize its entries to the known invalid value "speclen"
+	 */
 	if (!(prop = calloc(UINT32_C(0x110000), sizeof(*prop)))) {
 		fprintf(stderr, "calloc: %s\n", strerror(errno));
 		exit(1);
+	}
+	for (i = 0; i < UINT32_C(0x110000); i++) {
+		prop[i].property = speclen;
 	}
 
 	/* generate data */
@@ -498,11 +543,23 @@ properties_generate_break_property(const struct property_spec *spec,
 		}
 	}
 
+	/* fill in the missing properties that weren't explicitly given */
+	for (i = 0; i < UINT32_C(0x110000); i++) {
+		if (payload.prop[i].property == speclen) {
+			if (fill_missing != NULL) {
+				payload.prop[i].property = fill_missing((uint_least32_t)i);
+			} else {
+				payload.prop[i].property = 0;
+			}
+		}
+	}
+
 	/* post-processing */
 	if (post_process != NULL) {
 		for (i = 0; i < UINT32_C(0x110000); i++) {
 			payload.prop[i].property =
-				post_process((uint_least8_t)payload.prop[i].property);
+				post_process((uint_least32_t)i,
+				             (uint_least8_t)payload.prop[i].property);
 		}
 	}
 

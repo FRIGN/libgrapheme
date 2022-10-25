@@ -87,7 +87,7 @@ main(int argc, char *argv[])
 	(void)argc;
 
 	properties_generate_break_property(sentence_break_property,
-	                                   LEN(sentence_break_property),
+	                                   LEN(sentence_break_property), NULL,
 	                                   NULL, NULL, "sentence_break", argv[0]);
 
 	return 0;

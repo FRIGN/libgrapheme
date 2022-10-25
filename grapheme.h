@@ -8,21 +8,22 @@
 
 #define GRAPHEME_INVALID_CODEPOINT UINT32_C(0xFFFD)
 
+/* TODO call it simply "direction" without override */
 enum grapheme_bidirectional_override {
-	GRAPHEME_BIDIRECTIONAL_OVERRIDE_NONE,
+	GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL,
 	GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR,
 	GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL,
 };
 
-size_t grapheme_bidirectional_logical_to_visual(const uint_least32_t *, size_t,
-                                                enum grapheme_bidirectional_override,
-                                                uint_least32_t *, size_t);
-size_t grapheme_bidirectional_logical_to_visual_utf8(const char *, size_t,
-                                                     enum grapheme_bidirectional_override,
-                                                     char *, size_t);
-
 size_t grapheme_decode_utf8(const char *, size_t, uint_least32_t *);
 size_t grapheme_encode_utf8(uint_least32_t, char *, size_t);
+
+size_t grapheme_get_bidirectional_embedding_levels(const uint_least32_t *, size_t,
+                                                   enum grapheme_bidirectional_override,
+                                                   int_least32_t *, size_t);
+size_t grapheme_get_bidirectional_embedding_levels_utf8(const char *, size_t,
+                                                        enum grapheme_bidirectional_override,
+                                                        int_least32_t *, size_t);
 
 bool grapheme_is_character_break(uint_least32_t, uint_least32_t, uint_least16_t *);
 

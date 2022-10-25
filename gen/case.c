@@ -103,36 +103,6 @@ unicodedata_callback(const char *file, char **field, size_t nfields,
 }
 
 static int
-parse_cp_list(const char *str, uint_least32_t **cp, size_t *cplen)
-{
-	size_t count, i;
-	const char *tmp1 = NULL, *tmp2 = NULL;
-
-	/* count the number of spaces in the string and infer list length */
-	for (count = 1, tmp1 = str; (tmp2 = strchr(tmp1, ' ')) != NULL; count++, tmp1 = tmp2 + 1)
-		;
-
-	/* allocate resources */
-	if (!(*cp = calloc((*cplen = count), sizeof(**cp)))) {
-		fprintf(stderr, "calloc: %s\n", strerror(errno));
-		exit(1);
-	}
-
-	/* go through the string again, parsing the numbers */
-	for (i = 0, tmp1 = tmp2 = str; tmp2 != NULL; i++) {
-		tmp2 = strchr(tmp1, ' ');
-		if (hextocp(tmp1, tmp2 ? (size_t)(tmp2 - tmp1) : strlen(tmp1), &((*cp)[i]))) {
-			return 1;
-		}
-		if (tmp2 != NULL) {
-			tmp1 = tmp2 + 1;
-		}
-	}
-
-	return 0;
-}
-
-static int
 specialcasing_callback(const char *file, char **field, size_t nfields,
                        char *comment, void *payload)
 {
@@ -196,7 +166,7 @@ main(int argc, char *argv[])
 
 	/* generate case property table from the specification */
 	properties_generate_break_property(case_property,
-	                                   LEN(case_property),
+	                                   LEN(case_property), NULL,
 	                                   handle_conflict, NULL, "case",
 	                                   argv[0]);
 

@@ -393,10 +393,12 @@ handle_conflict(uint_least32_t cp, uint_least8_t prop1, uint_least8_t prop2)
 }
 
 static uint_least8_t
-post_process(uint_least8_t prop)
+post_process(uint_least32_t cp, uint_least8_t prop)
 {
 	const char *target = NULL;
 	uint_least8_t result;
+
+	(void)cp;
 
 	/* LB1 */
 	if (!strcmp(line_break_property[prop].enumname, "TMP_AI") ||
@@ -448,7 +450,7 @@ main(int argc, char *argv[])
 	(void)argc;
 
 	properties_generate_break_property(line_break_property,
-	                                   LEN(line_break_property),
+	                                   LEN(line_break_property), NULL,
 	                                   handle_conflict, post_process,
 	                                   "line_break", argv[0]);
 

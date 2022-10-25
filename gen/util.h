@@ -32,6 +32,7 @@ struct properties_major_minor {
 };
 
 int hextocp(const char *, size_t, uint_least32_t *cp);
+int parse_cp_list(const char *, uint_least32_t **, size_t *);
 
 void parse_file_with_callback(const char *, int (*callback)(const char *,
                               char **, size_t, char *, void *), void *payload);
@@ -46,11 +47,13 @@ void properties_print_derived_lookup_table(char *, char *, size_t *, size_t,
 
 void properties_generate_break_property(const struct property_spec *,
                                         uint_least8_t, uint_least8_t
+                                        (*fill_missing)(uint_least32_t),
+                                        uint_least8_t
                                         (*handle_conflict)(uint_least32_t,
                                         uint_least8_t, uint_least8_t),
-					uint_least8_t (*post_process)
-                                        (uint_least8_t), const char *,
-                                        const char *);
+                                        uint_least8_t (*post_process)
+                                        (uint_least32_t, uint_least8_t),
+                                        const char *, const char *);
 
 void break_test_list_parse(char *, struct break_test **, size_t *);
 void break_test_list_print(const struct break_test *, size_t,

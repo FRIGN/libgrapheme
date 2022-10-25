@@ -14,6 +14,7 @@ include config.mk
 VERSION = $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)
 
 BENCHMARK =\
+	benchmark/bidirectional\
 	benchmark/case\
 	benchmark/character\
 	benchmark/sentence\
@@ -22,6 +23,10 @@ BENCHMARK =\
 	benchmark/word\
 
 DATA =\
+	data/BidiBrackets.txt\
+	data/BidiCharacterTest.txt\
+	data/BidiMirroring.txt\
+	data/BidiTest.txt\
 	data/DerivedBidiClass.txt\
 	data/DerivedCoreProperties.txt\
 	data/EastAsianWidth.txt\
@@ -40,6 +45,7 @@ DATA =\
 
 GEN =\
 	gen/bidirectional\
+	gen/bidirectional-test\
 	gen/case\
 	gen/character\
 	gen/character-test\
@@ -61,6 +67,7 @@ SRC =\
 	src/word\
 
 TEST =\
+	test/bidirectional\
 	test/case\
 	test/character\
 	test/line\
@@ -104,8 +111,20 @@ MAN7 =\
 
 all: data/LICENSE $(MAN3:=.3) $(MAN7:=.7) libgrapheme.a $(SONAME)
 
+data/BidiBrackets.txt:
+	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/BidiBrackets.txt
+
+data/BidiCharacterTest.txt:
+	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/BidiCharacterTest.txt
+
+data/BidiMirroring.txt:
+	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/BidiMirroring.txt
+
+data/BidiTest.txt:
+	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/BidiTest.txt
+
 data/DerivedBidiClass.txt:
-	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/DerivedBidiClass.txt
+	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/extracted/DerivedBidiClass.txt
 
 data/DerivedCoreProperties.txt:
 	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/DerivedCoreProperties.txt
@@ -149,6 +168,7 @@ data/WordBreakProperty.txt:
 data/WordBreakTest.txt:
 	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/auxiliary/WordBreakTest.txt
 
+benchmark/bidirectional.o: benchmark/bidirectional.c Makefile config.mk gen/bidirectional-test.h grapheme.h benchmark/util.h
 benchmark/case.o: benchmark/case.c Makefile config.mk gen/word-test.h grapheme.h benchmark/util.h
 benchmark/character.o: benchmark/character.c Makefile config.mk gen/character-test.h grapheme.h benchmark/util.h
 benchmark/line.o: benchmark/line.c Makefile config.mk gen/line-test.h grapheme.h benchmark/util.h
@@ -157,6 +177,7 @@ benchmark/sentence.o: benchmark/sentence.c Makefile config.mk gen/sentence-test.
 benchmark/util.o: benchmark/util.c Makefile config.mk benchmark/util.h
 benchmark/word.o: benchmark/word.c Makefile config.mk gen/word-test.h grapheme.h benchmark/util.h
 gen/bidirectional.o: gen/bidirectional.c Makefile config.mk gen/util.h
+gen/bidirectional-test.o: gen/bidirectional-test.c Makefile config.mk gen/util.h
 gen/case.o: gen/case.c Makefile config.mk gen/util.h
 gen/character.o: gen/character.c Makefile config.mk gen/util.h
 gen/character-test.o: gen/character-test.c Makefile config.mk gen/util.h
@@ -175,6 +196,7 @@ src/sentence.o: src/sentence.c Makefile config.mk gen/sentence.h grapheme.h src/
 src/utf8.o: src/utf8.c Makefile config.mk grapheme.h
 src/util.o: src/util.c Makefile config.mk gen/types.h grapheme.h src/util.h
 src/word.o: src/word.c Makefile config.mk gen/word.h grapheme.h src/util.h
+test/bidirectional.o: test/bidirectional.c Makefile config.mk gen/bidirectional-test.h grapheme.h test/util.h
 test/case.o: test/case.c Makefile config.mk grapheme.h test/util.h
 test/character.o: test/character.c Makefile config.mk gen/character-test.h grapheme.h test/util.h
 test/line.o: test/line.c Makefile config.mk gen/line-test.h grapheme.h test/util.h
@@ -184,6 +206,7 @@ test/utf8-decode.o: test/utf8-decode.c Makefile config.mk grapheme.h test/util.h
 test/util.o: test/util.c Makefile config.mk test/util.h
 test/word.o: test/word.c Makefile config.mk gen/word-test.h grapheme.h test/util.h
 
+benchmark/bidirectional: benchmark/bidirectional.o benchmark/util.o libgrapheme.a
 benchmark/case: benchmark/case.o benchmark/util.o libgrapheme.a
 benchmark/character: benchmark/character.o benchmark/util.o libgrapheme.a
 benchmark/line: benchmark/line.o benchmark/util.o libgrapheme.a
@@ -191,6 +214,7 @@ benchmark/sentence: benchmark/sentence.o benchmark/util.o libgrapheme.a
 benchmark/utf8-decode: benchmark/utf8-decode.o benchmark/util.o libgrapheme.a
 benchmark/word: benchmark/word.o benchmark/util.o libgrapheme.a
 gen/bidirectional: gen/bidirectional.o gen/util.o
+gen/bidirectional-test: gen/bidirectional-test.o gen/util.o
 gen/case: gen/case.o gen/util.o
 gen/character: gen/character.o gen/util.o
 gen/character-test: gen/character-test.o gen/util.o
@@ -200,6 +224,7 @@ gen/sentence: gen/sentence.o gen/util.o
 gen/sentence-test: gen/sentence-test.o gen/util.o
 gen/word: gen/word.o gen/util.o
 gen/word-test: gen/word-test.o gen/util.o
+test/bidirectional: test/bidirectional.o test/util.o libgrapheme.a
 test/case: test/case.o test/util.o libgrapheme.a
 test/character: test/character.o test/util.o libgrapheme.a
 test/line: test/line.o test/util.o libgrapheme.a
@@ -208,7 +233,8 @@ test/utf8-encode: test/utf8-encode.o test/util.o libgrapheme.a
 test/utf8-decode: test/utf8-decode.o test/util.o libgrapheme.a
 test/word: test/word.o test/util.o libgrapheme.a
 
-gen/bidirectional.h: data/DerivedBidiClass.txt gen/bidirectional
+gen/bidirectional.h: data/BidiBrackets.txt data/BidiMirroring.txt data/DerivedBidiClass.txt gen/bidirectional
+gen/bidirectional-test.h: data/BidiCharacterTest.txt data/BidiTest.txt gen/bidirectional-test
 gen/case.h: data/DerivedCoreProperties.txt data/UnicodeData.txt data/SpecialCasing.txt gen/case
 gen/character.h: data/emoji-data.txt data/GraphemeBreakProperty.txt gen/character
 gen/character-test.h: data/GraphemeBreakTest.txt gen/character-test
