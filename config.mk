@@ -1,10 +1,12 @@
 # Customize below to fit your system (run ./configure for automatic presets)
 
 # paths
-PREFIX = /usr/local
+DESTDIR   =
+PREFIX    = /usr/local
 INCPREFIX = $(PREFIX)/include
 LIBPREFIX = $(PREFIX)/lib
 MANPREFIX = $(PREFIX)/share/man
+PCPREFIX  = $(LIBPREFIX)/pkgconfig # unset to not install a pkg-config-file
 
 # flags
 CPPFLAGS = -D_DEFAULT_SOURCE
