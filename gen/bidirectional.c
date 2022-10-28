@@ -1,8 +1,13 @@
 /* See LICENSE file for copyright and license details. */
+#include <errno.h>
 #include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "util.h"
 
+#define FILE_BIDI_BRACKETS  "data/BidiBrackets.txt"
 #define FILE_BIDI_CLASS     "data/DerivedBidiClass.txt"
 #define FILE_BIDI_MIRRORING "data/BidiMirroring.txt"
 
@@ -125,6 +130,64 @@ static const struct property_spec bidi_property[] = {
 	},
 };
 
+static struct {
+	uint_least32_t cp_base;
+	uint_least32_t cp_pair;
+	char type;
+} *b = NULL;
+static size_t blen;
+
+static int
+bracket_callback(const char *file, char **field, size_t nfields,
+                 char *comment, void *payload)
+{
+	(void)file;
+	(void)comment;
+	(void)payload;
+
+	if (nfields < 3) {
+		/* we have less than 3 fields, discard the line */
+		return 0;
+	}
+
+	/* extend bracket pair array */
+	if (!(b = realloc(b, (++blen) * sizeof(*b)))) {
+		fprintf(stderr, "realloc: %s\n", strerror(errno));
+		exit(1);
+	}
+
+	/* parse field data */
+	hextocp(field[0], strlen(field[0]), &(b[blen - 1].cp_base));
+	hextocp(field[1], strlen(field[1]), &(b[blen - 1].cp_pair));
+	if (strlen(field[2]) != 1 ||
+	    (field[2][0] != 'o' && field[2][0] != 'c')) {
+		/* malformed line */
+		return 1;
+	} else {
+		b[blen - 1].type = field[2][0];
+	}
+
+	return 0;
+}
+
+static void
+post_process(struct properties *prop)
+{
+	size_t i;
+
+	for (i = 0; i < blen; i++) {
+		/*
+		 * given the base property fits in 5 bits, we simply
+		 * store the bracket-offset in the bits above that.
+		 *
+		 * All those properties that are not set here implicitly
+		 * have offset 0, which we prepared to contain a stub
+		 * for a character that is not a bracket.
+		 */
+		prop[b[i].cp_base].property |= (i << 5);
+	}
+}
+
 static uint_least8_t
 fill_missing(uint_least32_t cp) {
 	/* based on the @missing-properties in data/DerivedBidiClass.txt */
@@ -162,11 +225,39 @@ fill_missing(uint_least32_t cp) {
 int
 main(int argc, char *argv[])
 {
+	size_t i;
+
 	(void)argc;
+
+	/*
+	 * the first element in the bracket array is initialized to
+	 * all-zeros, as we use the implicit 0-offset for all those
+	 * codepoints that are not a bracket
+	 */
+	if (!(b = calloc(1, sizeof(*b)))) {
+		fprintf(stderr, "calloc: %s\n", strerror(errno));
+		exit(1);
+	}
+	parse_file_with_callback(FILE_BIDI_BRACKETS, bracket_callback,
+	                         NULL);
 
 	properties_generate_break_property(bidi_property,
 	                                   LEN(bidi_property), fill_missing,
-	                                   NULL, NULL, "bidi", argv[0]);
+	                                   NULL, post_process, "bidi",
+	                                   argv[0]);
+
+	printf("\nenum bracket_type {\n\tBIDI_BRACKET_NONE,\n\t"
+	       "BIDI_BRACKET_OPEN,\n\tBIDI_BRACKET_CLOSE,\n};\n\n"
+	       "struct bracket {\n\tenum bracket_type type;\n"
+	       "\tuint_least32_t pair;\n};\n\n"
+	       "static const struct bracket bidi_bracket[] = {\n");
+	for (i = 0; i < blen; i++) {
+		printf("\t{\n\t\t.type = %s,\n\t\t.pair = UINT32_C(0x%06X),\n\t},\n",
+		(b[i].type == 'o') ? "BIDI_BRACKET_OPEN" :
+		(b[i].type == 'c') ? "BIDI_BRACKET_CLOSE" : "BIDI_BRACKET_NONE",
+		b[i].cp_pair);
+	}
+	printf("};\n");
 
 	return 0;
 }
