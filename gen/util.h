@@ -51,8 +51,8 @@ void properties_generate_break_property(const struct property_spec *,
                                         uint_least8_t
                                         (*handle_conflict)(uint_least32_t,
                                         uint_least8_t, uint_least8_t),
-                                        uint_least8_t (*post_process)
-                                        (uint_least32_t, uint_least8_t),
+                                        void (*post_process)
+                                        (struct properties *),
                                         const char *, const char *);
 
 void break_test_list_parse(char *, struct break_test **, size_t *);

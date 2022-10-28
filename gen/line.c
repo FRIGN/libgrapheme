@@ -392,55 +392,57 @@ handle_conflict(uint_least32_t cp, uint_least8_t prop1, uint_least8_t prop2)
 	return result;
 }
 
-static uint_least8_t
-post_process(uint_least32_t cp, uint_least8_t prop)
+static void
+post_process(struct properties *prop)
 {
-	const char *target = NULL;
+	const char *target;
 	uint_least8_t result;
+	size_t i;
 
-	(void)cp;
+	/* post-mapping according to the line breaking algorithm */
+	for (i = 0; i < UINT32_C(0x110000); i++) {
+		/* LB1 */
+		if (!strcmp(line_break_property[prop[i].property].enumname, "TMP_AI") ||
+		    !strcmp(line_break_property[prop[i].property].enumname, "TMP_SG") ||
+		    !strcmp(line_break_property[prop[i].property].enumname, "TMP_XX")) {
+			/* map AI, SG and XX to AL */
+			target = "AL";
+		} else if (!strcmp(line_break_property[prop[i].property].enumname, "TMP_SA_WITH_MN_OR_MC")) {
+			/* map SA (with General_Category Mn or Mc) to CM */
+			target = "CM";
+		} else if (!strcmp(line_break_property[prop[i].property].enumname, "TMP_SA_WITHOUT_MN_OR_MC")) {
+			/* map SA (without General_Category Mn or Mc) to AL */
+			target = "AL";
+		} else if (!strcmp(line_break_property[prop[i].property].enumname, "TMP_CJ")) {
+			/* map CJ to NS */
+			target = "NS";
+		} else if (!strcmp(line_break_property[prop[i].property].enumname, "TMP_CN") ||
+		           !strcmp(line_break_property[prop[i].property].enumname, "TMP_EXTENDED_PICTOGRAPHIC") ||
+		           !strcmp(line_break_property[prop[i].property].enumname, "TMP_MN") ||
+		           !strcmp(line_break_property[prop[i].property].enumname, "TMP_MC") ||
+		           !strcmp(line_break_property[prop[i].property].enumname, "TMP_EAW_H") ||
+		           !strcmp(line_break_property[prop[i].property].enumname, "TMP_EAW_W") ||
+		           !strcmp(line_break_property[prop[i].property].enumname, "TMP_EAW_F")) {
+			/* map all the temporary classes "residue" to AL */
+			target = "AL";
+		} else {
+			target = NULL;
+		}
 
-	/* LB1 */
-	if (!strcmp(line_break_property[prop].enumname, "TMP_AI") ||
-	    !strcmp(line_break_property[prop].enumname, "TMP_SG") ||
-	    !strcmp(line_break_property[prop].enumname, "TMP_XX")) {
-		/* map AI, SG and XX to AL */
-		target = "AL";
-	} else if (!strcmp(line_break_property[prop].enumname, "TMP_SA_WITH_MN_OR_MC")) {
-		/* map SA (with General_Category Mn or Mc) to CM */
-		target = "CM";
-	} else if (!strcmp(line_break_property[prop].enumname, "TMP_SA_WITHOUT_MN_OR_MC")) {
-		/* map SA (without General_Category Mn or Mc) to AL */
-		target = "AL";
-	} else if (!strcmp(line_break_property[prop].enumname, "TMP_CJ")) {
-		/* map CJ to NS */
-		target = "NS";
-	} else if (!strcmp(line_break_property[prop].enumname, "TMP_CN") ||
-	           !strcmp(line_break_property[prop].enumname, "TMP_EXTENDED_PICTOGRAPHIC") ||
-	           !strcmp(line_break_property[prop].enumname, "TMP_MN") ||
-	           !strcmp(line_break_property[prop].enumname, "TMP_MC") ||
-	           !strcmp(line_break_property[prop].enumname, "TMP_EAW_H") ||
-	           !strcmp(line_break_property[prop].enumname, "TMP_EAW_W") ||
-	           !strcmp(line_break_property[prop].enumname, "TMP_EAW_F")) {
-		/* map all the temporary classes "residue" to AL */
-		target = "AL";
-	}
-
-	if (target) {
-		for (result = 0; result < LEN(line_break_property); result++) {
-			if (!strcmp(line_break_property[result].enumname,
-			            target)) {
-				break;
+		if (target) {
+			for (result = 0; result < LEN(line_break_property); result++) {
+				if (!strcmp(line_break_property[result].enumname,
+				            target)) {
+					break;
+				}
 			}
-		}
-		if (result == LEN(line_break_property)) {
-			fprintf(stderr, "handle_conflict: Internal error.\n");
-			exit(1);
-		}
+			if (result == LEN(line_break_property)) {
+				fprintf(stderr, "handle_conflict: Internal error.\n");
+				exit(1);
+			}
 
-		return result;
-	} else {
-		return prop;
+			prop[i].property = result;
+		}
 	}
 }
 

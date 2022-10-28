@@ -495,10 +495,9 @@ properties_generate_break_property(const struct property_spec *spec,
                                    uint_least32_t),
                                    uint_least8_t (*handle_conflict)(
                                    uint_least32_t, uint_least8_t,
-                                   uint_least8_t), uint_least8_t
-                                   (*post_process)(uint_least32_t,
-                                   uint_least8_t), const char *prefix,
-                                   const char *argv0)
+                                   uint_least8_t), void
+                                   (*post_process)(struct properties *),
+                                   const char *prefix, const char *argv0)
 {
 	struct properties_compressed comp;
 	struct properties_major_minor mm;
@@ -556,11 +555,7 @@ properties_generate_break_property(const struct property_spec *spec,
 
 	/* post-processing */
 	if (post_process != NULL) {
-		for (i = 0; i < UINT32_C(0x110000); i++) {
-			payload.prop[i].property =
-				post_process((uint_least32_t)i,
-				             (uint_least8_t)payload.prop[i].property);
-		}
+		post_process(payload.prop);
 	}
 
 	/* compress data */
