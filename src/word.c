@@ -14,7 +14,7 @@ struct word_break_state
 static inline uint_least8_t
 get_word_break_prop(uint_least32_t cp)
 {
-	if (likely(cp <= 0x10FFFF)) {
+	if (likely(cp <= UINT32_C(0x10FFFF))) {
 		return (uint_least8_t)
 		       word_break_minor[word_break_major[cp >> 8] + (cp & 0xff)];
 	} else {
