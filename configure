@@ -11,12 +11,12 @@ replace_line()
 }
 
 case $(uname) in
-	DragonFly|FreeBSD|Linux|NetBSD)
+	DragonFly|FreeBSD|Linux|MidnightBSD|NetBSD)
 		# the default
 		replace_line 'SOFLAGS'   '  '  '-shared -nostdlib -Wl,--soname=libgrapheme.so.$(VERSION_MAJOR).$(VERSION_MINOR)'
 		replace_line 'SONAME'    '   ' 'libgrapheme.so.$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)'
 		replace_line 'SOSYMLINK' ''    'true'
-		replace_line 'LDCONFIG'  ''    'ldconfig \# unset to not call ldconfig(1) after install/uninstall'
+		replace_line 'LDCONFIG'  ''    'ldconfig'
 		;;
 	OpenBSD)
 		replace_line 'SOFLAGS'   '  '  '-shared -nostdlib'
