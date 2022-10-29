@@ -1,7 +1,6 @@
 /* See LICENSE file for copyright and license details. */
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdlib.h>
 
 #include "../gen/bidirectional.h"
 #include "../grapheme.h"
@@ -50,7 +49,7 @@ struct state {
 	uint_least8_t paragraph_level;
 	int_least8_t level;
 	enum bidi_property prop;
-	uint_least8_t bracket_off;
+	const struct bracket *bracket;
 	bool visited;
 	enum bidi_property rawprop;
 };
@@ -59,23 +58,23 @@ static inline void
 state_serialize(const struct state *s, int_least32_t *out)
 {
 	*out = (int_least32_t)(
-	       ((((uint_least32_t)(s->paragraph_level)) & 0x01 /* 00000001 */) <<  0) |
-	       ((((uint_least32_t)(s->level + 1))       & 0x7F /* 01111111 */) <<  1) |
-	       ((((uint_least32_t)(s->prop))            & 0x1F /* 00011111 */) <<  8) |
-	       ((((uint_least32_t)(s->bracket_off))     & 0xFF /* 11111111 */) << 13) |
-	       ((((uint_least32_t)(s->visited))         & 0x01 /* 00000001 */) << 21) |
-	       ((((uint_least32_t)(s->rawprop))         & 0x1F /* 00011111 */) << 22));
+	       ((((uint_least32_t)(s->paragraph_level))        & 0x01 /* 00000001 */) <<  0) |
+	       ((((uint_least32_t)(s->level + 1))              & 0x7F /* 01111111 */) <<  1) |
+	       ((((uint_least32_t)(s->prop))                   & 0x1F /* 00011111 */) <<  8) |
+	       ((((uint_least32_t)(s->bracket - bidi_bracket)) & 0xFF /* 11111111 */) << 13) |
+	       ((((uint_least32_t)(s->visited))                & 0x01 /* 00000001 */) << 21) |
+	       ((((uint_least32_t)(s->rawprop))                & 0x1F /* 00011111 */) << 22));
 }
 
 static inline void
 state_deserialize(int_least32_t in, struct state *s)
 {
-	s->paragraph_level =      (uint_least8_t)((((uint_least32_t)in) >>  0) & 0x01 /* 00000001 */);
-	s->level           =       (int_least8_t)((((uint_least32_t)in) >>  1) & 0x7F /* 01111111 */) - 1;
-	s->prop            = (enum bidi_property)((((uint_least32_t)in) >>  8) & 0x1F /* 00011111 */);
-	s->bracket_off     =      (uint_least8_t)((((uint_least32_t)in) >> 13) & 0xFF /* 11111111 */);
-	s->visited         =               (bool)((((uint_least32_t)in) >> 21) & 0x01 /* 00000001 */);
-	s->rawprop         = (enum bidi_property)((((uint_least32_t)in) >> 22) & 0x1F /* 00011111 */);
+	s->paragraph_level =                (uint_least8_t)((((uint_least32_t)in) >>  0) & 0x01 /* 00000001 */);
+	s->level           =                 (int_least8_t)((((uint_least32_t)in) >>  1) & 0x7F /* 01111111 */) - 1;
+	s->prop            =           (enum bidi_property)((((uint_least32_t)in) >>  8) & 0x1F /* 00011111 */);
+	s->bracket         = bidi_bracket + (uint_least8_t)((((uint_least32_t)in) >> 13) & 0xFF /* 11111111 */);
+	s->visited         =                         (bool)((((uint_least32_t)in) >> 21) & 0x01 /* 00000001 */);
+	s->rawprop         =           (enum bidi_property)((((uint_least32_t)in) >> 22) & 0x1F /* 00011111 */);
 }
 
 static void
@@ -84,7 +83,7 @@ isolate_runner_init(int_least32_t *buf, size_t buflen, size_t off,
                     struct isolate_runner *ir)
 {
 	struct state s;
-	ssize_t i;
+	size_t i;
 	int_least8_t cur_level, sos_level;
 
 	state_deserialize(buf[off], &s);
@@ -115,8 +114,8 @@ isolate_runner_init(int_least32_t *buf, size_t buflen, size_t off,
 	 */
 	cur_level = s.level;
 	ir->cur.prop = NUM_BIDI_PROPS;
-	for (i = (ssize_t)off - 1, sos_level = -1; i >= 0; i--) {
-		state_deserialize(buf[i], &s);
+	for (i = off, sos_level = -1; i >= 1; i--) {
+		state_deserialize(buf[i - 1], &s);
 
 		if (s.level != -1) {
 			/*
@@ -935,7 +934,7 @@ get_embedding_levels(HERODOTUS_READER *r, enum grapheme_bidirectional_override o
 			s.paragraph_level = 0;
 			s.level = 0;
 			s.prop = get_bidi_property(cp);
-			s.bracket_off = get_bidi_bracket_off(cp);
+			s.bracket = bidi_bracket + get_bidi_bracket_off(cp);
 			s.visited = 0;
 			s.rawprop = get_bidi_property(cp);
 			state_serialize(&s, &(buf[bufoff]));
