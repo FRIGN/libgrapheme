@@ -349,7 +349,7 @@ dist:
 	rm -rf "libgrapheme-$(VERSION)"
 	mkdir "libgrapheme-$(VERSION)"
 	for m in benchmark data gen man man/template src test; do mkdir "libgrapheme-$(VERSION)/$$m"; done
-	cp config.mk grapheme.h LICENSE Makefile README "libgrapheme-$(VERSION)"
+	cp config.mk configure grapheme.h LICENSE Makefile README "libgrapheme-$(VERSION)"
 	cp $(BENCHMARK:=.c) benchmark/util.c benchmark/util.h "libgrapheme-$(VERSION)/benchmark"
 	cp $(DATA) "libgrapheme-$(VERSION)/data"
 	cp $(GEN:=.c) gen/util.c gen/types.h gen/util.h "libgrapheme-$(VERSION)/gen"
