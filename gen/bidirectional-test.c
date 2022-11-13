@@ -333,7 +333,10 @@ test_callback(const char *file, char **field, size_t nfields,
 			fprintf(stderr, "calloc: %s\n", strerror(errno));
 			exit(1);
 		}
-		memcpy(test[testlen - 1].reorder, current_reorder, current_reorder_len * sizeof(*(test[testlen - 1].reorder)));
+		if (current_reorder != NULL) {
+			memcpy(test[testlen - 1].reorder, current_reorder,
+			       current_reorder_len * sizeof(*(test[testlen - 1].reorder)));
+		}
 		test[testlen - 1].reorderlen = current_reorder_len;
 	
 		if (current_level_len != test[testlen - 1].cplen) {
