@@ -27,7 +27,7 @@ main(int argc, char *argv[])
 		/*if (i != 490798)
 			continue;*/
 
-		for (m = 0, ret = 0; m < bidirectional_test[i].modelen; m++) {
+		for (m = 0; m < bidirectional_test[i].modelen; m++) {
 			ret = grapheme_get_bidirectional_embedding_levels(
 				bidirectional_test[i].cp, bidirectional_test[i].cplen,
 				bidirectional_test[i].mode[m], lev, levlen);
