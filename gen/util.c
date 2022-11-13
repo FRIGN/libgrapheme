@@ -602,7 +602,7 @@ properties_generate_break_property(const struct property_spec *spec,
 
 static int
 break_test_callback(const char *fname, char **field, size_t nfields,
-                      char *comment, void *payload)
+                    char *comment, void *payload)
 {
 	struct break_test *t,
 		**test = ((struct break_test_payload *)payload)->test;
@@ -668,7 +668,7 @@ break_test_callback(const char *fname, char **field, size_t nfields,
 			}
 		}
 	}
-	if (t->len[t->lenlen - 1] == 0) {
+	if (t->lenlen > 0 && t->len[t->lenlen - 1] == 0) {
 		/*
 		 * we allocated one more length than we needed because
 		 * the breakpoint was at the end
@@ -677,7 +677,8 @@ break_test_callback(const char *fname, char **field, size_t nfields,
 	}
 
 	/* store comment */
-	if (((*test)[*testlen - 1].descr = strdup(comment)) == NULL) {
+	if (comment != NULL &&
+	    ((*test)[*testlen - 1].descr = strdup(comment)) == NULL) {
 		fprintf(stderr, "break_test_callback: strdup: %s.\n",
 		        strerror(errno));
 		return 1;
