@@ -308,6 +308,8 @@ $(MAN7:=.7):
 benchmark: $(BENCHMARK)
 	for m in $(BENCHMARK); do ./$$m; done
 
+check: test
+
 test: $(TEST)
 	for m in $(TEST); do ./$$m; done
 
