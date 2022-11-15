@@ -1,7 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 #include <math.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 
 #include "../gen/types.h"
@@ -20,7 +20,8 @@ generate_cp_test_buffer(const struct break_test *test, size_t testlen,
 		*buflen += test[i].cplen;
 	}
 	if (!(buf = calloc(*buflen, sizeof(*buf)))) {
-		fprintf(stderr, "generate_test_buffer: calloc: Out of memory.\n");
+		fprintf(stderr,
+		        "generate_test_buffer: calloc: Out of memory.\n");
 		exit(1);
 	}
 	for (i = 0, off = 0; i < testlen; i++) {
@@ -48,18 +49,18 @@ generate_utf8_test_buffer(const struct break_test *test, size_t testlen,
 	}
 	(*buflen)++; /* terminating NUL-byte */
 	if (!(buf = malloc(*buflen))) {
-		fprintf(stderr, "generate_test_buffer: malloc: Out of memory.\n");
+		fprintf(stderr,
+		        "generate_test_buffer: malloc: Out of memory.\n");
 		exit(1);
 	}
 	for (i = 0, off = 0; i < testlen; i++) {
 		for (j = 0; j < test[i].cplen; j++, off += ret) {
-			if ((ret = grapheme_encode_utf8(test[i].cp[j],
-			                                buf + off,
-			                                *buflen - off)) >
+			if ((ret = grapheme_encode_utf8(
+				     test[i].cp[j], buf + off, *buflen - off)) >
 			    (*buflen - off)) {
 				/* shouldn't happen */
 				fprintf(stderr, "generate_utf8_test_buffer: "
-				        "Buffer too small.\n");
+				                "Buffer too small.\n");
 				exit(1);
 			}
 		}
@@ -77,10 +78,9 @@ time_diff(struct timespec *a, struct timespec *b)
 }
 
 void
-run_benchmark(void (*func)(const void *), const void *payload,
-              const char *name, const char *comment, const char *unit,
-              double *baseline, size_t num_iterations,
-              size_t units_per_iteration)
+run_benchmark(void (*func)(const void *), const void *payload, const char *name,
+              const char *comment, const char *unit, double *baseline,
+              size_t num_iterations, size_t units_per_iteration)
 {
 	struct timespec start, end;
 	size_t i;
@@ -109,7 +109,6 @@ run_benchmark(void (*func)(const void *), const void *payload,
 		printf(" avg. %.3es/%s (%.2f%% %s%s%s)\n", diff, unit,
 		       fabs(1.0 - diff / *baseline) * 100,
 		       (diff < *baseline) ? "faster" : "slower",
-		       comment ? ", " : "",
-		       comment ? comment : "");
+		       comment ? ", " : "", comment ? comment : "");
 	}
 }

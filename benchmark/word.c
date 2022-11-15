@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../grapheme.h"
 #include "../gen/word-test.h"
+#include "../grapheme.h"
 #include "util.h"
 
 #define NUM_ITERATIONS 10000
@@ -23,7 +23,7 @@ libgrapheme(const void *payload)
 	const struct break_benchmark_payload *p = payload;
 	size_t off;
 
-	for (off = 0; off < p->buflen; ) {
+	for (off = 0; off < p->buflen;) {
 		off += grapheme_next_word_break(p->buf + off, p->buflen - off);
 	}
 }

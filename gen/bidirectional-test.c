@@ -3,8 +3,8 @@
 #include <inttypes.h>
 #include <stddef.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../grapheme.h"
 #include "util.h"
@@ -23,29 +23,29 @@ static const struct {
 	const char *class;
 	const uint_least32_t cp;
 } classcpmap[] = {
-	{ .class = "L",   .cp = UINT32_C(0x0041) },
-	{ .class = "AL",  .cp = UINT32_C(0x0608) },
-	{ .class = "AN",  .cp = UINT32_C(0x0600) },
-	{ .class = "B",   .cp = UINT32_C(0x000A) },
-	{ .class = "BN",  .cp = UINT32_C(0x0000) },
-	{ .class = "CS",  .cp = UINT32_C(0x002C) },
-	{ .class = "EN",  .cp = UINT32_C(0x0030) },
-	{ .class = "ES",  .cp = UINT32_C(0x002B) },
-	{ .class = "ET",  .cp = UINT32_C(0x0023) },
+	{ .class = "L", .cp = UINT32_C(0x0041) },
+	{ .class = "AL", .cp = UINT32_C(0x0608) },
+	{ .class = "AN", .cp = UINT32_C(0x0600) },
+	{ .class = "B", .cp = UINT32_C(0x000A) },
+	{ .class = "BN", .cp = UINT32_C(0x0000) },
+	{ .class = "CS", .cp = UINT32_C(0x002C) },
+	{ .class = "EN", .cp = UINT32_C(0x0030) },
+	{ .class = "ES", .cp = UINT32_C(0x002B) },
+	{ .class = "ET", .cp = UINT32_C(0x0023) },
 	{ .class = "FSI", .cp = UINT32_C(0x2068) },
 	{ .class = "LRE", .cp = UINT32_C(0x202A) },
 	{ .class = "LRI", .cp = UINT32_C(0x2066) },
 	{ .class = "LRO", .cp = UINT32_C(0x202D) },
 	{ .class = "NSM", .cp = UINT32_C(0x0300) },
-	{ .class = "ON",  .cp = UINT32_C(0x0021) },
+	{ .class = "ON", .cp = UINT32_C(0x0021) },
 	{ .class = "PDF", .cp = UINT32_C(0x202C) },
 	{ .class = "PDI", .cp = UINT32_C(0x2069) },
-	{ .class = "R",   .cp = UINT32_C(0x05BE) },
+	{ .class = "R", .cp = UINT32_C(0x05BE) },
 	{ .class = "RLE", .cp = UINT32_C(0x202B) },
 	{ .class = "RLI", .cp = UINT32_C(0x2067) },
 	{ .class = "RLO", .cp = UINT32_C(0x202E) },
-	{ .class = "S",   .cp = UINT32_C(0x0009) },
-	{ .class = "WS",  .cp = UINT32_C(0x000C) },
+	{ .class = "S", .cp = UINT32_C(0x0009) },
+	{ .class = "WS", .cp = UINT32_C(0x000C) },
 };
 
 static int
@@ -59,7 +59,8 @@ classtocp(const char *str, size_t len, uint_least32_t *cp)
 			return 0;
 		}
 	}
-	fprintf(stderr, "classtocp: unknown class string '%.*s'.\n", (int)len, str);
+	fprintf(stderr, "classtocp: unknown class string '%.*s'.\n", (int)len,
+	        str);
 
 	return 1;
 }
@@ -77,8 +78,10 @@ parse_class_list(const char *str, uint_least32_t **cp, size_t *cplen)
 	}
 
 	/* count the number of spaces in the string and infer list length */
-	for (count = 1, tmp1 = str; (tmp2 = strchr(tmp1, ' ')) != NULL; count++, tmp1 = tmp2 + 1)
+	for (count = 1, tmp1 = str; (tmp2 = strchr(tmp1, ' ')) != NULL;
+	     count++, tmp1 = tmp2 + 1) {
 		;
+	}
 
 	/* allocate resources */
 	if (!(*cp = calloc((*cplen = count), sizeof(**cp)))) {
@@ -89,7 +92,8 @@ parse_class_list(const char *str, uint_least32_t **cp, size_t *cplen)
 	/* go through the string again, parsing the classes */
 	for (i = 0, tmp1 = tmp2 = str; tmp2 != NULL; i++) {
 		tmp2 = strchr(tmp1, ' ');
-		if (classtocp(tmp1, tmp2 ? (size_t)(tmp2 - tmp1) : strlen(tmp1), &((*cp)[i]))) {
+		if (classtocp(tmp1, tmp2 ? (size_t)(tmp2 - tmp1) : strlen(tmp1),
+		              &((*cp)[i]))) {
 			return 1;
 		}
 		if (tmp2 != NULL) {
@@ -135,12 +139,10 @@ strtolevel(const char *str, size_t len, int_least8_t *level)
 		if (str[0] != '1') {
 			goto toolarge;
 		}
-		*level = (str[0] - '0') * 100 +
-		         (str[1] - '0') * 10  +
-			 (str[2] - '0');
+		*level = (str[0] - '0') * 100 + (str[1] - '0') * 10 +
+		         (str[2] - '0');
 	} else if (len == 2) {
-		*level = (str[0] - '0') * 10 +
-		         (str[1] - '0');
+		*level = (str[0] - '0') * 10 + (str[1] - '0');
 	} else if (len == 1) {
 		*level = (str[0] - '0');
 	} else { /* len == 0 */
@@ -149,8 +151,7 @@ strtolevel(const char *str, size_t len, int_least8_t *level)
 
 	return 0;
 toolarge:
-	fprintf(stderr, "hextocp: '%.*s' is too large.\n",
-	        (int)len, str);
+	fprintf(stderr, "hextocp: '%.*s' is too large.\n", (int)len, str);
 	return 1;
 }
 
@@ -167,8 +168,10 @@ parse_level_list(const char *str, int_least8_t **level, size_t *levellen)
 	}
 
 	/* count the number of spaces in the string and infer list length */
-	for (count = 1, tmp1 = str; (tmp2 = strchr(tmp1, ' ')) != NULL; count++, tmp1 = tmp2 + 1)
+	for (count = 1, tmp1 = str; (tmp2 = strchr(tmp1, ' ')) != NULL;
+	     count++, tmp1 = tmp2 + 1) {
 		;
+	}
 
 	/* allocate resources */
 	if (!(*level = calloc((*levellen = count), sizeof(**level)))) {
@@ -179,7 +182,9 @@ parse_level_list(const char *str, int_least8_t **level, size_t *levellen)
 	/* go through the string again, parsing the levels */
 	for (i = 0, tmp1 = tmp2 = str; tmp2 != NULL; i++) {
 		tmp2 = strchr(tmp1, ' ');
-		if (strtolevel(tmp1, tmp2 ? (size_t)(tmp2 - tmp1) : strlen(tmp1), &((*level)[i]))) {
+		if (strtolevel(tmp1,
+		               tmp2 ? (size_t)(tmp2 - tmp1) : strlen(tmp1),
+		               &((*level)[i]))) {
 			return 1;
 		}
 		if (tmp2 != NULL) {
@@ -199,7 +204,8 @@ bidirectional_test_list_print(const struct bidirectional_test *test,
 
 	printf("/* Automatically generated by %s */\n"
 	       "#include <stdint.h>\n#include <stddef.h>\n\n"
-	       "#include \"../grapheme.h\"\n\n", progname);
+	       "#include \"../grapheme.h\"\n\n",
+	       progname);
 
 	printf("static const struct {\n"
 	       "\tuint_least32_t *cp;\n"
@@ -208,7 +214,8 @@ bidirectional_test_list_print(const struct bidirectional_test *test,
 	       "\tsize_t modelen;\n"
 	       "\tint_least8_t *level;\n"
 	       "\tint_least8_t *reorder;\n"
-	       "\tsize_t reorderlen;\n} %s[] = {\n", identifier);
+	       "\tsize_t reorderlen;\n} %s[] = {\n",
+	       identifier);
 	for (i = 0; i < testlen; i++) {
 		printf("\t{\n");
 
@@ -222,11 +229,13 @@ bidirectional_test_list_print(const struct bidirectional_test *test,
 		printf(" },\n");
 		printf("\t\t.cplen      = %zu,\n", test[i].cplen);
 
-		printf("\t\t.mode       = (enum grapheme_bidirectional_override[]){");
+		printf("\t\t.mode       = (enum "
+		       "grapheme_bidirectional_override[]){");
 		for (j = 0; j < test[i].modelen; j++) {
 			if (test[i].mode[j] ==
 			    GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL) {
-				printf(" GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL");
+				printf(" GRAPHEME_BIDIRECTIONAL_OVERRIDE_"
+				       "NEUTRAL");
 			} else if (test[i].mode[j] ==
 			           GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR) {
 				printf(" GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR");
@@ -279,8 +288,8 @@ static int_least8_t *current_reorder;
 static size_t current_reorder_len;
 
 static int
-test_callback(const char *file, char **field, size_t nfields,
-              char *comment, void *payload)
+test_callback(const char *file, char **field, size_t nfields, char *comment,
+              void *payload)
 {
 	char *tmp;
 
@@ -292,23 +301,31 @@ test_callback(const char *file, char **field, size_t nfields,
 	if (nfields > 0 && field[0][0] == '@') {
 		if (!strncmp(field[0], "@Levels:", sizeof("@Levels:") - 1)) {
 			tmp = field[0] + sizeof("@Levels:") - 1;
-			for (; *tmp != '\0' && (*tmp == ' ' || *tmp == '\t'); tmp++)
+			for (; *tmp != '\0' && (*tmp == ' ' || *tmp == '\t');
+			     tmp++) {
 				;
+			}
 			free(current_level);
-			parse_level_list(tmp, &current_level, &current_level_len);
-		} else if (!strncmp(field[0], "@Reorder:", sizeof("@Reorder:") - 1)) {
+			parse_level_list(tmp, &current_level,
+			                 &current_level_len);
+		} else if (!strncmp(field[0],
+		                    "@Reorder:", sizeof("@Reorder:") - 1)) {
 			tmp = field[0] + sizeof("@Reorder:") - 1;
-			for (; *tmp != '\0' && (*tmp == ' ' || *tmp == '\t'); tmp++)
+			for (; *tmp != '\0' && (*tmp == ' ' || *tmp == '\t');
+			     tmp++) {
 				;
+			}
 			free(current_reorder);
-			parse_level_list(tmp, &current_reorder, &current_reorder_len);
+			parse_level_list(tmp, &current_reorder,
+			                 &current_reorder_len);
 		} else {
 			fprintf(stderr, "Unknown @-input-line.\n");
 			exit(1);
 		}
 	} else {
 		if (nfields < 2) {
-			/* discard any line that does not have at least 2 fields */
+			/* discard any line that does not have at least 2 fields
+			 */
 			return 0;
 		}
 
@@ -321,26 +338,33 @@ test_callback(const char *file, char **field, size_t nfields,
 		/* parse field data */
 		parse_class_list(field[0], &(test[testlen - 1].cp),
 		                 &(test[testlen - 1].cplen));
-		
+
 		/* copy current level- and reorder-arrays */
-		if (!(test[testlen - 1].level = calloc(current_level_len, sizeof(*(test[testlen - 1].level))))) {
+		if (!(test[testlen - 1].level =
+		              calloc(current_level_len,
+		                     sizeof(*(test[testlen - 1].level))))) {
 			fprintf(stderr, "calloc: %s\n", strerror(errno));
 			exit(1);
 		}
-		memcpy(test[testlen - 1].level, current_level, current_level_len * sizeof(*(test[testlen - 1].level)));
+		memcpy(test[testlen - 1].level, current_level,
+		       current_level_len * sizeof(*(test[testlen - 1].level)));
 
-		if (!(test[testlen - 1].reorder = calloc(current_reorder_len, sizeof(*(test[testlen - 1].reorder))))) {
+		if (!(test[testlen - 1].reorder =
+		              calloc(current_reorder_len,
+		                     sizeof(*(test[testlen - 1].reorder))))) {
 			fprintf(stderr, "calloc: %s\n", strerror(errno));
 			exit(1);
 		}
 		if (current_reorder != NULL) {
 			memcpy(test[testlen - 1].reorder, current_reorder,
-			       current_reorder_len * sizeof(*(test[testlen - 1].reorder)));
+			       current_reorder_len *
+			               sizeof(*(test[testlen - 1].reorder)));
 		}
 		test[testlen - 1].reorderlen = current_reorder_len;
-	
+
 		if (current_level_len != test[testlen - 1].cplen) {
-			fprintf(stderr, "mismatch between string and level lengths.\n");
+			fprintf(stderr,
+			        "mismatch between string and level lengths.\n");
 			exit(1);
 		}
 
@@ -349,27 +373,38 @@ test_callback(const char *file, char **field, size_t nfields,
 			fprintf(stderr, "malformed paragraph-level-bitset.\n");
 			exit(1);
 		} else if (field[1][0] == '2') {
-			test[testlen - 1].mode[0] = GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR;
+			test[testlen - 1].mode[0] =
+				GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR;
 			test[testlen - 1].modelen = 1;
 		} else if (field[1][0] == '3') {
 			/* auto=0 and LTR=1 */
-			test[testlen - 1].mode[0] = GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL;
-			test[testlen - 1].mode[1] = GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR;
+			test[testlen - 1].mode[0] =
+				GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL;
+			test[testlen - 1].mode[1] =
+				GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR;
 			test[testlen - 1].modelen = 2;
 		} else if (field[1][0] == '4') {
-			test[testlen - 1].mode[0] = GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL;
+			test[testlen - 1].mode[0] =
+				GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL;
 			test[testlen - 1].modelen = 1;
-		} else if (field[1][0] == '5') {	
-			test[testlen - 1].mode[0] = GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL;
-			test[testlen - 1].mode[1] = GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL;
+		} else if (field[1][0] == '5') {
+			test[testlen - 1].mode[0] =
+				GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL;
+			test[testlen - 1].mode[1] =
+				GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL;
 			test[testlen - 1].modelen = 2;
 		} else if (field[1][0] == '7') {
-			test[testlen - 1].mode[0] = GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL;
-			test[testlen - 1].mode[1] = GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR;
-			test[testlen - 1].mode[2] = GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL;
+			test[testlen - 1].mode[0] =
+				GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL;
+			test[testlen - 1].mode[1] =
+				GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR;
+			test[testlen - 1].mode[2] =
+				GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL;
 			test[testlen - 1].modelen = 3;
 		} else {
-			fprintf(stderr, "unhandled paragraph-level-bitset %s.\n", field[1]);
+			fprintf(stderr,
+			        "unhandled paragraph-level-bitset %s.\n",
+			        field[1]);
 			exit(1);
 		}
 	}
@@ -414,7 +449,8 @@ character_test_callback(const char *file, char **field, size_t nfields,
 	} else if (field[1][0] == '1') {
 		test[testlen - 1].mode[0] = GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL;
 	} else if (field[1][0] == '2') {
-		test[testlen - 1].mode[0] = GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL;
+		test[testlen - 1].mode[0] =
+			GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL;
 	} else {
 		fprintf(stderr, "unhandled paragraph-level-setting.\n");
 		exit(1);

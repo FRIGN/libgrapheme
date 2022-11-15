@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../grapheme.h"
 #include "../gen/sentence-test.h"
+#include "../grapheme.h"
 #include "util.h"
 
 #define NUM_ITERATIONS 100000
@@ -23,8 +23,9 @@ libgrapheme(const void *payload)
 	const struct break_benchmark_payload *p = payload;
 	size_t off;
 
-	for (off = 0; off < p->buflen; ) {
-		off += grapheme_next_sentence_break(p->buf + off, p->buflen - off);
+	for (off = 0; off < p->buflen;) {
+		off += grapheme_next_sentence_break(p->buf + off,
+		                                    p->buflen - off);
 	}
 }
 

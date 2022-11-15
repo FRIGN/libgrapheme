@@ -11,7 +11,8 @@ get_break_prop(uint_least32_t cp)
 {
 	if (likely(cp <= UINT32_C(0x10FFFF))) {
 		return (enum line_break_property)
-		       line_break_minor[line_break_major[cp >> 8] + (cp & 0xff)];
+			line_break_minor[line_break_major[cp >> 8] +
+		                         (cp & 0xff)];
 	} else {
 		return LINE_BREAK_PROP_AL;
 	}
@@ -22,7 +23,7 @@ next_line_break(HERODOTUS_READER *r)
 {
 	HERODOTUS_READER tmp;
 	enum line_break_property cp0_prop, cp1_prop, last_non_cm_or_zwj_prop,
-	                         last_non_sp_prop, last_non_sp_cm_or_zwj_prop;
+		last_non_sp_prop, last_non_sp_cm_or_zwj_prop;
 	uint_least32_t cp;
 	uint_least8_t lb25_level = 0;
 	bool lb21a_flag = false, ri_even = true;
@@ -43,8 +44,10 @@ next_line_break(HERODOTUS_READER *r)
 	last_non_cm_or_zwj_prop = LINE_BREAK_PROP_AL; /* according to LB10 */
 	last_non_sp_prop = last_non_sp_cm_or_zwj_prop = NUM_LINE_BREAK_PROPS;
 
-	for (herodotus_read_codepoint(r, true, &cp), cp0_prop = get_break_prop(cp);
-	     herodotus_read_codepoint(r, false, &cp) == HERODOTUS_STATUS_SUCCESS;
+	for (herodotus_read_codepoint(r, true, &cp),
+	     cp0_prop = get_break_prop(cp);
+	     herodotus_read_codepoint(r, false, &cp) ==
+	     HERODOTUS_STATUS_SUCCESS;
 	     herodotus_read_codepoint(r, true, &cp), cp0_prop = cp1_prop) {
 		/* get property of the right codepoint */
 		cp1_prop = get_break_prop(cp);
@@ -59,10 +62,11 @@ next_line_break(HERODOTUS_READER *r)
 		    cp0_prop != LINE_BREAK_PROP_ZWJ) {
 			/*
 			 * check if the property we are overwriting now is an
-			 * HL. If so, we set the LB21a-flag which depends on this
-			 * knowledge.
+			 * HL. If so, we set the LB21a-flag which depends on
+			 * this knowledge.
 			 */
-			lb21a_flag = (last_non_cm_or_zwj_prop == LINE_BREAK_PROP_HL);
+			lb21a_flag =
+				(last_non_cm_or_zwj_prop == LINE_BREAK_PROP_HL);
 
 			/* check regional indicator state */
 			if (cp0_prop == LINE_BREAK_PROP_RI) {
@@ -109,8 +113,7 @@ next_line_break(HERODOTUS_READER *r)
 			 *     and one (CL | CP) to the left of the middle
 			 *     spot
 			 */
-			if ((lb25_level == 0 ||
-			     lb25_level == 1) &&
+			if ((lb25_level == 0 || lb25_level == 1) &&
 			    cp0_prop == LINE_BREAK_PROP_NU) {
 				/* sequence has begun */
 				lb25_level = 1;
@@ -118,12 +121,15 @@ next_line_break(HERODOTUS_READER *r)
 			           (cp0_prop == LINE_BREAK_PROP_NU ||
 			            cp0_prop == LINE_BREAK_PROP_SY ||
 			            cp0_prop == LINE_BREAK_PROP_IS)) {
-				/* (NU | SY | IS) sequence begins or continued */
+				/* (NU | SY | IS) sequence begins or continued
+				 */
 				lb25_level = 2;
-			} else if ((lb25_level == 1 || lb25_level == 2) &&
-			           (cp0_prop == LINE_BREAK_PROP_CL                 ||
-				    cp0_prop == LINE_BREAK_PROP_CP_WITHOUT_EAW_HWF ||
-				    cp0_prop == LINE_BREAK_PROP_CP_WITH_EAW_HWF)) {
+			} else if (
+				(lb25_level == 1 || lb25_level == 2) &&
+				(cp0_prop == LINE_BREAK_PROP_CL ||
+			         cp0_prop ==
+			                 LINE_BREAK_PROP_CP_WITHOUT_EAW_HWF ||
+			         cp0_prop == LINE_BREAK_PROP_CP_WITH_EAW_HWF)) {
 				/* CL or CP at the end of the sequence */
 				lb25_level = 3;
 			} else {
@@ -229,17 +235,19 @@ next_line_break(HERODOTUS_READER *r)
 		/* LB13 (affected by tailoring for LB25, see example 7) */
 		if (cp1_prop == LINE_BREAK_PROP_EX ||
 		    (last_non_cm_or_zwj_prop != LINE_BREAK_PROP_NU &&
-		     (cp1_prop == LINE_BREAK_PROP_CL                 ||
+		     (cp1_prop == LINE_BREAK_PROP_CL ||
 		      cp1_prop == LINE_BREAK_PROP_CP_WITHOUT_EAW_HWF ||
-		      cp1_prop == LINE_BREAK_PROP_CP_WITH_EAW_HWF    ||
-		      cp1_prop == LINE_BREAK_PROP_IS                 ||
+		      cp1_prop == LINE_BREAK_PROP_CP_WITH_EAW_HWF ||
+		      cp1_prop == LINE_BREAK_PROP_IS ||
 		      cp1_prop == LINE_BREAK_PROP_SY))) {
 			continue;
 		}
 
 		/* LB14 */
-		if (last_non_sp_cm_or_zwj_prop == LINE_BREAK_PROP_OP_WITHOUT_EAW_HWF ||
-		    last_non_sp_cm_or_zwj_prop == LINE_BREAK_PROP_OP_WITH_EAW_HWF) {
+		if (last_non_sp_cm_or_zwj_prop ==
+		            LINE_BREAK_PROP_OP_WITHOUT_EAW_HWF ||
+		    last_non_sp_cm_or_zwj_prop ==
+		            LINE_BREAK_PROP_OP_WITH_EAW_HWF) {
 			continue;
 		}
 
@@ -251,9 +259,11 @@ next_line_break(HERODOTUS_READER *r)
 		}
 
 		/* LB16 */
-		if ((last_non_sp_cm_or_zwj_prop == LINE_BREAK_PROP_CL                 ||
-		     last_non_sp_cm_or_zwj_prop == LINE_BREAK_PROP_CP_WITHOUT_EAW_HWF ||
-		     last_non_sp_cm_or_zwj_prop == LINE_BREAK_PROP_CP_WITH_EAW_HWF) &&
+		if ((last_non_sp_cm_or_zwj_prop == LINE_BREAK_PROP_CL ||
+		     last_non_sp_cm_or_zwj_prop ==
+		             LINE_BREAK_PROP_CP_WITHOUT_EAW_HWF ||
+		     last_non_sp_cm_or_zwj_prop ==
+		             LINE_BREAK_PROP_CP_WITH_EAW_HWF) &&
 		    cp1_prop == LINE_BREAK_PROP_NS) {
 			continue;
 		}
@@ -308,7 +318,7 @@ next_line_break(HERODOTUS_READER *r)
 		}
 
 		/* LB23 */
-		if ((last_non_cm_or_zwj_prop == LINE_BREAK_PROP_AL  ||
+		if ((last_non_cm_or_zwj_prop == LINE_BREAK_PROP_AL ||
 		     last_non_cm_or_zwj_prop == LINE_BREAK_PROP_HL) &&
 		    cp1_prop == LINE_BREAK_PROP_NU) {
 			continue;
@@ -336,11 +346,11 @@ next_line_break(HERODOTUS_READER *r)
 		/* LB24 */
 		if ((last_non_cm_or_zwj_prop == LINE_BREAK_PROP_PR ||
 		     last_non_cm_or_zwj_prop == LINE_BREAK_PROP_PO) &&
-		    (cp1_prop == LINE_BREAK_PROP_AL  ||
+		    (cp1_prop == LINE_BREAK_PROP_AL ||
 		     cp1_prop == LINE_BREAK_PROP_HL)) {
 			continue;
 		}
-		if ((last_non_cm_or_zwj_prop == LINE_BREAK_PROP_AL  ||
+		if ((last_non_cm_or_zwj_prop == LINE_BREAK_PROP_AL ||
 		     last_non_cm_or_zwj_prop == LINE_BREAK_PROP_HL) &&
 		    (cp1_prop == LINE_BREAK_PROP_PR ||
 		     cp1_prop == LINE_BREAK_PROP_PO)) {
@@ -362,32 +372,33 @@ next_line_break(HERODOTUS_READER *r)
 			herodotus_reader_copy(r, &tmp);
 			herodotus_read_codepoint(&tmp, true, &cp);
 			if (herodotus_read_codepoint(&tmp, true, &cp) ==
-			    HERODOTUS_STATUS_SUCCESS &&
+			            HERODOTUS_STATUS_SUCCESS &&
 			    (cp1_prop == LINE_BREAK_PROP_OP_WITHOUT_EAW_HWF ||
-			     cp1_prop == LINE_BREAK_PROP_OP_WITH_EAW_HWF    ||
+			     cp1_prop == LINE_BREAK_PROP_OP_WITH_EAW_HWF ||
 			     cp1_prop == LINE_BREAK_PROP_HY)) {
 				if (get_break_prop(cp) == LINE_BREAK_PROP_NU) {
 					continue;
 				}
 			}
 		}
-		if ((last_non_cm_or_zwj_prop == LINE_BREAK_PROP_OP_WITHOUT_EAW_HWF ||
-		     last_non_cm_or_zwj_prop == LINE_BREAK_PROP_OP_WITH_EAW_HWF    ||
+		if ((last_non_cm_or_zwj_prop ==
+		             LINE_BREAK_PROP_OP_WITHOUT_EAW_HWF ||
+		     last_non_cm_or_zwj_prop ==
+		             LINE_BREAK_PROP_OP_WITH_EAW_HWF ||
 		     last_non_cm_or_zwj_prop == LINE_BREAK_PROP_HY) &&
 		    cp1_prop == LINE_BREAK_PROP_NU) {
 			continue;
 		}
-		if (lb25_level == 1 &&
-		    (cp1_prop == LINE_BREAK_PROP_NU ||
-		     cp1_prop == LINE_BREAK_PROP_SY ||
-		     cp1_prop == LINE_BREAK_PROP_IS)) {
+		if (lb25_level == 1 && (cp1_prop == LINE_BREAK_PROP_NU ||
+		                        cp1_prop == LINE_BREAK_PROP_SY ||
+		                        cp1_prop == LINE_BREAK_PROP_IS)) {
 			continue;
 		}
 		if ((lb25_level == 1 || lb25_level == 2) &&
-		    (cp1_prop == LINE_BREAK_PROP_NU                 ||
-		     cp1_prop == LINE_BREAK_PROP_SY                 ||
-		     cp1_prop == LINE_BREAK_PROP_IS                 ||
-		     cp1_prop == LINE_BREAK_PROP_CL                 ||
+		    (cp1_prop == LINE_BREAK_PROP_NU ||
+		     cp1_prop == LINE_BREAK_PROP_SY ||
+		     cp1_prop == LINE_BREAK_PROP_IS ||
+		     cp1_prop == LINE_BREAK_PROP_CL ||
 		     cp1_prop == LINE_BREAK_PROP_CP_WITHOUT_EAW_HWF ||
 		     cp1_prop == LINE_BREAK_PROP_CP_WITH_EAW_HWF)) {
 			continue;
@@ -437,37 +448,37 @@ next_line_break(HERODOTUS_READER *r)
 		}
 
 		/* LB28 */
-		if ((last_non_cm_or_zwj_prop == LINE_BREAK_PROP_AL  ||
+		if ((last_non_cm_or_zwj_prop == LINE_BREAK_PROP_AL ||
 		     last_non_cm_or_zwj_prop == LINE_BREAK_PROP_HL) &&
-		    (cp1_prop == LINE_BREAK_PROP_AL  ||
+		    (cp1_prop == LINE_BREAK_PROP_AL ||
 		     cp1_prop == LINE_BREAK_PROP_HL)) {
 			continue;
 		}
 
 		/* LB29 */
 		if (last_non_cm_or_zwj_prop == LINE_BREAK_PROP_IS &&
-		    (cp1_prop == LINE_BREAK_PROP_AL  ||
+		    (cp1_prop == LINE_BREAK_PROP_AL ||
 		     cp1_prop == LINE_BREAK_PROP_HL)) {
 			continue;
 		}
 
 		/* LB30 */
-		if ((last_non_cm_or_zwj_prop == LINE_BREAK_PROP_AL  ||
-		     last_non_cm_or_zwj_prop == LINE_BREAK_PROP_HL  ||
+		if ((last_non_cm_or_zwj_prop == LINE_BREAK_PROP_AL ||
+		     last_non_cm_or_zwj_prop == LINE_BREAK_PROP_HL ||
 		     last_non_cm_or_zwj_prop == LINE_BREAK_PROP_NU) &&
 		    cp1_prop == LINE_BREAK_PROP_OP_WITHOUT_EAW_HWF) {
 			continue;
 		}
-		if (last_non_cm_or_zwj_prop == LINE_BREAK_PROP_CP_WITHOUT_EAW_HWF &&
-		    (cp1_prop == LINE_BREAK_PROP_AL  ||
-		     cp1_prop == LINE_BREAK_PROP_HL  ||
+		if (last_non_cm_or_zwj_prop ==
+		            LINE_BREAK_PROP_CP_WITHOUT_EAW_HWF &&
+		    (cp1_prop == LINE_BREAK_PROP_AL ||
+		     cp1_prop == LINE_BREAK_PROP_HL ||
 		     cp1_prop == LINE_BREAK_PROP_NU)) {
 			continue;
 		}
 
 		/* LB30a */
-		if (!ri_even &&
-		    last_non_cm_or_zwj_prop == LINE_BREAK_PROP_RI &&
+		if (!ri_even && last_non_cm_or_zwj_prop == LINE_BREAK_PROP_RI &&
 		    cp1_prop == LINE_BREAK_PROP_RI) {
 			continue;
 		}
@@ -477,7 +488,8 @@ next_line_break(HERODOTUS_READER *r)
 		    cp1_prop == LINE_BREAK_PROP_EM) {
 			continue;
 		}
-		if (last_non_cm_or_zwj_prop == LINE_BREAK_PROP_BOTH_CN_EXTPICT &&
+		if (last_non_cm_or_zwj_prop ==
+		            LINE_BREAK_PROP_BOTH_CN_EXTPICT &&
 		    cp1_prop == LINE_BREAK_PROP_EM) {
 			continue;
 		}

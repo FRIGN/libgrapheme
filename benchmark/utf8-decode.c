@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../grapheme.h"
 #include "../gen/character-test.h"
+#include "../grapheme.h"
 #include "util.h"
 
 #include <utf8proc.h>
@@ -28,9 +28,8 @@ libgrapheme(const void *payload)
 	size_t ret, off;
 
 	for (off = 0; off < p->buflen; off += ret) {
-		if ((ret = grapheme_decode_utf8(p->buf + off,
-		                                p->buflen - off, &cp)) >
-		    (p->buflen - off)) {
+		if ((ret = grapheme_decode_utf8(p->buf + off, p->buflen - off,
+		                                &cp)) > (p->buflen - off)) {
 			break;
 		}
 		(void)cp;
@@ -48,7 +47,7 @@ libutf8proc(const void *payload)
 	for (off = 0; off < p->buflen; off += (size_t)ret) {
 		if ((ret = utf8proc_iterate(p->buf_utf8proc + off,
 		                            (utf8proc_ssize_t)(p->buflen - off),
-				            &cp)) < 0) {
+		                            &cp)) < 0) {
 			break;
 		}
 		(void)cp;
@@ -64,9 +63,8 @@ main(int argc, char *argv[])
 
 	(void)argc;
 
-	p.buf = generate_utf8_test_buffer(character_break_test,
-	                                  LEN(character_break_test),
-	                                  &(p.buflen));
+	p.buf = generate_utf8_test_buffer(
+		character_break_test, LEN(character_break_test), &(p.buflen));
 
 	/* convert cp-buffer to stupid custom libutf8proc-uint8-type */
 	if ((p.buf_utf8proc = malloc(p.buflen)) == NULL) {
@@ -74,7 +72,7 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 	for (i = 0; i < p.buflen; i++) {
-		/* 
+		/*
 		 * even if char is larger than 8 bit, it will only have
 		 * any of the first 8 bits set (by construction).
 		 */
@@ -82,11 +80,11 @@ main(int argc, char *argv[])
 	}
 
 	printf("%s\n", argv[0]);
-	run_benchmark(libgrapheme, &p, "libgrapheme ", NULL,
-	              "byte", &baseline, NUM_ITERATIONS, p.buflen);
+	run_benchmark(libgrapheme, &p, "libgrapheme ", NULL, "byte", &baseline,
+	              NUM_ITERATIONS, p.buflen);
 	run_benchmark(libutf8proc, &p, "libutf8proc ",
-	              "but unsafe (does not detect overlong encodings)",
-	              "byte", &baseline, NUM_ITERATIONS, p.buflen);
+	              "but unsafe (does not detect overlong encodings)", "byte",
+	              &baseline, NUM_ITERATIONS, p.buflen);
 
 	free(p.buf);
 	free(p.buf_utf8proc);

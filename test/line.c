@@ -91,23 +91,19 @@ static const struct unit_test_next_break_utf8 next_line_break_utf8[] = {
 };
 
 static int
-unit_test_callback_next_line_break(const void *t, size_t off,
-                                             const char *name,
-                                             const char *argv0)
+unit_test_callback_next_line_break(const void *t, size_t off, const char *name,
+                                   const char *argv0)
 {
-	return unit_test_callback_next_break(t, off,
-	                                     grapheme_next_line_break,
+	return unit_test_callback_next_break(t, off, grapheme_next_line_break,
 	                                     name, argv0);
 }
 
 static int
 unit_test_callback_next_line_break_utf8(const void *t, size_t off,
-                                             const char *name,
-                                             const char *argv0)
+                                        const char *name, const char *argv0)
 {
-	return unit_test_callback_next_break_utf8(t, off,
-	                                          grapheme_next_line_break_utf8,
-	                                          name, argv0);
+	return unit_test_callback_next_break_utf8(
+		t, off, grapheme_next_line_break_utf8, name, argv0);
 }
 
 int
@@ -115,9 +111,8 @@ main(int argc, char *argv[])
 {
 	(void)argc;
 
-	return run_break_tests(grapheme_next_line_break,
-	                       line_break_test, LEN(line_break_test),
-	                       argv[0]) +
+	return run_break_tests(grapheme_next_line_break, line_break_test,
+	                       LEN(line_break_test), argv[0]) +
 	       run_unit_tests(unit_test_callback_next_line_break,
 	                      next_line_break, LEN(next_line_break),
 	                      "grapheme_next_line_break", argv[0]) +

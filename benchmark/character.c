@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../grapheme.h"
 #include "../gen/character-test.h"
+#include "../grapheme.h"
 #include "util.h"
 
 #include <utf8proc.h>
@@ -28,7 +28,7 @@ libgrapheme(const void *payload)
 	size_t i;
 
 	for (i = 0; i + 1 < p->buflen; i++) {
-		(void)grapheme_is_character_break(p->buf[i], p->buf[i+1],
+		(void)grapheme_is_character_break(p->buf[i], p->buf[i + 1],
 		                                  &state);
 	}
 }
@@ -41,9 +41,8 @@ libutf8proc(const void *payload)
 	size_t i;
 
 	for (i = 0; i + 1 < p->buflen; i++) {
-		(void)utf8proc_grapheme_break_stateful(p->buf_utf8proc[i],
-		                                       p->buf_utf8proc[i+1],
-		                                       &state);
+		(void)utf8proc_grapheme_break_stateful(
+			p->buf_utf8proc[i], p->buf_utf8proc[i + 1], &state);
 	}
 }
 
@@ -61,7 +60,8 @@ main(int argc, char *argv[])
 	                                     &(p.buflen))) == NULL) {
 		return 1;
 	}
-	if ((p.buf_utf8proc = malloc(p.buflen * sizeof(*(p.buf_utf8proc)))) == NULL) {
+	if ((p.buf_utf8proc = malloc(p.buflen * sizeof(*(p.buf_utf8proc)))) ==
+	    NULL) {
 		fprintf(stderr, "malloc: %s\n", strerror(errno));
 		exit(1);
 	}

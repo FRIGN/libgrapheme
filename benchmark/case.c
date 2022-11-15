@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../grapheme.h"
 #include "../gen/word-test.h"
+#include "../grapheme.h"
 #include "util.h"
 
 #define NUM_ITERATIONS 10000
@@ -40,7 +40,8 @@ main(int argc, char *argv[])
 	                                     &(p.srclen))) == NULL) {
 		return 1;
 	}
-	if ((p.dest = calloc((p.destlen = 2 * p.srclen), sizeof(*(p.dest)))) == NULL) {
+	if ((p.dest = calloc((p.destlen = 2 * p.srclen), sizeof(*(p.dest)))) ==
+	    NULL) {
 		fprintf(stderr, "calloc: Out of memory\n");
 	}
 

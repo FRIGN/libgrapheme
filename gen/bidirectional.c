@@ -15,118 +15,118 @@ static const struct property_spec bidi_property[] = {
 	{
 		/* default */
 		.enumname = "L",
-		.file     = FILE_BIDI_CLASS,
-		.ucdname  = "L",
+		.file = FILE_BIDI_CLASS,
+		.ucdname = "L",
 	},
 	{
 		.enumname = "AL",
-		.file     = FILE_BIDI_CLASS,
-		.ucdname  = "AL",
+		.file = FILE_BIDI_CLASS,
+		.ucdname = "AL",
 	},
 	{
 		.enumname = "AN",
-		.file     = FILE_BIDI_CLASS,
-		.ucdname  = "AN",
+		.file = FILE_BIDI_CLASS,
+		.ucdname = "AN",
 	},
 	{
 		.enumname = "B",
-		.file     = FILE_BIDI_CLASS,
-		.ucdname  = "B",
+		.file = FILE_BIDI_CLASS,
+		.ucdname = "B",
 	},
 	{
 		.enumname = "BN",
-		.file     = FILE_BIDI_CLASS,
-		.ucdname  = "BN",
+		.file = FILE_BIDI_CLASS,
+		.ucdname = "BN",
 	},
 	{
 		.enumname = "CS",
-		.file     = FILE_BIDI_CLASS,
-		.ucdname  = "CS",
+		.file = FILE_BIDI_CLASS,
+		.ucdname = "CS",
 	},
 	{
 		.enumname = "EN",
-		.file     = FILE_BIDI_CLASS,
-		.ucdname  = "EN",
+		.file = FILE_BIDI_CLASS,
+		.ucdname = "EN",
 	},
 	{
 		.enumname = "ES",
-		.file     = FILE_BIDI_CLASS,
-		.ucdname  = "ES",
+		.file = FILE_BIDI_CLASS,
+		.ucdname = "ES",
 	},
 	{
 		.enumname = "ET",
-		.file     = FILE_BIDI_CLASS,
-		.ucdname  = "ET",
+		.file = FILE_BIDI_CLASS,
+		.ucdname = "ET",
 	},
 	{
 		.enumname = "FSI",
-		.file     = FILE_BIDI_CLASS,
-		.ucdname  = "FSI",
+		.file = FILE_BIDI_CLASS,
+		.ucdname = "FSI",
 	},
 	{
 		.enumname = "LRE",
-		.file     = FILE_BIDI_CLASS,
-		.ucdname  = "LRE",
+		.file = FILE_BIDI_CLASS,
+		.ucdname = "LRE",
 	},
 	{
 		.enumname = "LRI",
-		.file     = FILE_BIDI_CLASS,
-		.ucdname  = "LRI",
+		.file = FILE_BIDI_CLASS,
+		.ucdname = "LRI",
 	},
 	{
 		.enumname = "LRO",
-		.file     = FILE_BIDI_CLASS,
-		.ucdname  = "LRO",
+		.file = FILE_BIDI_CLASS,
+		.ucdname = "LRO",
 	},
 	{
 		.enumname = "NSM",
-		.file     = FILE_BIDI_CLASS,
-		.ucdname  = "NSM",
+		.file = FILE_BIDI_CLASS,
+		.ucdname = "NSM",
 	},
 	{
 		.enumname = "ON",
-		.file     = FILE_BIDI_CLASS,
-		.ucdname  = "ON",
+		.file = FILE_BIDI_CLASS,
+		.ucdname = "ON",
 	},
 	{
 		.enumname = "PDF",
-		.file     = FILE_BIDI_CLASS,
-		.ucdname  = "PDF",
+		.file = FILE_BIDI_CLASS,
+		.ucdname = "PDF",
 	},
 	{
 		.enumname = "PDI",
-		.file     = FILE_BIDI_CLASS,
-		.ucdname  = "PDI",
+		.file = FILE_BIDI_CLASS,
+		.ucdname = "PDI",
 	},
 	{
 		.enumname = "R",
-		.file     = FILE_BIDI_CLASS,
-		.ucdname  = "R",
+		.file = FILE_BIDI_CLASS,
+		.ucdname = "R",
 	},
 	{
 		.enumname = "RLE",
-		.file     = FILE_BIDI_CLASS,
-		.ucdname  = "RLE",
+		.file = FILE_BIDI_CLASS,
+		.ucdname = "RLE",
 	},
 	{
 		.enumname = "RLI",
-		.file     = FILE_BIDI_CLASS,
-		.ucdname  = "RLI",
+		.file = FILE_BIDI_CLASS,
+		.ucdname = "RLI",
 	},
 	{
 		.enumname = "RLO",
-		.file     = FILE_BIDI_CLASS,
-		.ucdname  = "RLO",
+		.file = FILE_BIDI_CLASS,
+		.ucdname = "RLO",
 	},
 	{
 		.enumname = "S",
-		.file     = FILE_BIDI_CLASS,
-		.ucdname  = "S",
+		.file = FILE_BIDI_CLASS,
+		.ucdname = "S",
 	},
 	{
 		.enumname = "WS",
-		.file     = FILE_BIDI_CLASS,
-		.ucdname  = "WS",
+		.file = FILE_BIDI_CLASS,
+		.ucdname = "WS",
 	},
 };
 
@@ -135,11 +135,12 @@ static struct {
 	uint_least32_t cp_pair;
 	char type;
 } *b = NULL;
+
 static size_t blen;
 
 static int
-bracket_callback(const char *file, char **field, size_t nfields,
-                 char *comment, void *payload)
+bracket_callback(const char *file, char **field, size_t nfields, char *comment,
+                 void *payload)
 {
 	(void)file;
 	(void)comment;
@@ -189,11 +190,12 @@ post_process(struct properties *prop)
 }
 
 static uint_least8_t
-fill_missing(uint_least32_t cp) {
+fill_missing(uint_least32_t cp)
+{
 	/* based on the @missing-properties in data/DerivedBidiClass.txt */
-	if ((cp >= UINT32_C(0x0590)  && cp <= UINT32_C(0x05FF))  ||
-	    (cp >= UINT32_C(0x07C0)  && cp <= UINT32_C(0x085F))  ||
-	    (cp >= UINT32_C(0xFB1D)  && cp <= UINT32_C(0xFB4F))  ||
+	if ((cp >= UINT32_C(0x0590) && cp <= UINT32_C(0x05FF)) ||
+	    (cp >= UINT32_C(0x07C0) && cp <= UINT32_C(0x085F)) ||
+	    (cp >= UINT32_C(0xFB1D) && cp <= UINT32_C(0xFB4F)) ||
 	    (cp >= UINT32_C(0x10800) && cp <= UINT32_C(0x10CFF)) ||
 	    (cp >= UINT32_C(0x10D40) && cp <= UINT32_C(0x10EBF)) ||
 	    (cp >= UINT32_C(0x10F00) && cp <= UINT32_C(0x10F2F)) ||
@@ -203,22 +205,22 @@ fill_missing(uint_least32_t cp) {
 	    (cp >= UINT32_C(0x1ED50) && cp <= UINT32_C(0x1EDFF)) ||
 	    (cp >= UINT32_C(0x1EF00) && cp <= UINT32_C(0x1EFFF))) {
 		return 17; /* class R */
-	} else if ((cp >= UINT32_C(0x0600)  && cp <= UINT32_C(0x07BF))  ||
-	           (cp >= UINT32_C(0x0860)  && cp <= UINT32_C(0x08FF))  ||
-	           (cp >= UINT32_C(0xFB50)  && cp <= UINT32_C(0xFDCF))  ||
-	           (cp >= UINT32_C(0xFDF0)  && cp <= UINT32_C(0xFDFF))  ||
-	           (cp >= UINT32_C(0xFE70)  && cp <= UINT32_C(0xFEFF))  ||
+	} else if ((cp >= UINT32_C(0x0600) && cp <= UINT32_C(0x07BF)) ||
+	           (cp >= UINT32_C(0x0860) && cp <= UINT32_C(0x08FF)) ||
+	           (cp >= UINT32_C(0xFB50) && cp <= UINT32_C(0xFDCF)) ||
+	           (cp >= UINT32_C(0xFDF0) && cp <= UINT32_C(0xFDFF)) ||
+	           (cp >= UINT32_C(0xFE70) && cp <= UINT32_C(0xFEFF)) ||
 	           (cp >= UINT32_C(0x10D00) && cp <= UINT32_C(0x10D3F)) ||
 	           (cp >= UINT32_C(0x10EC0) && cp <= UINT32_C(0x10EFF)) ||
-		   (cp >= UINT32_C(0x10F30) && cp <= UINT32_C(0x10F6F)) ||
+	           (cp >= UINT32_C(0x10F30) && cp <= UINT32_C(0x10F6F)) ||
 	           (cp >= UINT32_C(0x1EC70) && cp <= UINT32_C(0x1ECBF)) ||
 	           (cp >= UINT32_C(0x1ED00) && cp <= UINT32_C(0x1ED4F)) ||
 	           (cp >= UINT32_C(0x1EE00) && cp <= UINT32_C(0x1EEFF))) {
-		return 1;  /* class AL */
+		return 1; /* class AL */
 	} else if (cp >= UINT32_C(0x20A0) && cp <= UINT32_C(0x20CF)) {
-		return 8;  /* class ET */
+		return 8; /* class ET */
 	} else {
-		return 0;  /* class L */
+		return 0; /* class L */
 	}
 }
 
@@ -238,13 +240,11 @@ main(int argc, char *argv[])
 		fprintf(stderr, "calloc: %s\n", strerror(errno));
 		exit(1);
 	}
-	parse_file_with_callback(FILE_BIDI_BRACKETS, bracket_callback,
-	                         NULL);
+	parse_file_with_callback(FILE_BIDI_BRACKETS, bracket_callback, NULL);
 
-	properties_generate_break_property(bidi_property,
-	                                   LEN(bidi_property), fill_missing,
-	                                   NULL, post_process, "bidi",
-	                                   argv[0]);
+	properties_generate_break_property(bidi_property, LEN(bidi_property),
+	                                   fill_missing, NULL, post_process,
+	                                   "bidi", argv[0]);
 
 	printf("\nenum bracket_type {\n\tBIDI_BRACKET_NONE,\n\t"
 	       "BIDI_BRACKET_OPEN,\n\tBIDI_BRACKET_CLOSE,\n};\n\n"
@@ -252,10 +252,12 @@ main(int argc, char *argv[])
 	       "\tuint_least32_t pair;\n};\n\n"
 	       "static const struct bracket bidi_bracket[] = {\n");
 	for (i = 0; i < blen; i++) {
-		printf("\t{\n\t\t.type = %s,\n\t\t.pair = UINT32_C(0x%06X),\n\t},\n",
-		(b[i].type == 'o') ? "BIDI_BRACKET_OPEN" :
-		(b[i].type == 'c') ? "BIDI_BRACKET_CLOSE" : "BIDI_BRACKET_NONE",
-		b[i].cp_pair);
+		printf("\t{\n\t\t.type = %s,\n\t\t.pair = "
+		       "UINT32_C(0x%06X),\n\t},\n",
+		       (b[i].type == 'o') ? "BIDI_BRACKET_OPEN" :
+		       (b[i].type == 'c') ? "BIDI_BRACKET_CLOSE" :
+		                            "BIDI_BRACKET_NONE",
+		       b[i].cp_pair);
 	}
 	printf("};\n");
 

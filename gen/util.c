@@ -1,13 +1,12 @@
 /* See LICENSE file for copyright and license details. */
-#include <stdbool.h>
 #include <ctype.h>
 #include <errno.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "util.h"
@@ -21,12 +20,13 @@ struct properties_payload {
 	struct properties *prop;
 	const struct property_spec *spec;
 	uint_least8_t speclen;
-	int (*set_value)(struct properties_payload *, uint_least32_t, int_least64_t);
-	uint_least8_t (*handle_conflict)(uint_least32_t, uint_least8_t, uint_least8_t);
+	int (*set_value)(struct properties_payload *, uint_least32_t,
+	                 int_least64_t);
+	uint_least8_t (*handle_conflict)(uint_least32_t, uint_least8_t,
+	                                 uint_least8_t);
 };
 
-struct break_test_payload
-{
+struct break_test_payload {
 	struct break_test **test;
 	size_t *testlen;
 };
@@ -51,8 +51,8 @@ hextocp(const char *str, size_t len, uint_least32_t *cp)
 
 	/* the maximum valid codepoint is 0x10FFFF */
 	if (len > 6) {
-		fprintf(stderr, "hextocp: '%.*s' is too long.\n",
-		        (int)len, str);
+		fprintf(stderr, "hextocp: '%.*s' is too long.\n", (int)len,
+		        str);
 		return 1;
 	}
 
@@ -77,8 +77,8 @@ hextocp(const char *str, size_t len, uint_least32_t *cp)
 	}
 
 	if (*cp > UINT32_C(0x10FFFF)) {
-		fprintf(stderr, "hextocp: '%.*s' is too large.\n",
-		        (int)len, str);
+		fprintf(stderr, "hextocp: '%.*s' is too large.\n", (int)len,
+		        str);
 		return 1;
 	}
 
@@ -98,8 +98,10 @@ parse_cp_list(const char *str, uint_least32_t **cp, size_t *cplen)
 	}
 
 	/* count the number of spaces in the string and infer list length */
-	for (count = 1, tmp1 = str; (tmp2 = strchr(tmp1, ' ')) != NULL; count++, tmp1 = tmp2 + 1)
+	for (count = 1, tmp1 = str; (tmp2 = strchr(tmp1, ' ')) != NULL;
+	     count++, tmp1 = tmp2 + 1) {
 		;
+	}
 
 	/* allocate resources */
 	if (!(*cp = calloc((*cplen = count), sizeof(**cp)))) {
@@ -110,7 +112,8 @@ parse_cp_list(const char *str, uint_least32_t **cp, size_t *cplen)
 	/* go through the string again, parsing the numbers */
 	for (i = 0, tmp1 = tmp2 = str; tmp2 != NULL; i++) {
 		tmp2 = strchr(tmp1, ' ');
-		if (hextocp(tmp1, tmp2 ? (size_t)(tmp2 - tmp1) : strlen(tmp1), &((*cp)[i]))) {
+		if (hextocp(tmp1, tmp2 ? (size_t)(tmp2 - tmp1) : strlen(tmp1),
+		            &((*cp)[i]))) {
 			return 1;
 		}
 		if (tmp2 != NULL) {
@@ -144,8 +147,10 @@ range_parse(const char *str, struct range *range)
 }
 
 void
-parse_file_with_callback(const char *fname, int (*callback)(const char *,
-                         char **, size_t, char *, void *), void *payload)
+parse_file_with_callback(const char *fname,
+                         int (*callback)(const char *, char **, size_t, char *,
+                                         void *),
+                         void *payload)
 {
 	FILE *fp;
 	char *line = NULL, **field = NULL, *comment;
@@ -182,10 +187,15 @@ parse_file_with_callback(const char *fname, int (*callback)(const char *,
 			if (line[i] != '#') {
 				/* extend field buffer, if necessary */
 				if (++nfields > fieldbufsize) {
-					if ((field = realloc(field, nfields *
-					      sizeof(*field))) == NULL) {
-						fprintf(stderr, "parse_file_with_"
-						        "callback: realloc: %s.\n",
+					if ((field = realloc(
+						     field,
+						     nfields *
+							     sizeof(*field))) ==
+					    NULL) {
+						fprintf(stderr,
+						        "parse_file_with_"
+						        "callback: realloc: "
+						        "%s.\n",
 						        strerror(errno));
 						exit(1);
 					}
@@ -209,8 +219,9 @@ parse_file_with_callback(const char *fname, int (*callback)(const char *,
 
 			/* go back whitespace and terminate field there */
 			if (i > 0) {
-				for (j = i - 1; line[j] == ' '; j--)
+				for (j = i - 1; line[j] == ' '; j--) {
 					;
+				}
 				line[j + 1] = '\0';
 			} else {
 				line[i] = '\0';
@@ -230,7 +241,7 @@ parse_file_with_callback(const char *fname, int (*callback)(const char *,
 		/* call callback function */
 		if (callback(fname, field, nfields, comment, payload)) {
 			fprintf(stderr, "parse_file_with_callback: "
-			        "Malformed input.\n");
+			                "Malformed input.\n");
 			exit(1);
 		}
 	}
@@ -257,10 +268,11 @@ properties_callback(const char *file, char **field, size_t nfields,
 
 	for (i = 0; i < p->speclen; i++) {
 		/* identify fitting file and identifier */
-		if (p->spec[i].file &&
-		    !strcmp(p->spec[i].file, file) &&
+		if (p->spec[i].file && !strcmp(p->spec[i].file, file) &&
 		    (!strcmp(p->spec[i].ucdname, field[1]) ||
-		     (comment != NULL && !strncmp(p->spec[i].ucdname, comment, strlen(p->spec[i].ucdname)) &&
+		     (comment != NULL &&
+		      !strncmp(p->spec[i].ucdname, comment,
+		               strlen(p->spec[i].ucdname)) &&
 		      comment[strlen(p->spec[i].ucdname)] == ' '))) {
 			/* parse range in first field */
 			if (range_parse(field[0], &r)) {
@@ -287,7 +299,8 @@ properties_compress(const struct properties *prop,
 	uint_least32_t cp, i;
 
 	/* initialization */
-	if (!(comp->offset = malloc((size_t)UINT32_C(0x110000) * sizeof(*(comp->offset))))) {
+	if (!(comp->offset = malloc((size_t)UINT32_C(0x110000) *
+	                            sizeof(*(comp->offset))))) {
 		fprintf(stderr, "malloc: %s\n", strerror(errno));
 		exit(1);
 	}
@@ -296,7 +309,8 @@ properties_compress(const struct properties *prop,
 
 	for (cp = 0; cp < UINT32_C(0x110000); cp++) {
 		for (i = 0; i < comp->datalen; i++) {
-			if (!memcmp(&(prop[cp]), &(comp->data[i]), sizeof(*prop))) {
+			if (!memcmp(&(prop[cp]), &(comp->data[i]),
+			            sizeof(*prop))) {
 				/* found a match! */
 				comp->offset[cp] = i;
 				break;
@@ -308,9 +322,9 @@ properties_compress(const struct properties *prop,
 			 * add current properties to data and add the
 			 * offset in the offset-table
 			 */
-			if (!(comp->data = reallocate_array(comp->data,
-			                                    ++(comp->datalen),
-			                                    sizeof(*(comp->data))))) {
+			if (!(comp->data = reallocate_array(
+				      comp->data, ++(comp->datalen),
+				      sizeof(*(comp->data))))) {
 				fprintf(stderr, "reallocate_array: %s\n",
 				        strerror(errno));
 				exit(1);
@@ -357,8 +371,7 @@ properties_get_major_minor(const struct properties_compressed *comp,
 		 * and need less storage)
 		 */
 		for (j = 0; j + 0xFF < mm->minorlen; j++) {
-			if (!memcmp(&(comp->offset[i << 8]),
-			            &(mm->minor[j]),
+			if (!memcmp(&(comp->offset[i << 8]), &(mm->minor[j]),
 			            sizeof(*(comp->offset)) * 0x100)) {
 				break;
 			}
@@ -373,9 +386,9 @@ properties_get_major_minor(const struct properties_compressed *comp,
 			 * in major
 			 */
 			mm->minorlen += 0x100;
-			if (!(mm->minor = reallocate_array(mm->minor,
-			                                   mm->minorlen,
-			                                   sizeof(*(mm->minor))))) {
+			if (!(mm->minor =
+			              reallocate_array(mm->minor, mm->minorlen,
+			                               sizeof(*(mm->minor))))) {
 				fprintf(stderr, "reallocate_array: %s\n",
 				        strerror(errno));
 				exit(1);
@@ -403,7 +416,7 @@ properties_print_lookup_table(char *name, size_t *data, size_t datalen)
 		}
 	}
 
-	type = (maxval <= UINT_LEAST8_MAX)  ? "uint_least8_t"  :
+	type = (maxval <= UINT_LEAST8_MAX)  ? "uint_least8_t" :
 	       (maxval <= UINT_LEAST16_MAX) ? "uint_least16_t" :
 	       (maxval <= UINT_LEAST32_MAX) ? "uint_least32_t" :
 	                                      "uint_least64_t";
@@ -418,21 +431,21 @@ properties_print_lookup_table(char *name, size_t *data, size_t datalen)
 		} else {
 			printf(",\n\t");
 		}
-
 	}
 	printf("};\n");
 }
 
 void
-properties_print_derived_lookup_table(char *name, char *type, size_t *offset, size_t offsetlen,
-                                      int_least64_t (*get_value)(const struct properties *,
-                                      size_t), const void *payload)
+properties_print_derived_lookup_table(
+	char *name, char *type, size_t *offset, size_t offsetlen,
+	int_least64_t (*get_value)(const struct properties *, size_t),
+	const void *payload)
 {
 	size_t i;
 
 	printf("static const %s %s[] = {\n\t", type, name);
 	for (i = 0; i < offsetlen; i++) {
-		printf("%"PRIiLEAST64, get_value(payload, offset[i]));
+		printf("%" PRIiLEAST64, get_value(payload, offset[i]));
 		if (i + 1 == offsetlen) {
 			printf("\n");
 		} else if ((i + 1) % 8 != 0) {
@@ -440,7 +453,6 @@ properties_print_derived_lookup_table(char *name, char *type, size_t *offset, si
 		} else {
 			printf(",\n\t");
 		}
-
 	}
 	printf("};\n");
 }
@@ -464,17 +476,19 @@ set_value_bp(struct properties_payload *payload, uint_least32_t cp,
 {
 	if (payload->prop[cp].property != payload->speclen) {
 		if (payload->handle_conflict == NULL) {
-			fprintf(stderr, "set_value_bp: "
-	                        "Unhandled character break property "
+			fprintf(stderr,
+			        "set_value_bp: "
+			        "Unhandled character break property "
 			        "overwrite for 0x%06X (%s <- %s).\n",
-		                cp, payload->spec[payload->prop[cp].
-			        property].enumname,
+			        cp,
+			        payload->spec[payload->prop[cp].property]
+			                .enumname,
 			        payload->spec[value].enumname);
 			return 1;
 		} else {
-			value = payload->handle_conflict(cp,
-			        (uint_least8_t)payload->prop[cp].property,
-			        (uint_least8_t)value);
+			value = payload->handle_conflict(
+				cp, (uint_least8_t)payload->prop[cp].property,
+				(uint_least8_t)value);
 		}
 	}
 	payload->prop[cp].property = value;
@@ -489,15 +503,13 @@ get_value_bp(const struct properties *prop, size_t offset)
 }
 
 void
-properties_generate_break_property(const struct property_spec *spec,
-                                   uint_least8_t speclen,
-                                   uint_least8_t (*fill_missing)(
-                                   uint_least32_t),
-                                   uint_least8_t (*handle_conflict)(
-                                   uint_least32_t, uint_least8_t,
-                                   uint_least8_t), void
-                                   (*post_process)(struct properties *),
-                                   const char *prefix, const char *argv0)
+properties_generate_break_property(
+	const struct property_spec *spec, uint_least8_t speclen,
+	uint_least8_t (*fill_missing)(uint_least32_t),
+	uint_least8_t (*handle_conflict)(uint_least32_t, uint_least8_t,
+                                         uint_least8_t),
+	void (*post_process)(struct properties *), const char *prefix,
+	const char *argv0)
 {
 	struct properties_compressed comp;
 	struct properties_major_minor mm;
@@ -537,8 +549,7 @@ properties_generate_break_property(const struct property_spec *spec,
 		if (i == j && spec[i].file) {
 			/* file has not been processed yet */
 			parse_file_with_callback(spec[i].file,
-			                         properties_callback,
-			                         &payload);
+			                         properties_callback, &payload);
 		}
 	}
 
@@ -546,7 +557,8 @@ properties_generate_break_property(const struct property_spec *spec,
 	for (i = 0; i < UINT32_C(0x110000); i++) {
 		if (payload.prop[i].property == speclen) {
 			if (fill_missing != NULL) {
-				payload.prop[i].property = fill_missing((uint_least32_t)i);
+				payload.prop[i].property =
+					fill_missing((uint_least32_t)i);
 			} else {
 				payload.prop[i].property = 0;
 			}
@@ -559,14 +571,16 @@ properties_generate_break_property(const struct property_spec *spec,
 	}
 
 	/* compress data */
-	printf("/* Automatically generated by %s */\n#include <stdint.h>\n\n", argv0);
+	printf("/* Automatically generated by %s */\n#include <stdint.h>\n\n",
+	       argv0);
 	properties_compress(prop, &comp);
 
-	fprintf(stderr, "%s: %s-LUT compression-ratio: %.2f%%\n", argv0,
-	        prefix, properties_get_major_minor(&comp, &mm));
+	fprintf(stderr, "%s: %s-LUT compression-ratio: %.2f%%\n", argv0, prefix,
+	        properties_get_major_minor(&comp, &mm));
 
 	/* prepare names */
-	if ((size_t)snprintf(buf1, LEN(buf1), "%s_property", prefix) >= LEN(buf1)) {
+	if ((size_t)snprintf(buf1, LEN(buf1), "%s_property", prefix) >=
+	    LEN(buf1)) {
 		fprintf(stderr, "snprintf: String truncated.\n");
 		exit(1);
 	}
@@ -578,9 +592,12 @@ properties_generate_break_property(const struct property_spec *spec,
 		prefix_uc[i] = (char)toupper(prefix[i]);
 	}
 	prefix_uc[prefixlen] = '\0';
-	if ((size_t)snprintf(buf2, LEN(buf2), "%s_PROP", prefix_uc) >= LEN(buf2) ||
-	    (size_t)snprintf(buf3, LEN(buf3), "%s_major", prefix) >= LEN(buf3)   ||
-	    (size_t)snprintf(buf4, LEN(buf4), "%s_minor", prefix) >= LEN(buf4)) {
+	if ((size_t)snprintf(buf2, LEN(buf2), "%s_PROP", prefix_uc) >=
+	            LEN(buf2) ||
+	    (size_t)snprintf(buf3, LEN(buf3), "%s_major", prefix) >=
+	            LEN(buf3) ||
+	    (size_t)snprintf(buf4, LEN(buf4), "%s_minor", prefix) >=
+	            LEN(buf4)) {
 		fprintf(stderr, "snprintf: String truncated.\n");
 		exit(1);
 	}
@@ -589,8 +606,9 @@ properties_generate_break_property(const struct property_spec *spec,
 	properties_print_enum(spec, speclen, buf1, buf2);
 	properties_print_lookup_table(buf3, mm.major, 0x1100);
 	printf("\n");
-	properties_print_derived_lookup_table(buf4, "uint_least8_t", mm.minor, mm.minorlen,
-	                                      get_value_bp, comp.data);
+	properties_print_derived_lookup_table(buf4, "uint_least8_t", mm.minor,
+	                                      mm.minorlen, get_value_bp,
+	                                      comp.data);
 
 	/* free data */
 	free(prop);
@@ -625,42 +643,50 @@ break_test_callback(const char *fname, char **field, size_t nfields,
 	memset(t, 0, sizeof(*t));
 
 	/* parse testcase "<÷|×> <cp> <÷|×> ... <cp> <÷|×>" */
-	for (token = strtok(field[0], " "), i = 0; token != NULL; i++,
-	     token = strtok(NULL, " ")) {
+	for (token = strtok(field[0], " "), i = 0; token != NULL;
+	     i++, token = strtok(NULL, " ")) {
 		if (i % 2 == 0) {
 			/* delimiter or start of sequence */
-			if (i == 0 || !strncmp(token, "\xC3\xB7", 2)) { /* UTF-8 */
+			if (i == 0 ||
+			    !strncmp(token, "\xC3\xB7", 2)) { /* UTF-8 */
 				/*
 				 * '÷' indicates a breakpoint,
 				 * the current length is done; allocate
 				 * a new length field and set it to 0
 				 */
-				if ((t->len = realloc(t->len,
-				     ++t->lenlen * sizeof(*t->len))) == NULL) {
-					fprintf(stderr, "break_test_"
+				if ((t->len = realloc(
+					     t->len,
+					     ++t->lenlen * sizeof(*t->len))) ==
+				    NULL) {
+					fprintf(stderr,
+					        "break_test_"
 					        "callback: realloc: %s.\n",
 					        strerror(errno));
 					return 1;
 				}
 				t->len[t->lenlen - 1] = 0;
 			} else if (!strncmp(token, "\xC3\x97", 2)) { /* UTF-8 */
-				/*
-				 * '×' indicates a non-breakpoint, do nothing
-				 */
+				/* '×' indicates a non-breakpoint, do nothing */
 			} else {
-				fprintf(stderr, "break_test_callback: "
-				        "Malformed delimiter '%s'.\n", token);
+				fprintf(stderr,
+				        "break_test_callback: "
+				        "Malformed delimiter '%s'.\n",
+				        token);
 				return 1;
 			}
 		} else {
 			/* add codepoint to cp-array */
-			if ((t->cp = realloc(t->cp, ++t->cplen *
-			                     sizeof(*t->cp))) == NULL) {
-				fprintf(stderr, "break_test_callback: "
-				        "realloc: %s.\n", strerror(errno));
+			if ((t->cp = realloc(t->cp,
+			                     ++t->cplen * sizeof(*t->cp))) ==
+			    NULL) {
+				fprintf(stderr,
+				        "break_test_callback: "
+				        "realloc: %s.\n",
+				        strerror(errno));
 				return 1;
 			}
-			if (hextocp(token, strlen(token), &t->cp[t->cplen - 1])) {
+			if (hextocp(token, strlen(token),
+			            &t->cp[t->cplen - 1])) {
 				return 1;
 			}
 			if (t->lenlen > 0) {
@@ -688,8 +714,7 @@ break_test_callback(const char *fname, char **field, size_t nfields,
 }
 
 void
-break_test_list_parse(char *fname, struct break_test **test,
-                        size_t *testlen)
+break_test_list_parse(char *fname, struct break_test **test, size_t *testlen)
 {
 	struct break_test_payload pl = {
 		.test = test,
@@ -703,13 +728,14 @@ break_test_list_parse(char *fname, struct break_test **test,
 
 void
 break_test_list_print(const struct break_test *test, size_t testlen,
-                        const char *identifier, const char *progname)
+                      const char *identifier, const char *progname)
 {
 	size_t i, j;
 
 	printf("/* Automatically generated by %s */\n"
 	       "#include <stdint.h>\n#include <stddef.h>\n\n"
-	       "#include \"../gen/types.h\"\n\n", progname);
+	       "#include \"../gen/types.h\"\n\n",
+	       progname);
 
 	printf("static const struct break_test %s[] = {\n", identifier);
 	for (i = 0; i < testlen; i++) {

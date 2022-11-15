@@ -91,23 +91,19 @@ static const struct unit_test_next_break_utf8 next_word_break_utf8[] = {
 };
 
 static int
-unit_test_callback_next_word_break(const void *t, size_t off,
-                                             const char *name,
-                                             const char *argv0)
+unit_test_callback_next_word_break(const void *t, size_t off, const char *name,
+                                   const char *argv0)
 {
-	return unit_test_callback_next_break(t, off,
-	                                     grapheme_next_word_break,
+	return unit_test_callback_next_break(t, off, grapheme_next_word_break,
 	                                     name, argv0);
 }
 
 static int
 unit_test_callback_next_word_break_utf8(const void *t, size_t off,
-                                             const char *name,
-                                             const char *argv0)
+                                        const char *name, const char *argv0)
 {
-	return unit_test_callback_next_break_utf8(t, off,
-	                                          grapheme_next_word_break_utf8,
-	                                          name, argv0);
+	return unit_test_callback_next_break_utf8(
+		t, off, grapheme_next_word_break_utf8, name, argv0);
 }
 
 int

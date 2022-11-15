@@ -6,8 +6,7 @@
 #include "../grapheme.h"
 #include "util.h"
 
-struct word_break_state
-{
+struct word_break_state {
 	bool ri_even;
 };
 
@@ -16,7 +15,8 @@ get_word_break_prop(uint_least32_t cp)
 {
 	if (likely(cp <= UINT32_C(0x10FFFF))) {
 		return (uint_least8_t)
-		       word_break_minor[word_break_major[cp >> 8] + (cp & 0xff)];
+			word_break_minor[word_break_major[cp >> 8] +
+		                         (cp & 0xff)];
 	} else {
 		return WORD_BREAK_PROP_OTHER;
 	}
@@ -26,8 +26,7 @@ static bool
 is_skippable_word_prop(uint_least8_t prop)
 {
 	return prop == WORD_BREAK_PROP_EXTEND ||
-	       prop == WORD_BREAK_PROP_FORMAT ||
-	       prop == WORD_BREAK_PROP_ZWJ;
+	       prop == WORD_BREAK_PROP_FORMAT || prop == WORD_BREAK_PROP_ZWJ;
 }
 
 static void
@@ -79,22 +78,24 @@ next_word_break(HERODOTUS_READER *r)
 
 		/* WB3a */
 		if (p.raw.prev_prop[0] == WORD_BREAK_PROP_NEWLINE ||
-		    p.raw.prev_prop[0] == WORD_BREAK_PROP_CR      ||
+		    p.raw.prev_prop[0] == WORD_BREAK_PROP_CR ||
 		    p.raw.prev_prop[0] == WORD_BREAK_PROP_LF) {
 			break;
 		}
 
 		/* WB3b */
 		if (p.raw.next_prop[0] == WORD_BREAK_PROP_NEWLINE ||
-		    p.raw.next_prop[0] == WORD_BREAK_PROP_CR      ||
+		    p.raw.next_prop[0] == WORD_BREAK_PROP_CR ||
 		    p.raw.next_prop[0] == WORD_BREAK_PROP_LF) {
 			break;
 		}
 
 		/* WB3c */
 		if (p.raw.prev_prop[0] == WORD_BREAK_PROP_ZWJ &&
-		    (p.raw.next_prop[0] == WORD_BREAK_PROP_EXTENDED_PICTOGRAPHIC ||
-		     p.raw.next_prop[0] == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT)) {
+		    (p.raw.next_prop[0] ==
+		             WORD_BREAK_PROP_EXTENDED_PICTOGRAPHIC ||
+		     p.raw.next_prop[0] ==
+		             WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT)) {
 			continue;
 		}
 
@@ -112,37 +113,43 @@ next_word_break(HERODOTUS_READER *r)
 		}
 
 		/* WB5 */
-		if ((p.skip.prev_prop[0] == WORD_BREAK_PROP_ALETTER              ||
-		     p.skip.prev_prop[0] == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
+		if ((p.skip.prev_prop[0] == WORD_BREAK_PROP_ALETTER ||
+		     p.skip.prev_prop[0] ==
+		             WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
 		     p.skip.prev_prop[0] == WORD_BREAK_PROP_HEBREW_LETTER) &&
-		    (p.skip.next_prop[0] == WORD_BREAK_PROP_ALETTER              ||
-		     p.skip.next_prop[0] == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
+		    (p.skip.next_prop[0] == WORD_BREAK_PROP_ALETTER ||
+		     p.skip.next_prop[0] ==
+		             WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
 		     p.skip.next_prop[0] == WORD_BREAK_PROP_HEBREW_LETTER)) {
 			continue;
 		}
 
 		/* WB6 */
-		if ((p.skip.prev_prop[0] == WORD_BREAK_PROP_ALETTER              ||
-		     p.skip.prev_prop[0] == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
+		if ((p.skip.prev_prop[0] == WORD_BREAK_PROP_ALETTER ||
+		     p.skip.prev_prop[0] ==
+		             WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
 		     p.skip.prev_prop[0] == WORD_BREAK_PROP_HEBREW_LETTER) &&
-		    (p.skip.next_prop[0] == WORD_BREAK_PROP_MIDLETTER    ||
-		     p.skip.next_prop[0] == WORD_BREAK_PROP_MIDNUMLET    ||
+		    (p.skip.next_prop[0] == WORD_BREAK_PROP_MIDLETTER ||
+		     p.skip.next_prop[0] == WORD_BREAK_PROP_MIDNUMLET ||
 		     p.skip.next_prop[0] == WORD_BREAK_PROP_SINGLE_QUOTE) &&
-		    (p.skip.next_prop[1] == WORD_BREAK_PROP_ALETTER              ||
-		     p.skip.next_prop[1] == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
+		    (p.skip.next_prop[1] == WORD_BREAK_PROP_ALETTER ||
+		     p.skip.next_prop[1] ==
+		             WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
 		     p.skip.next_prop[1] == WORD_BREAK_PROP_HEBREW_LETTER)) {
 			continue;
 		}
 
 		/* WB7 */
-		if ((p.skip.prev_prop[0] == WORD_BREAK_PROP_MIDLETTER    ||
-		     p.skip.prev_prop[0] == WORD_BREAK_PROP_MIDNUMLET    ||
+		if ((p.skip.prev_prop[0] == WORD_BREAK_PROP_MIDLETTER ||
+		     p.skip.prev_prop[0] == WORD_BREAK_PROP_MIDNUMLET ||
 		     p.skip.prev_prop[0] == WORD_BREAK_PROP_SINGLE_QUOTE) &&
-		    (p.skip.next_prop[0] == WORD_BREAK_PROP_ALETTER              ||
-		     p.skip.next_prop[0] == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
+		    (p.skip.next_prop[0] == WORD_BREAK_PROP_ALETTER ||
+		     p.skip.next_prop[0] ==
+		             WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
 		     p.skip.next_prop[0] == WORD_BREAK_PROP_HEBREW_LETTER) &&
-		    (p.skip.prev_prop[1] == WORD_BREAK_PROP_ALETTER              ||
-		     p.skip.prev_prop[1] == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
+		    (p.skip.prev_prop[1] == WORD_BREAK_PROP_ALETTER ||
+		     p.skip.prev_prop[1] ==
+		             WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
 		     p.skip.prev_prop[1] == WORD_BREAK_PROP_HEBREW_LETTER)) {
 			continue;
 		}
@@ -174,8 +181,9 @@ next_word_break(HERODOTUS_READER *r)
 		}
 
 		/* WB9 */
-		if ((p.skip.prev_prop[0] == WORD_BREAK_PROP_ALETTER              ||
-		     p.skip.prev_prop[0] == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
+		if ((p.skip.prev_prop[0] == WORD_BREAK_PROP_ALETTER ||
+		     p.skip.prev_prop[0] ==
+		             WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
 		     p.skip.prev_prop[0] == WORD_BREAK_PROP_HEBREW_LETTER) &&
 		    p.skip.next_prop[0] == WORD_BREAK_PROP_NUMERIC) {
 			continue;
@@ -183,15 +191,16 @@ next_word_break(HERODOTUS_READER *r)
 
 		/* WB10 */
 		if (p.skip.prev_prop[0] == WORD_BREAK_PROP_NUMERIC &&
-		    (p.skip.next_prop[0] == WORD_BREAK_PROP_ALETTER              ||
-		     p.skip.next_prop[0] == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
+		    (p.skip.next_prop[0] == WORD_BREAK_PROP_ALETTER ||
+		     p.skip.next_prop[0] ==
+		             WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
 		     p.skip.next_prop[0] == WORD_BREAK_PROP_HEBREW_LETTER)) {
 			continue;
 		}
 
 		/* WB11 */
-		if ((p.skip.prev_prop[0] == WORD_BREAK_PROP_MIDNUM       ||
-		     p.skip.prev_prop[0] == WORD_BREAK_PROP_MIDNUMLET    ||
+		if ((p.skip.prev_prop[0] == WORD_BREAK_PROP_MIDNUM ||
+		     p.skip.prev_prop[0] == WORD_BREAK_PROP_MIDNUMLET ||
 		     p.skip.prev_prop[0] == WORD_BREAK_PROP_SINGLE_QUOTE) &&
 		    p.skip.next_prop[0] == WORD_BREAK_PROP_NUMERIC &&
 		    p.skip.prev_prop[1] == WORD_BREAK_PROP_NUMERIC) {
@@ -200,8 +209,8 @@ next_word_break(HERODOTUS_READER *r)
 
 		/* WB12 */
 		if (p.skip.prev_prop[0] == WORD_BREAK_PROP_NUMERIC &&
-		    (p.skip.next_prop[0] == WORD_BREAK_PROP_MIDNUM       ||
-		     p.skip.next_prop[0] == WORD_BREAK_PROP_MIDNUMLET    ||
+		    (p.skip.next_prop[0] == WORD_BREAK_PROP_MIDNUM ||
+		     p.skip.next_prop[0] == WORD_BREAK_PROP_MIDNUMLET ||
 		     p.skip.next_prop[0] == WORD_BREAK_PROP_SINGLE_QUOTE) &&
 		    p.skip.next_prop[1] == WORD_BREAK_PROP_NUMERIC) {
 			continue;
@@ -214,11 +223,12 @@ next_word_break(HERODOTUS_READER *r)
 		}
 
 		/* WB13a */
-		if ((p.skip.prev_prop[0] == WORD_BREAK_PROP_ALETTER              ||
-		     p.skip.prev_prop[0] == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
-		     p.skip.prev_prop[0] == WORD_BREAK_PROP_HEBREW_LETTER        ||
-		     p.skip.prev_prop[0] == WORD_BREAK_PROP_NUMERIC              ||
-		     p.skip.prev_prop[0] == WORD_BREAK_PROP_KATAKANA             ||
+		if ((p.skip.prev_prop[0] == WORD_BREAK_PROP_ALETTER ||
+		     p.skip.prev_prop[0] ==
+		             WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
+		     p.skip.prev_prop[0] == WORD_BREAK_PROP_HEBREW_LETTER ||
+		     p.skip.prev_prop[0] == WORD_BREAK_PROP_NUMERIC ||
+		     p.skip.prev_prop[0] == WORD_BREAK_PROP_KATAKANA ||
 		     p.skip.prev_prop[0] == WORD_BREAK_PROP_EXTENDNUMLET) &&
 		    p.skip.next_prop[0] == WORD_BREAK_PROP_EXTENDNUMLET) {
 			continue;
@@ -226,10 +236,11 @@ next_word_break(HERODOTUS_READER *r)
 
 		/* WB13b */
 		if (p.skip.prev_prop[0] == WORD_BREAK_PROP_EXTENDNUMLET &&
-		    (p.skip.next_prop[0] == WORD_BREAK_PROP_ALETTER              ||
-		     p.skip.next_prop[0] == WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
-		     p.skip.next_prop[0] == WORD_BREAK_PROP_HEBREW_LETTER        ||
-		     p.skip.next_prop[0] == WORD_BREAK_PROP_NUMERIC              ||
+		    (p.skip.next_prop[0] == WORD_BREAK_PROP_ALETTER ||
+		     p.skip.next_prop[0] ==
+		             WORD_BREAK_PROP_BOTH_ALETTER_EXTPICT ||
+		     p.skip.next_prop[0] == WORD_BREAK_PROP_HEBREW_LETTER ||
+		     p.skip.next_prop[0] == WORD_BREAK_PROP_NUMERIC ||
 		     p.skip.next_prop[0] == WORD_BREAK_PROP_KATAKANA)) {
 			continue;
 		}

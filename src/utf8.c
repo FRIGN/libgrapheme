@@ -9,14 +9,14 @@
 
 /* lookup-table for the types of sequence first bytes */
 static const struct {
-	uint_least8_t  lower; /* lower bound of sequence first byte */
-	uint_least8_t  upper; /* upper bound of sequence first byte */
+	uint_least8_t lower;  /* lower bound of sequence first byte */
+	uint_least8_t upper;  /* upper bound of sequence first byte */
 	uint_least32_t mincp; /* smallest non-overlong encoded codepoint */
 	uint_least32_t maxcp; /* largest encodable codepoint */
-	/*
-	 * implicit: table-offset represents the number of following
-	 * bytes of the form 10xxxxxx (6 bits capacity each)
-	 */
+			      /*
+	                       * implicit: table-offset represents the number of following
+	                       * bytes of the form 10xxxxxx (6 bits capacity each)
+	                       */
 } lut[] = {
 	[0] = {
 		/* 0xxxxxxx */
@@ -104,8 +104,8 @@ grapheme_decode_utf8(const char *str, size_t len, uint_least32_t *cp)
 		 * sequence starter occurs right before a NUL-byte.
 		 */
 		for (i = 0; 1 + i < len; i++) {
-			if(!BETWEEN(((const unsigned char *)str)[1 + i],
-			            0x80, 0xBF)) {
+			if (!BETWEEN(((const unsigned char *)str)[1 + i], 0x80,
+			             0xBF)) {
 				break;
 			}
 		}
@@ -124,7 +124,7 @@ grapheme_decode_utf8(const char *str, size_t len, uint_least32_t *cp)
 	 * (i.e. between 0x80 (10000000) and 0xBF (10111111))
 	 */
 	for (i = 1; i <= off; i++) {
-		if(!BETWEEN(((const unsigned char *)str)[i], 0x80, 0xBF)) {
+		if (!BETWEEN(((const unsigned char *)str)[i], 0x80, 0xBF)) {
 			/*
 			 * byte does not match format; return
 			 * number of bytes processed excluding the
@@ -201,8 +201,8 @@ grapheme_encode_utf8(uint_least32_t cp, char *str, size_t len)
 	 * We do not overwrite the mask because we guaranteed earlier
 	 * that there are no bits higher than the mask allows.
 	 */
-	((unsigned char *)str)[0] = lut[off].lower |
-	                            (uint_least8_t)(cp >> (6 * off));
+	((unsigned char *)str)[0] =
+		lut[off].lower | (uint_least8_t)(cp >> (6 * off));
 
 	for (i = 1; i <= off; i++) {
 		/*
@@ -211,8 +211,8 @@ grapheme_encode_utf8(uint_least32_t cp, char *str, size_t len)
 		 * extract from the properly-shifted value using the
 		 * mask 00111111 (0x3F)
 		 */
-		((unsigned char *)str)[i] = 0x80 |
-		                            ((cp >> (6 * (off - i))) & 0x3F);
+		((unsigned char *)str)[i] =
+			0x80 | ((cp >> (6 * (off - i))) & 0x3F);
 	}
 
 	return 1 + off;

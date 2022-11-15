@@ -37,16 +37,20 @@ herodotus_reader_copy(const HERODOTUS_READER *src, HERODOTUS_READER *dest)
 	 */
 	dest->type = src->type;
 	if (src->type == HERODOTUS_TYPE_CODEPOINT) {
-		dest->src = (src->src == NULL) ? NULL :
-		            ((const uint_least32_t *)(src->src)) + src->off;
+		dest->src =
+			(src->src == NULL) ?
+				NULL :
+				((const uint_least32_t *)(src->src)) + src->off;
 	} else { /* src->type == HERODOTUS_TYPE_UTF8 */
-		dest->src = (src->src == NULL) ? NULL :
-		            ((const char *)(src->src)) + src->off;
+		dest->src = (src->src == NULL) ?
+		                    NULL :
+		                    ((const char *)(src->src)) + src->off;
 	}
 	if (src->srclen == SIZE_MAX) {
 		dest->srclen = SIZE_MAX;
 	} else {
-		dest->srclen = (src->off < src->srclen) ? src->srclen - src->off : 0;
+		dest->srclen =
+			(src->off < src->srclen) ? src->srclen - src->off : 0;
 	}
 	dest->off = 0;
 	dest->terminated_by_null = src->terminated_by_null;
@@ -62,8 +66,10 @@ herodotus_reader_copy(const HERODOTUS_READER *src, HERODOTUS_READER *dest)
 			 * to release the limit and, instead, we just
 			 * prevent any more reads
 			 */
-			dest->soft_limit[i] = (src->off < src->soft_limit[i]) ?
-				src->soft_limit[i] - src->off : 0;
+			dest->soft_limit[i] =
+				(src->off < src->soft_limit[i]) ?
+					src->soft_limit[i] - src->off :
+					0;
 		}
 	}
 }
@@ -141,9 +147,9 @@ herodotus_read_codepoint(HERODOTUS_READER *r, bool advance, uint_least32_t *cp)
 		*cp = ((const uint_least32_t *)(r->src))[r->off];
 		ret = 1;
 	} else { /* r->type == HERODOTUS_TYPE_UTF8 */
-		ret = grapheme_decode_utf8((const char *)r->src + r->off,
-		                           MIN(r->srclen, r->soft_limit[0]) -
-		                           r->off, cp);
+		ret = grapheme_decode_utf8(
+			(const char *)r->src + r->off,
+			MIN(r->srclen, r->soft_limit[0]) - r->off, cp);
 	}
 
 	if (unlikely(r->srclen == SIZE_MAX && *cp == 0)) {
@@ -176,8 +182,8 @@ herodotus_read_codepoint(HERODOTUS_READER *r, bool advance, uint_least32_t *cp)
 }
 
 void
-herodotus_writer_init(HERODOTUS_WRITER *w, enum herodotus_type type,
-                      void *dest, size_t destlen)
+herodotus_writer_init(HERODOTUS_WRITER *w, enum herodotus_type type, void *dest,
+                      size_t destlen)
 {
 	w->type = type;
 	w->dest = dest;
@@ -212,8 +218,8 @@ herodotus_writer_nul_terminate(HERODOTUS_WRITER *w)
 		 * (the last case meaning truncation).
 		 */
 		if (w->type == HERODOTUS_TYPE_CODEPOINT) {
-			((uint_least32_t *)(w->dest))
-				[w->first_unwritable_offset] = 0;
+			((uint_least32_t
+			          *)(w->dest))[w->first_unwritable_offset] = 0;
 		} else { /* w->type == HERODOTUS_TYPE_UTF8 */
 			((char *)(w->dest))[w->first_unwritable_offset] = '\0';
 		}
@@ -226,8 +232,7 @@ herodotus_writer_nul_terminate(HERODOTUS_WRITER *w)
 		 * byte.
 		 */
 		if (w->type == HERODOTUS_TYPE_CODEPOINT) {
-			((uint_least32_t *)(w->dest))
-				[w->destlen - 1] = 0;
+			((uint_least32_t *)(w->dest))[w->destlen - 1] = 0;
 		} else { /* w->type == HERODOTUS_TYPE_UTF8 */
 			((char *)(w->dest))[w->destlen - 1] = '\0';
 		}
@@ -267,8 +272,8 @@ herodotus_write_codepoint(HERODOTUS_WRITER *w, uint_least32_t cp)
 
 		if (w->dest != NULL && w->off + ret < w->destlen) {
 			/* we still have enough room in the buffer */
-			grapheme_encode_utf8(cp, (char *)(w->dest) +
-			                     w->off, w->destlen - w->off);
+			grapheme_encode_utf8(cp, (char *)(w->dest) + w->off,
+			                     w->destlen - w->off);
 		} else if (w->first_unwritable_offset == SIZE_MAX) {
 			/*
 			 * the first unwritable offset has not been
@@ -328,8 +333,9 @@ proper_init(const HERODOTUS_READER *r, void *state, uint_least8_t no_prop,
 
 	/* fill in the two next raw properties (after no-initialization) */
 	p->raw.next_prop[0] = p->raw.next_prop[1] = p->no_prop;
-	for (i = 0; i < 2 && herodotus_read_codepoint(&(p->raw_reader), true, &cp) ==
-	     HERODOTUS_STATUS_SUCCESS; ) {
+	for (i = 0;
+	     i < 2 && herodotus_read_codepoint(&(p->raw_reader), true, &cp) ==
+	                      HERODOTUS_STATUS_SUCCESS;) {
 		p->raw.next_prop[i++] = p->get_break_prop(cp);
 	}
 
@@ -338,8 +344,9 @@ proper_init(const HERODOTUS_READER *r, void *state, uint_least8_t no_prop,
 
 	/* fill in the two next skip properties (after no-initialization) */
 	p->skip.next_prop[0] = p->skip.next_prop[1] = p->no_prop;
-	for (i = 0; i < 2 && herodotus_read_codepoint(&(p->skip_reader), true, &cp) ==
-	     HERODOTUS_STATUS_SUCCESS; ) {
+	for (i = 0;
+	     i < 2 && herodotus_read_codepoint(&(p->skip_reader), true, &cp) ==
+	                      HERODOTUS_STATUS_SUCCESS;) {
 		prop = p->get_break_prop(cp);
 		if (!p->is_skippable_prop(prop)) {
 			p->skip.next_prop[i++] = prop;

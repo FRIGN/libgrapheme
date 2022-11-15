@@ -6,8 +6,7 @@
 #include "../grapheme.h"
 #include "util.h"
 
-struct sentence_break_state
-{
+struct sentence_break_state {
 	uint_least8_t aterm_close_sp_level;
 	uint_least8_t saterm_close_sp_parasep_level;
 };
@@ -17,8 +16,8 @@ get_sentence_break_prop(uint_least32_t cp)
 {
 	if (likely(cp <= UINT32_C(0x10FFFF))) {
 		return (uint_least8_t)
-		       sentence_break_minor[sentence_break_major[cp >> 8] +
-		       (cp & 0xff)];
+			sentence_break_minor[sentence_break_major[cp >> 8] +
+		                             (cp & 0xff)];
 	} else {
 		return SENTENCE_BREAK_PROP_OTHER;
 	}
@@ -80,7 +79,7 @@ sentence_skip_shift_callback(uint_least8_t prop, void *s)
 		state->aterm_close_sp_level = 2;
 	} else if ((state->aterm_close_sp_level == 1 ||
 	            state->aterm_close_sp_level == 2 ||
-		    state->aterm_close_sp_level == 3) &&
+	            state->aterm_close_sp_level == 3) &&
 	           prop == SENTENCE_BREAK_PROP_SP) {
 		/* sp-sequence begins or continued */
 		state->aterm_close_sp_level = 3;
@@ -102,7 +101,7 @@ sentence_skip_shift_callback(uint_least8_t prop, void *s)
 		state->saterm_close_sp_parasep_level = 2;
 	} else if ((state->saterm_close_sp_parasep_level == 1 ||
 	            state->saterm_close_sp_parasep_level == 2 ||
-		    state->saterm_close_sp_parasep_level == 3) &&
+	            state->saterm_close_sp_parasep_level == 3) &&
 	           prop == SENTENCE_BREAK_PROP_SP) {
 		/* sp-sequence begins or continued */
 		state->saterm_close_sp_parasep_level = 3;
@@ -110,7 +109,7 @@ sentence_skip_shift_callback(uint_least8_t prop, void *s)
 	            state->saterm_close_sp_parasep_level == 2 ||
 	            state->saterm_close_sp_parasep_level == 3) &&
 	           (prop == SENTENCE_BREAK_PROP_SEP ||
-	            prop == SENTENCE_BREAK_PROP_CR  ||
+	            prop == SENTENCE_BREAK_PROP_CR ||
 	            prop == SENTENCE_BREAK_PROP_LF)) {
 		/* ParaSep at the end of the sequence */
 		state->saterm_close_sp_parasep_level = 4;
@@ -146,7 +145,7 @@ next_sentence_break(HERODOTUS_READER *r)
 
 		/* SB4 */
 		if (p.raw.prev_prop[0] == SENTENCE_BREAK_PROP_SEP ||
-		    p.raw.prev_prop[0] == SENTENCE_BREAK_PROP_CR  ||
+		    p.raw.prev_prop[0] == SENTENCE_BREAK_PROP_CR ||
 		    p.raw.prev_prop[0] == SENTENCE_BREAK_PROP_LF) {
 			break;
 		}
@@ -179,7 +178,8 @@ next_sentence_break(HERODOTUS_READER *r)
 			 * This is the most complicated rule, requiring
 			 * the right-hand-side to satisfy the regular expression
 			 *
-			 *  ( ¬(OLetter | Upper | Lower | ParaSep | SATerm) )* Lower
+			 *  ( ¬(OLetter | Upper | Lower | ParaSep | SATerm) )*
+			 * Lower
 			 *
 			 * which we simply check "manually" given LUT-lookups
 			 * are very cheap by starting at the mid_reader.
@@ -198,12 +198,12 @@ next_sentence_break(HERODOTUS_READER *r)
 				 * match the following condition
 				 */
 				if (prop == SENTENCE_BREAK_PROP_OLETTER ||
-				    prop == SENTENCE_BREAK_PROP_UPPER   ||
-				    prop == SENTENCE_BREAK_PROP_LOWER   ||
-				    prop == SENTENCE_BREAK_PROP_SEP     ||
-				    prop == SENTENCE_BREAK_PROP_CR      ||
-				    prop == SENTENCE_BREAK_PROP_LF      ||
-				    prop == SENTENCE_BREAK_PROP_STERM   ||
+				    prop == SENTENCE_BREAK_PROP_UPPER ||
+				    prop == SENTENCE_BREAK_PROP_LOWER ||
+				    prop == SENTENCE_BREAK_PROP_SEP ||
+				    prop == SENTENCE_BREAK_PROP_CR ||
+				    prop == SENTENCE_BREAK_PROP_LF ||
+				    prop == SENTENCE_BREAK_PROP_STERM ||
 				    prop == SENTENCE_BREAK_PROP_ATERM) {
 					break;
 				}
@@ -219,8 +219,8 @@ next_sentence_break(HERODOTUS_READER *r)
 		     state.saterm_close_sp_parasep_level == 2 ||
 		     state.saterm_close_sp_parasep_level == 3) &&
 		    (p.skip.next_prop[0] == SENTENCE_BREAK_PROP_SCONTINUE ||
-		     p.skip.next_prop[0] == SENTENCE_BREAK_PROP_STERM     ||
-                     p.skip.next_prop[0] == SENTENCE_BREAK_PROP_ATERM)) {
+		     p.skip.next_prop[0] == SENTENCE_BREAK_PROP_STERM ||
+		     p.skip.next_prop[0] == SENTENCE_BREAK_PROP_ATERM)) {
 			continue;
 		}
 
@@ -228,9 +228,9 @@ next_sentence_break(HERODOTUS_READER *r)
 		if ((state.saterm_close_sp_parasep_level == 1 ||
 		     state.saterm_close_sp_parasep_level == 2) &&
 		    (p.skip.next_prop[0] == SENTENCE_BREAK_PROP_CLOSE ||
-		     p.skip.next_prop[0] == SENTENCE_BREAK_PROP_SP    ||
-		     p.skip.next_prop[0] == SENTENCE_BREAK_PROP_SEP   ||
-		     p.skip.next_prop[0] == SENTENCE_BREAK_PROP_CR    ||
+		     p.skip.next_prop[0] == SENTENCE_BREAK_PROP_SP ||
+		     p.skip.next_prop[0] == SENTENCE_BREAK_PROP_SEP ||
+		     p.skip.next_prop[0] == SENTENCE_BREAK_PROP_CR ||
 		     p.skip.next_prop[0] == SENTENCE_BREAK_PROP_LF)) {
 			continue;
 		}
@@ -239,9 +239,9 @@ next_sentence_break(HERODOTUS_READER *r)
 		if ((state.saterm_close_sp_parasep_level == 1 ||
 		     state.saterm_close_sp_parasep_level == 2 ||
 		     state.saterm_close_sp_parasep_level == 3) &&
-		    (p.skip.next_prop[0] == SENTENCE_BREAK_PROP_SP  ||
+		    (p.skip.next_prop[0] == SENTENCE_BREAK_PROP_SP ||
 		     p.skip.next_prop[0] == SENTENCE_BREAK_PROP_SEP ||
-		     p.skip.next_prop[0] == SENTENCE_BREAK_PROP_CR  ||
+		     p.skip.next_prop[0] == SENTENCE_BREAK_PROP_CR ||
 		     p.skip.next_prop[0] == SENTENCE_BREAK_PROP_LF)) {
 			continue;
 		}

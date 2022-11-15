@@ -92,12 +92,10 @@ static const struct unit_test_next_break_utf8 next_character_break_utf8[] = {
 
 static int
 unit_test_callback_next_character_break(const void *t, size_t off,
-                                             const char *name,
-                                             const char *argv0)
+                                        const char *name, const char *argv0)
 {
-	return unit_test_callback_next_break(t, off,
-	                                     grapheme_next_character_break,
-	                                     name, argv0);
+	return unit_test_callback_next_break(
+		t, off, grapheme_next_character_break, name, argv0);
 }
 
 static int
@@ -105,9 +103,8 @@ unit_test_callback_next_character_break_utf8(const void *t, size_t off,
                                              const char *name,
                                              const char *argv0)
 {
-	return unit_test_callback_next_break_utf8(t, off,
-	                                          grapheme_next_character_break_utf8,
-	                                          name, argv0);
+	return unit_test_callback_next_break_utf8(
+		t, off, grapheme_next_character_break_utf8, name, argv0);
 }
 
 int
@@ -116,11 +113,13 @@ main(int argc, char *argv[])
 	(void)argc;
 
 	return run_break_tests(grapheme_next_character_break,
-	                       character_break_test, LEN(character_break_test), argv[0]) +
+	                       character_break_test, LEN(character_break_test),
+	                       argv[0]) +
 	       run_unit_tests(unit_test_callback_next_character_break,
 	                      next_character_break, LEN(next_character_break),
 	                      "grapheme_next_character_break", argv[0]) +
 	       run_unit_tests(unit_test_callback_next_character_break_utf8,
-	                      next_character_break_utf8, LEN(next_character_break_utf8),
+	                      next_character_break_utf8,
+	                      LEN(next_character_break_utf8),
 	                      "grapheme_next_character_break_utf8", argv[0]);
 }

@@ -10,25 +10,25 @@
 #include "../grapheme.h"
 
 #undef MIN
-#define MIN(x,y)  ((x) < (y) ? (x) : (y))
+#define MIN(x, y) ((x) < (y) ? (x) : (y))
 #undef MAX
-#define MAX(x,y)  ((x) > (y) ? (x) : (y))
+#define MAX(x, y) ((x) > (y) ? (x) : (y))
 #undef LEN
 #define LEN(x) (sizeof(x) / sizeof(*(x)))
 
 #undef likely
 #undef unlikely
 #ifdef __has_builtin
-	#if __has_builtin(__builtin_expect)
-		#define likely(expr) __builtin_expect(!!(expr), 1)
-		#define unlikely(expr) __builtin_expect(!!(expr), 0)
-	#else
-		#define likely(expr) (expr)
-		#define unlikely(expr) (expr)
-	#endif
+#if __has_builtin(__builtin_expect)
+#define likely(expr)   __builtin_expect(!!(expr), 1)
+#define unlikely(expr) __builtin_expect(!!(expr), 0)
 #else
-	#define likely(expr) (expr)
-	#define unlikely(expr) (expr)
+#define likely(expr)   (expr)
+#define unlikely(expr) (expr)
+#endif
+#else
+#define likely(expr)   (expr)
+#define unlikely(expr) (expr)
 #endif
 
 /*
@@ -84,6 +84,7 @@ struct proper {
 		uint_least8_t prev_prop[2];
 		uint_least8_t next_prop[2];
 	} raw, skip;
+
 	HERODOTUS_READER mid_reader, raw_reader, skip_reader;
 	void *state;
 	uint_least8_t no_prop;
@@ -100,7 +101,8 @@ void herodotus_reader_pop_limit(HERODOTUS_READER *);
 size_t herodotus_reader_number_read(const HERODOTUS_READER *);
 size_t herodotus_reader_next_word_break(const HERODOTUS_READER *);
 size_t herodotus_reader_next_codepoint_break(const HERODOTUS_READER *);
-enum herodotus_status herodotus_read_codepoint(HERODOTUS_READER *, bool, uint_least32_t *);
+enum herodotus_status herodotus_read_codepoint(HERODOTUS_READER *, bool,
+                                               uint_least32_t *);
 
 void herodotus_writer_init(HERODOTUS_WRITER *, enum herodotus_type, void *,
                            size_t);

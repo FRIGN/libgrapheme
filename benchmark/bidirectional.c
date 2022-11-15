@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../grapheme.h"
 #include "../gen/bidirectional-test.h"
+#include "../grapheme.h"
 #include "util.h"
 
 #define NUM_ITERATIONS 100000

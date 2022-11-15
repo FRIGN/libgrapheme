@@ -12,8 +12,8 @@
 static const struct property_spec line_break_property[] = {
 	{
 		.enumname = "AL",
-		.file     = FILE_LINE,
-		.ucdname  = "AL",
+		.file = FILE_LINE,
+		.ucdname = "AL",
 	},
 	/*
 	 * Both extended pictographic and cn are large classes,
@@ -32,269 +32,269 @@ static const struct property_spec line_break_property[] = {
 	 */
 	{
 		.enumname = "TMP_CN",
-		.file     = FILE_LINE,
-		.ucdname  = "Cn",
+		.file = FILE_LINE,
+		.ucdname = "Cn",
 	},
 	{
 		.enumname = "TMP_EXTENDED_PICTOGRAPHIC",
-		.file     = FILE_EMOJI,
-		.ucdname  = "Extended_Pictographic",
+		.file = FILE_EMOJI,
+		.ucdname = "Extended_Pictographic",
 	},
 	/* end of special block */
 	{
 		.enumname = "B2",
-		.file     = FILE_LINE,
-		.ucdname  = "B2",
+		.file = FILE_LINE,
+		.ucdname = "B2",
 	},
 	{
 		.enumname = "BA",
-		.file     = FILE_LINE,
-		.ucdname  = "BA",
+		.file = FILE_LINE,
+		.ucdname = "BA",
 	},
 	{
 		.enumname = "BB",
-		.file     = FILE_LINE,
-		.ucdname  = "BB",
+		.file = FILE_LINE,
+		.ucdname = "BB",
 	},
 	{
 		.enumname = "BK",
-		.file     = FILE_LINE,
-		.ucdname  = "BK",
+		.file = FILE_LINE,
+		.ucdname = "BK",
 	},
 	{
 		.enumname = "BOTH_CN_EXTPICT",
-		.file     = NULL,
-		.ucdname  = NULL,
+		.file = NULL,
+		.ucdname = NULL,
 	},
 	{
 		.enumname = "CB",
-		.file     = FILE_LINE,
-		.ucdname  = "CB",
+		.file = FILE_LINE,
+		.ucdname = "CB",
 	},
 	{
 		.enumname = "CL",
-		.file     = FILE_LINE,
-		.ucdname  = "CL",
+		.file = FILE_LINE,
+		.ucdname = "CL",
 	},
 	{
 		.enumname = "CM",
-		.file     = FILE_LINE,
-		.ucdname  = "CM",
+		.file = FILE_LINE,
+		.ucdname = "CM",
 	},
 	{
 		.enumname = "CP_WITHOUT_EAW_HWF",
-		.file     = FILE_LINE,
-		.ucdname  = "CP",
+		.file = FILE_LINE,
+		.ucdname = "CP",
 	},
 	{
 		.enumname = "CP_WITH_EAW_HWF",
-		.file     = NULL,
-		.ucdname  = NULL,
+		.file = NULL,
+		.ucdname = NULL,
 	},
 	{
 		.enumname = "CR",
-		.file     = FILE_LINE,
-		.ucdname  = "CR",
+		.file = FILE_LINE,
+		.ucdname = "CR",
 	},
 	{
 		.enumname = "EB",
-		.file     = FILE_LINE,
-		.ucdname  = "EB",
+		.file = FILE_LINE,
+		.ucdname = "EB",
 	},
 	{
 		.enumname = "EM",
-		.file     = FILE_LINE,
-		.ucdname  = "EM",
+		.file = FILE_LINE,
+		.ucdname = "EM",
 	},
 	{
 		.enumname = "EX",
-		.file     = FILE_LINE,
-		.ucdname  = "EX",
+		.file = FILE_LINE,
+		.ucdname = "EX",
 	},
 	{
 		.enumname = "GL",
-		.file     = FILE_LINE,
-		.ucdname  = "GL",
+		.file = FILE_LINE,
+		.ucdname = "GL",
 	},
 	{
 		.enumname = "H2",
-		.file     = FILE_LINE,
-		.ucdname  = "H2",
+		.file = FILE_LINE,
+		.ucdname = "H2",
 	},
 	{
 		.enumname = "H3",
-		.file     = FILE_LINE,
-		.ucdname  = "H3",
+		.file = FILE_LINE,
+		.ucdname = "H3",
 	},
 	{
 		.enumname = "HL",
-		.file     = FILE_LINE,
-		.ucdname  = "HL",
+		.file = FILE_LINE,
+		.ucdname = "HL",
 	},
 	{
 		.enumname = "HY",
-		.file     = FILE_LINE,
-		.ucdname  = "HY",
+		.file = FILE_LINE,
+		.ucdname = "HY",
 	},
 	{
 		.enumname = "ID",
-		.file     = FILE_LINE,
-		.ucdname  = "ID",
+		.file = FILE_LINE,
+		.ucdname = "ID",
 	},
 	{
 		.enumname = "IN",
-		.file     = FILE_LINE,
-		.ucdname  = "IN",
+		.file = FILE_LINE,
+		.ucdname = "IN",
 	},
 	{
 		.enumname = "IS",
-		.file     = FILE_LINE,
-		.ucdname  = "IS",
+		.file = FILE_LINE,
+		.ucdname = "IS",
 	},
 	{
 		.enumname = "JL",
-		.file     = FILE_LINE,
-		.ucdname  = "JL",
+		.file = FILE_LINE,
+		.ucdname = "JL",
 	},
 	{
 		.enumname = "JT",
-		.file     = FILE_LINE,
-		.ucdname  = "JT",
+		.file = FILE_LINE,
+		.ucdname = "JT",
 	},
 	{
 		.enumname = "JV",
-		.file     = FILE_LINE,
-		.ucdname  = "JV",
+		.file = FILE_LINE,
+		.ucdname = "JV",
 	},
 	{
 		.enumname = "LF",
-		.file     = FILE_LINE,
-		.ucdname  = "LF",
+		.file = FILE_LINE,
+		.ucdname = "LF",
 	},
 	{
 		.enumname = "NL",
-		.file     = FILE_LINE,
-		.ucdname  = "NL",
+		.file = FILE_LINE,
+		.ucdname = "NL",
 	},
 	{
 		.enumname = "NS",
-		.file     = FILE_LINE,
-		.ucdname  = "NS",
+		.file = FILE_LINE,
+		.ucdname = "NS",
 	},
 	{
 		.enumname = "NU",
-		.file     = FILE_LINE,
-		.ucdname  = "NU",
+		.file = FILE_LINE,
+		.ucdname = "NU",
 	},
 	{
 		.enumname = "OP_WITHOUT_EAW_HWF",
-		.file     = FILE_LINE,
-		.ucdname  = "OP",
+		.file = FILE_LINE,
+		.ucdname = "OP",
 	},
 	{
 		.enumname = "OP_WITH_EAW_HWF",
-		.file     = NULL,
-		.ucdname  = NULL,
+		.file = NULL,
+		.ucdname = NULL,
 	},
 	{
 		.enumname = "PO",
-		.file     = FILE_LINE,
-		.ucdname  = "PO",
+		.file = FILE_LINE,
+		.ucdname = "PO",
 	},
 	{
 		.enumname = "PR",
-		.file     = FILE_LINE,
-		.ucdname  = "PR",
+		.file = FILE_LINE,
+		.ucdname = "PR",
 	},
 	{
 		.enumname = "QU",
-		.file     = FILE_LINE,
-		.ucdname  = "QU",
+		.file = FILE_LINE,
+		.ucdname = "QU",
 	},
 	{
 		.enumname = "RI",
-		.file     = FILE_LINE,
-		.ucdname  = "RI",
+		.file = FILE_LINE,
+		.ucdname = "RI",
 	},
 	{
 		.enumname = "SP",
-		.file     = FILE_LINE,
-		.ucdname  = "SP",
+		.file = FILE_LINE,
+		.ucdname = "SP",
 	},
 	{
 		.enumname = "SY",
-		.file     = FILE_LINE,
-		.ucdname  = "SY",
+		.file = FILE_LINE,
+		.ucdname = "SY",
 	},
 	{
 		.enumname = "WJ",
-		.file     = FILE_LINE,
-		.ucdname  = "WJ",
+		.file = FILE_LINE,
+		.ucdname = "WJ",
 	},
 	{
 		.enumname = "ZW",
-		.file     = FILE_LINE,
-		.ucdname  = "ZW",
+		.file = FILE_LINE,
+		.ucdname = "ZW",
 	},
 	{
 		.enumname = "ZWJ",
-		.file     = FILE_LINE,
-		.ucdname  = "ZWJ",
+		.file = FILE_LINE,
+		.ucdname = "ZWJ",
 	},
 	{
 		.enumname = "TMP_AI",
-		.file     = FILE_LINE,
-		.ucdname  = "AI",
+		.file = FILE_LINE,
+		.ucdname = "AI",
 	},
 	{
 		.enumname = "TMP_CJ",
-		.file     = FILE_LINE,
-		.ucdname  = "CJ",
+		.file = FILE_LINE,
+		.ucdname = "CJ",
 	},
 	{
 		.enumname = "TMP_XX",
-		.file     = NULL,
-		.ucdname  = NULL,
+		.file = NULL,
+		.ucdname = NULL,
 	},
 	{
 		.enumname = "TMP_MN",
-		.file     = FILE_LINE,
-		.ucdname  = "Mn",
+		.file = FILE_LINE,
+		.ucdname = "Mn",
 	},
 	{
 		.enumname = "TMP_MC",
-		.file     = FILE_LINE,
-		.ucdname  = "Mc",
+		.file = FILE_LINE,
+		.ucdname = "Mc",
 	},
 	{
 		.enumname = "TMP_SA_WITHOUT_MN_OR_MC",
-		.file     = FILE_LINE,
-		.ucdname  = "SA",
+		.file = FILE_LINE,
+		.ucdname = "SA",
 	},
 	{
 		.enumname = "TMP_SA_WITH_MN_OR_MC",
-		.file     = FILE_LINE,
-		.ucdname  = "SA",
+		.file = FILE_LINE,
+		.ucdname = "SA",
 	},
 	{
 		.enumname = "TMP_SG",
-		.file     = FILE_LINE,
-		.ucdname  = "SG",
+		.file = FILE_LINE,
+		.ucdname = "SG",
 	},
 	{
 		.enumname = "TMP_EAW_H",
-		.file     = FILE_EAW,
-		.ucdname  = "H",
+		.file = FILE_EAW,
+		.ucdname = "H",
 	},
 	{
 		.enumname = "TMP_EAW_W",
-		.file     = FILE_EAW,
-		.ucdname  = "W",
+		.file = FILE_EAW,
+		.ucdname = "W",
 	},
 	{
 		.enumname = "TMP_EAW_F",
-		.file     = FILE_EAW,
-		.ucdname  = "F",
+		.file = FILE_EAW,
+		.ucdname = "F",
 	},
 };
 
@@ -306,23 +306,30 @@ handle_conflict(uint_least32_t cp, uint_least8_t prop1, uint_least8_t prop2)
 
 	(void)cp;
 
-	if ((!strcmp(line_break_property[prop1].enumname, "TMP_EAW_H")  ||
-	     !strcmp(line_break_property[prop1].enumname, "TMP_EAW_W")  ||
+	if ((!strcmp(line_break_property[prop1].enumname, "TMP_EAW_H") ||
+	     !strcmp(line_break_property[prop1].enumname, "TMP_EAW_W") ||
 	     !strcmp(line_break_property[prop1].enumname, "TMP_EAW_F")) ||
 	    (!strcmp(line_break_property[prop2].enumname, "TMP_EAW_H") ||
 	     !strcmp(line_break_property[prop2].enumname, "TMP_EAW_W") ||
 	     !strcmp(line_break_property[prop2].enumname, "TMP_EAW_F"))) {
-		if (!strcmp(line_break_property[prop1].enumname, "CP_WITHOUT_EAW_HWF") ||
-		    !strcmp(line_break_property[prop2].enumname, "CP_WITHOUT_EAW_HWF")) {
+		if (!strcmp(line_break_property[prop1].enumname,
+		            "CP_WITHOUT_EAW_HWF") ||
+		    !strcmp(line_break_property[prop2].enumname,
+		            "CP_WITHOUT_EAW_HWF")) {
 			target = "CP_WITH_EAW_HWF";
-		} else if (!strcmp(line_break_property[prop1].enumname, "OP_WITHOUT_EAW_HWF") ||
-		    !strcmp(line_break_property[prop2].enumname, "OP_WITHOUT_EAW_HWF")) {
+		} else if (!strcmp(line_break_property[prop1].enumname,
+		                   "OP_WITHOUT_EAW_HWF") ||
+		           !strcmp(line_break_property[prop2].enumname,
+		                   "OP_WITHOUT_EAW_HWF")) {
 			target = "OP_WITH_EAW_HWF";
 		} else {
 			/* ignore EAW for the rest */
-			if ((!strcmp(line_break_property[prop1].enumname, "TMP_EAW_H") ||
-			     !strcmp(line_break_property[prop1].enumname, "TMP_EAW_W") ||
-			     !strcmp(line_break_property[prop1].enumname, "TMP_EAW_F"))) {
+			if ((!strcmp(line_break_property[prop1].enumname,
+			             "TMP_EAW_H") ||
+			     !strcmp(line_break_property[prop1].enumname,
+			             "TMP_EAW_W") ||
+			     !strcmp(line_break_property[prop1].enumname,
+			             "TMP_EAW_F"))) {
 				result = prop2;
 			} else {
 				result = prop1;
@@ -330,15 +337,19 @@ handle_conflict(uint_least32_t cp, uint_least8_t prop1, uint_least8_t prop2)
 		}
 	} else if ((!strcmp(line_break_property[prop1].enumname, "TMP_MN") ||
 	            !strcmp(line_break_property[prop1].enumname, "TMP_MC")) ||
-		   (!strcmp(line_break_property[prop2].enumname, "TMP_MN") ||
-		    !strcmp(line_break_property[prop2].enumname, "TMP_MC"))) {
-		if (!strcmp(line_break_property[prop1].enumname, "SA_WITHOUT_MN_OR_MC") ||
-		    !strcmp(line_break_property[prop2].enumname, "SA_WITHOUT_MN_OR_MC")) {
+	           (!strcmp(line_break_property[prop2].enumname, "TMP_MN") ||
+	            !strcmp(line_break_property[prop2].enumname, "TMP_MC"))) {
+		if (!strcmp(line_break_property[prop1].enumname,
+		            "SA_WITHOUT_MN_OR_MC") ||
+		    !strcmp(line_break_property[prop2].enumname,
+		            "SA_WITHOUT_MN_OR_MC")) {
 			target = "SA_WITH_MN_OR_MC";
 		} else {
 			/* ignore Mn and Mc for the rest */
-			if ((!strcmp(line_break_property[prop1].enumname, "TMP_MN") ||
-			     !strcmp(line_break_property[prop1].enumname, "TMP_MC"))) {
+			if ((!strcmp(line_break_property[prop1].enumname,
+			             "TMP_MN") ||
+			     !strcmp(line_break_property[prop1].enumname,
+			             "TMP_MC"))) {
 				result = prop2;
 			} else {
 				result = prop1;
@@ -346,33 +357,42 @@ handle_conflict(uint_least32_t cp, uint_least8_t prop1, uint_least8_t prop2)
 		}
 	} else if (!strcmp(line_break_property[prop1].enumname, "TMP_CN") ||
 	           !strcmp(line_break_property[prop2].enumname, "TMP_CN")) {
-		if (!strcmp(line_break_property[prop1].enumname, "TMP_EXTENDED_PICTOGRAPHIC") ||
-		    !strcmp(line_break_property[prop2].enumname, "TMP_EXTENDED_PICTOGRAPHIC")) {
+		if (!strcmp(line_break_property[prop1].enumname,
+		            "TMP_EXTENDED_PICTOGRAPHIC") ||
+		    !strcmp(line_break_property[prop2].enumname,
+		            "TMP_EXTENDED_PICTOGRAPHIC")) {
 			target = "BOTH_CN_EXTPICT";
 		} else {
 			/* ignore Cn for all the other properties */
-			if (!strcmp(line_break_property[prop1].enumname, "TMP_CN")) {
+			if (!strcmp(line_break_property[prop1].enumname,
+			            "TMP_CN")) {
 				result = prop2;
 			} else {
 				result = prop1;
 			}
 		}
-	} else if (!strcmp(line_break_property[prop1].enumname, "TMP_EXTENDED_PICTOGRAPHIC") ||
-	           !strcmp(line_break_property[prop2].enumname, "TMP_EXTENDED_PICTOGRAPHIC")) {
+	} else if (!strcmp(line_break_property[prop1].enumname,
+	                   "TMP_EXTENDED_PICTOGRAPHIC") ||
+	           !strcmp(line_break_property[prop2].enumname,
+	                   "TMP_EXTENDED_PICTOGRAPHIC")) {
 		if (!strcmp(line_break_property[prop1].enumname, "TMP_CN") ||
 		    !strcmp(line_break_property[prop2].enumname, "TMP_CN")) {
 			target = "BOTH_CN_EXTPICT";
 		} else {
-			/* ignore Extended_Pictographic for all the other properties */
-			if (!strcmp(line_break_property[prop1].enumname, "TMP_EXTENDED_PICTOGRAPHIC")) {
+			/* ignore Extended_Pictographic for all the other
+			 * properties */
+			if (!strcmp(line_break_property[prop1].enumname,
+			            "TMP_EXTENDED_PICTOGRAPHIC")) {
 				result = prop2;
 			} else {
 				result = prop1;
 			}
 		}
 	} else {
-		fprintf(stderr, "handle_conflict: Cannot handle conflict %s <- %s.\n",
-		        line_break_property[prop1].enumname, line_break_property[prop2].enumname);
+		fprintf(stderr,
+		        "handle_conflict: Cannot handle conflict %s <- %s.\n",
+		        line_break_property[prop1].enumname,
+		        line_break_property[prop2].enumname);
 		exit(1);
 	}
 
@@ -402,27 +422,44 @@ post_process(struct properties *prop)
 	/* post-mapping according to the line breaking algorithm */
 	for (i = 0; i < UINT32_C(0x110000); i++) {
 		/* LB1 */
-		if (!strcmp(line_break_property[prop[i].property].enumname, "TMP_AI") ||
-		    !strcmp(line_break_property[prop[i].property].enumname, "TMP_SG") ||
-		    !strcmp(line_break_property[prop[i].property].enumname, "TMP_XX")) {
+		if (!strcmp(line_break_property[prop[i].property].enumname,
+		            "TMP_AI") ||
+		    !strcmp(line_break_property[prop[i].property].enumname,
+		            "TMP_SG") ||
+		    !strcmp(line_break_property[prop[i].property].enumname,
+		            "TMP_XX")) {
 			/* map AI, SG and XX to AL */
 			target = "AL";
-		} else if (!strcmp(line_break_property[prop[i].property].enumname, "TMP_SA_WITH_MN_OR_MC")) {
+		} else if (!strcmp(line_break_property[prop[i].property]
+		                           .enumname,
+		                   "TMP_SA_WITH_MN_OR_MC")) {
 			/* map SA (with General_Category Mn or Mc) to CM */
 			target = "CM";
-		} else if (!strcmp(line_break_property[prop[i].property].enumname, "TMP_SA_WITHOUT_MN_OR_MC")) {
+		} else if (!strcmp(line_break_property[prop[i].property]
+		                           .enumname,
+		                   "TMP_SA_WITHOUT_MN_OR_MC")) {
 			/* map SA (without General_Category Mn or Mc) to AL */
 			target = "AL";
-		} else if (!strcmp(line_break_property[prop[i].property].enumname, "TMP_CJ")) {
+		} else if (!strcmp(line_break_property[prop[i].property]
+		                           .enumname,
+		                   "TMP_CJ")) {
 			/* map CJ to NS */
 			target = "NS";
-		} else if (!strcmp(line_break_property[prop[i].property].enumname, "TMP_CN") ||
-		           !strcmp(line_break_property[prop[i].property].enumname, "TMP_EXTENDED_PICTOGRAPHIC") ||
-		           !strcmp(line_break_property[prop[i].property].enumname, "TMP_MN") ||
-		           !strcmp(line_break_property[prop[i].property].enumname, "TMP_MC") ||
-		           !strcmp(line_break_property[prop[i].property].enumname, "TMP_EAW_H") ||
-		           !strcmp(line_break_property[prop[i].property].enumname, "TMP_EAW_W") ||
-		           !strcmp(line_break_property[prop[i].property].enumname, "TMP_EAW_F")) {
+		} else if (
+			!strcmp(line_break_property[prop[i].property].enumname,
+		                "TMP_CN") ||
+			!strcmp(line_break_property[prop[i].property].enumname,
+		                "TMP_EXTENDED_PICTOGRAPHIC") ||
+			!strcmp(line_break_property[prop[i].property].enumname,
+		                "TMP_MN") ||
+			!strcmp(line_break_property[prop[i].property].enumname,
+		                "TMP_MC") ||
+			!strcmp(line_break_property[prop[i].property].enumname,
+		                "TMP_EAW_H") ||
+			!strcmp(line_break_property[prop[i].property].enumname,
+		                "TMP_EAW_W") ||
+			!strcmp(line_break_property[prop[i].property].enumname,
+		                "TMP_EAW_F")) {
 			/* map all the temporary classes "residue" to AL */
 			target = "AL";
 		} else {
@@ -430,14 +467,17 @@ post_process(struct properties *prop)
 		}
 
 		if (target) {
-			for (result = 0; result < LEN(line_break_property); result++) {
-				if (!strcmp(line_break_property[result].enumname,
+			for (result = 0; result < LEN(line_break_property);
+			     result++) {
+				if (!strcmp(line_break_property[result]
+				                    .enumname,
 				            target)) {
 					break;
 				}
 			}
 			if (result == LEN(line_break_property)) {
-				fprintf(stderr, "handle_conflict: Internal error.\n");
+				fprintf(stderr,
+				        "handle_conflict: Internal error.\n");
 				exit(1);
 			}
 
@@ -451,10 +491,9 @@ main(int argc, char *argv[])
 {
 	(void)argc;
 
-	properties_generate_break_property(line_break_property,
-	                                   LEN(line_break_property), NULL,
-	                                   handle_conflict, post_process,
-	                                   "line_break", argv[0]);
+	properties_generate_break_property(
+		line_break_property, LEN(line_break_property), NULL,
+		handle_conflict, post_process, "line_break", argv[0]);
 
 	return 0;
 }

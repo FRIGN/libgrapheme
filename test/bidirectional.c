@@ -25,14 +25,16 @@ main(int argc, char *argv[])
 
 	for (i = 0, failed = 0; i < LEN(bidirectional_test); i++) {
 		/*if (i != 490798)
-			continue;*/
+		        continue;*/
 
 		for (m = 0; m < bidirectional_test[i].modelen; m++) {
 			ret = grapheme_get_bidirectional_embedding_levels(
-				bidirectional_test[i].cp, bidirectional_test[i].cplen,
+				bidirectional_test[i].cp,
+				bidirectional_test[i].cplen,
 				bidirectional_test[i].mode[m], lev, levlen);
 
-			if (ret != bidirectional_test[i].cplen || ret > levlen) {
+			if (ret != bidirectional_test[i].cplen ||
+			    ret > levlen) {
 				goto err;
 			}
 
@@ -43,18 +45,22 @@ main(int argc, char *argv[])
 			}
 			continue;
 err:
-			fprintf(stderr, "%s: Failed conformance test %zu (mode %i) [",
+			fprintf(stderr,
+			        "%s: Failed conformance test %zu (mode %i) [",
 			        argv[0], i, bidirectional_test[i].mode[m]);
 			for (j = 0; j < bidirectional_test[i].cplen; j++) {
-				fprintf(stderr, " 0x%04" PRIXLEAST32, bidirectional_test[i].cp[j]);
+				fprintf(stderr, " 0x%04" PRIXLEAST32,
+				        bidirectional_test[i].cp[j]);
 			}
 			fprintf(stderr, " ],\n\tgot      (");
 			for (j = 0; j < ret; j++) {
-				fprintf(stderr, " %" PRIdLEAST8, (int_least8_t)lev[j]);
+				fprintf(stderr, " %" PRIdLEAST8,
+				        (int_least8_t)lev[j]);
 			}
 			fprintf(stderr, " ),\n\texpected (");
 			for (j = 0; j < ret; j++) {
-				fprintf(stderr, " %" PRIdLEAST8, bidirectional_test[i].level[j]);
+				fprintf(stderr, " %" PRIdLEAST8,
+				        bidirectional_test[i].level[j]);
 			}
 			fprintf(stderr, " ).\n");
 			failed++;

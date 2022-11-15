@@ -7,10 +7,10 @@
 #define LEN(x) (sizeof(x) / sizeof(*(x)))
 
 #ifdef __has_attribute
-	#if __has_attribute(optnone)
-		void libgrapheme(const void *) __attribute__((optnone));
-		void libutf8proc(const void *) __attribute__((optnone));
-	#endif
+#if __has_attribute(optnone)
+void libgrapheme(const void *) __attribute__((optnone));
+void libutf8proc(const void *) __attribute__((optnone));
+#endif
 #endif
 
 uint_least32_t *generate_cp_test_buffer(const struct break_test *, size_t,
