@@ -360,4 +360,7 @@ dist:
 	tar -cf - "libgrapheme-$(VERSION)" | gzip -c > "libgrapheme-$(VERSION).tar.gz"
 	rm -rf "libgrapheme-$(VERSION)"
 
-.PHONY: all benchmark test install uninstall clean clean-data dist
+format:
+	clang-format -i grapheme.h $(BENCHMARK:=.c) benchmark/util.c benchmark/util.h $(GEN:=.c) gen/util.c gen/types.h gen/util.h $(SRC:=.c) src/util.h $(TEST:=.c) test/util.c test/util.h
+
+.PHONY: all benchmark test install uninstall clean clean-data dist format
