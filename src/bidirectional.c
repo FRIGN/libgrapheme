@@ -11,7 +11,10 @@
 struct isolate_runner {
 	int_least32_t *buf;
 	size_t buflen;
-	enum bidi_property prev_prop;
+
+	struct {
+		enum bidi_property prop;
+	} prev;
 
 	struct {
 		size_t off;
@@ -193,7 +196,7 @@ isolate_runner_advance(struct isolate_runner *ir)
 	}
 
 	/* shift in */
-	ir->prev_prop = ir->cur.prop;
+	ir->prev.prop = ir->cur.prop;
 	ir->cur.off = ir->next.off;
 	state_deserialize(ir->buf[ir->cur.off], &s);
 	ir->cur.prop = ir->next.prop;
@@ -205,12 +208,12 @@ isolate_runner_advance(struct isolate_runner *ir)
 
 	/*
 	 * update last strong type, which is guaranteed to work properly
-	 * on the first advancement as the prev_prop holds the sos type,
+	 * on the first advancement as the prev.prop holds the sos type,
 	 * which can only be either R or L, which are both strong types
 	 */
-	if (ir->prev_prop == BIDI_PROP_R || ir->prev_prop == BIDI_PROP_L ||
-	    ir->prev_prop == BIDI_PROP_AL) {
-		ir->last_strong_type = ir->prev_prop;
+	if (ir->prev.prop == BIDI_PROP_R || ir->prev.prop == BIDI_PROP_L ||
+	    ir->prev.prop == BIDI_PROP_AL) {
+		ir->last_strong_type = ir->prev.prop;
 	}
 
 	/* initialize next state by going to the next character in the sequence
@@ -352,15 +355,15 @@ process_isolating_run_sequence(int_least32_t *buf, size_t buflen, size_t off,
 	isolate_runner_init(buf, buflen, off, paragraph_level, false, &ir);
 	while (!isolate_runner_advance(&ir)) {
 		if (ir.cur.prop == BIDI_PROP_NSM) {
-			if (ir.prev_prop == BIDI_PROP_LRI ||
-			    ir.prev_prop == BIDI_PROP_RLI ||
-			    ir.prev_prop == BIDI_PROP_FSI ||
-			    ir.prev_prop == BIDI_PROP_PDI) {
+			if (ir.prev.prop == BIDI_PROP_LRI ||
+			    ir.prev.prop == BIDI_PROP_RLI ||
+			    ir.prev.prop == BIDI_PROP_FSI ||
+			    ir.prev.prop == BIDI_PROP_PDI) {
 				isolate_runner_set_current_prop(&ir,
 				                                BIDI_PROP_ON);
 			} else {
 				isolate_runner_set_current_prop(&ir,
-				                                ir.prev_prop);
+				                                ir.prev.prop);
 			}
 		}
 	}
@@ -385,14 +388,14 @@ process_isolating_run_sequence(int_least32_t *buf, size_t buflen, size_t off,
 	/* W4 */
 	isolate_runner_init(buf, buflen, off, paragraph_level, false, &ir);
 	while (!isolate_runner_advance(&ir)) {
-		if (ir.prev_prop == BIDI_PROP_EN &&
+		if (ir.prev.prop == BIDI_PROP_EN &&
 		    (ir.cur.prop == BIDI_PROP_ES ||
 		     ir.cur.prop == BIDI_PROP_CS) &&
 		    ir.next.prop == BIDI_PROP_EN) {
 			isolate_runner_set_current_prop(&ir, BIDI_PROP_EN);
 		}
 
-		if (ir.prev_prop == BIDI_PROP_AN &&
+		if (ir.prev.prop == BIDI_PROP_AN &&
 		    ir.cur.prop == BIDI_PROP_CS &&
 		    ir.next.prop == BIDI_PROP_AN) {
 			isolate_runner_set_current_prop(&ir, BIDI_PROP_AN);
@@ -499,13 +502,13 @@ process_isolating_run_sequence(int_least32_t *buf, size_t buflen, size_t off,
 				 * check what follows and see if the text has
 				 * the same direction on both sides
 				 */
-				if (ir.prev_prop == BIDI_PROP_L &&
+				if (ir.prev.prop == BIDI_PROP_L &&
 				    tmp.next.prop == BIDI_PROP_L) {
 					sequence_end = tmp.cur.off;
 					sequence_prop = BIDI_PROP_L;
-				} else if ((ir.prev_prop == BIDI_PROP_R ||
-				            ir.prev_prop == BIDI_PROP_EN ||
-				            ir.prev_prop == BIDI_PROP_AN) &&
+				} else if ((ir.prev.prop == BIDI_PROP_R ||
+				            ir.prev.prop == BIDI_PROP_EN ||
+				            ir.prev.prop == BIDI_PROP_AN) &&
 				           (tmp.next.prop == BIDI_PROP_R ||
 				            tmp.next.prop == BIDI_PROP_EN ||
 				            tmp.next.prop == BIDI_PROP_AN)) {
