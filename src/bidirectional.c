@@ -8,149 +8,231 @@
 
 #define MAX_DEPTH 125
 
+#if 0
+enum state_type {
+	STATE_PROP,            /* in 0..23, bidi_property */
+	STATE_BRACKET_OFF,     /* in 0..255, offset in bidi_bracket */
+	STATE_LEVEL,           /* in 0..MAX_DEPTH+1=126, embedding level */
+	STATE_PARAGRAPH_LEVEL, /* in 0..1, paragraph embedding level */
+	STATE_VISITED,         /* in 0..1, visited within isolating run */
+};
+
+/* without rawprop, as it should be */
+static struct {
+	int_least32_t filter_mask;
+	int_least32_t clear_mask;
+	size_t mask_shift;
+	int_least16_t value_offset;
+} state_lut[] = {
+	[STATE_PROP] = {
+		.filter_mask  = 0x00001F, /* 00000000 00000000 00011111 */
+		.clear_mask   = 0x3FFFE0, /* 00111111 11111111 11100000 */
+		.mask_shift   = 0,
+		.value_offset = 0,
+	},
+	[STATE_BRACKET_OFF] = {
+		.filter_mask  = 0x001FE0, /* 00000000 00011111 11100000 */
+		.clear_mask   = 0x3FE01F, /* 00111111 11100000 00011111 */
+		.mask_shift   = 5,
+		.value_offset = 0,
+	},
+	[STATE_LEVEL] = {
+		.filter_mask  = 0x0FE000, /* 00001111 11100000 00000000 */
+		.clear_mask   = 0x301FFF, /* 00110000 00011111 11111111 */
+		.mask_shift   = 13,
+		.value_offset = -1,
+	},
+	[STATE_PARAGRAPH_LEVEL] = {
+		.filter_mask  = 0x100000, /* 00010000 00000000 00000000 */
+		.clear_mask   = 0x2FFFFF, /* 00101111 11111111 11111111 */
+		.mask_shift   = 20,
+		.value_offset = 0,
+	},
+	[STATE_VISITED] = {
+		.filter_mask  = 0x200000, /* 00100000 00000000 00000000 */
+		.clear_mask   = 0x1FFFFF, /* 00011111 11111111 11111111 */
+		.mask_shift   = 21,
+		.value_offset = 0,
+	},
+};
+#endif
+
+enum state_type {
+	STATE_PROP,            /* in 0..23, bidi_property */
+	STATE_BRACKET_OFF,     /* in 0..255, offset in bidi_bracket */
+	STATE_LEVEL,           /* in 0..MAX_DEPTH+1=126, embedding level */
+	STATE_PARAGRAPH_LEVEL, /* in 0..1, paragraph embedding level */
+	STATE_VISITED,         /* in 0..1, visited within isolating run */
+	STATE_RAWPROP,
+};
+
+static struct {
+	int_least32_t filter_mask;
+	int_least32_t clear_mask;
+	size_t mask_shift;
+	int_least16_t value_offset;
+} state_lut[] = {
+	[STATE_PROP] = {
+		.filter_mask  = 0x000001F, /* 00000000 00000000 00000000 00011111 */
+		.clear_mask   = 0x7FFFFE0, /* 00000111 11111111 11111111 11100000 */
+		.mask_shift   = 0,
+		.value_offset = 0,
+	},
+	[STATE_BRACKET_OFF] = {
+		.filter_mask  = 0x0001FE0, /* 00000000 00000000 00011111 11100000 */
+		.clear_mask   = 0x7FFE01F, /* 00000111 11111111 11100000 00011111 */
+		.mask_shift   = 5,
+		.value_offset = 0,
+	},
+	[STATE_LEVEL] = {
+		.filter_mask  = 0x00FE000, /* 00000000 00001111 11100000 00000000 */
+		.clear_mask   = 0x7F01FFF, /* 00000111 11110000 00011111 11111111 */
+		.mask_shift   = 13,
+		.value_offset = -1,
+	},
+	[STATE_PARAGRAPH_LEVEL] = {
+		.filter_mask  = 0x0100000, /* 00000000 00010000 00000000 00000000 */
+		.clear_mask   = 0x7EFFFFF, /* 00000111 11101111 11111111 11111111 */
+		.mask_shift   = 20,
+		.value_offset = 0,
+	},
+	[STATE_VISITED] = {
+		.filter_mask  = 0x0200000, /* 00000000 00100000 00000000 00000000 */
+		.clear_mask   = 0x7DFFFFF, /* 00000111 11011111 11111111 11111111 */
+		.mask_shift   = 21,
+		.value_offset = 0,
+	},
+	[STATE_RAWPROP] = {
+		.filter_mask  = 0x7C00000, /* 00000111 11000000 00000000 00000000 */
+		.clear_mask   = 0x03FFFFF, /* 00000000 00111111 11111111 11111111 */
+		.mask_shift   = 22,
+		.value_offset = 0,
+	},
+};
+
+static inline int_least16_t
+get_state(enum state_type t, int_least32_t input)
+{
+	return (int_least16_t)(((input & state_lut[t].filter_mask) >>
+	                        state_lut[t].mask_shift) +
+	                       state_lut[t].value_offset);
+}
+
+static inline void
+set_state(enum state_type t, int_least16_t value, int_least32_t *output)
+{
+	*output &= state_lut[t].clear_mask;
+	*output |= ((value - state_lut[t].value_offset)
+	            << state_lut[t].mask_shift) &
+	           state_lut[t].filter_mask;
+}
+
 struct isolate_runner {
 	int_least32_t *buf;
 	size_t buflen;
 
 	struct {
-		enum bidi_property prop;
-	} prev;
-
-	struct {
 		size_t off;
-		enum bidi_property prop;
-		int_least8_t level;
-	} cur;
+	} prev, cur, next;
 
-	struct {
-		size_t off;
-		enum bidi_property prop;
-	} next;
+	enum bidi_property sos, eos;
 
 	uint_least8_t paragraph_level;
 	int_least8_t isolating_run_level;
 	enum bidi_property last_strong_type;
 };
 
-/*
- * we want to store the bidirectional property, the embedding level
- * and the visited-state (for sequential processing of rule X10)
- * all in a signed 16-bit-integer (because that's what we will write
- * the final embedding level into). To remain outside of implementation
- * defined territory, we can only effectively use 15 bits for bitwise
- * magic.
- *
- * Storage is still feasible, though, because the values all have very
- * limited ranges and can be stored as unsigned integers:
- *
- *   paragraph_level is in 0..1               which lies in 0..1   = 2^1-1
- *   level+1         is in 0..MAX_DEPTH+1=126 which lies in 0..127 = 2^7-1
- *   prop            is in 0..23              which lies in 0..31  = 2^5-1
- *   bracket_off     is in 0..255             which lies in 0..255 = 2^8-1
- *   visited         is in 0..1               which lies in 0..1   = 2^1-1
- *
- * yielding a total storage size of 22 bits.
- */
-struct state {
-	uint_least8_t paragraph_level;
-	int_least8_t level;
-	enum bidi_property prop;
-	const struct bracket *bracket;
-	bool visited;
-	enum bidi_property rawprop;
-};
-
-static inline void
-state_serialize(const struct state *s, int_least32_t *out)
+static inline enum bidi_property
+ir_get_previous_prop(const struct isolate_runner *ir)
 {
-	*out = (int_least32_t)(((((uint_least32_t)(s->paragraph_level)) &
-	                         0x01 /* 00000001 */)
-	                        << 0) |
-	                       ((((uint_least32_t)(s->level + 1)) &
-	                         0x7F /* 01111111 */)
-	                        << 1) |
-	                       ((((uint_least32_t)(s->prop)) &
-	                         0x1F /* 00011111 */)
-	                        << 8) |
-	                       ((((uint_least32_t)(s->bracket - bidi_bracket)) &
-	                         0xFF /* 11111111 */)
-	                        << 13) |
-	                       ((((uint_least32_t)(s->visited)) &
-	                         0x01 /* 00000001 */)
-	                        << 21) |
-	                       ((((uint_least32_t)(s->rawprop)) &
-	                         0x1F /* 00011111 */)
-	                        << 22));
+	return (ir->prev.off == SIZE_MAX) ?
+	               ir->sos :
+	               (uint_least8_t)get_state(STATE_PROP,
+	                                        ir->buf[ir->prev.off]);
 }
 
-static inline void
-state_deserialize(int_least32_t in, struct state *s)
+static inline enum bidi_property
+ir_get_current_prop(const struct isolate_runner *ir)
 {
-	s->paragraph_level = (uint_least8_t)((((uint_least32_t)in) >> 0) &
-	                                     0x01 /* 00000001 */);
-	s->level = (int_least8_t)((((uint_least32_t)in) >> 1) &
-	                          0x7F /* 01111111 */) -
-	           1;
-	s->prop = (enum bidi_property)((((uint_least32_t)in) >> 8) &
-	                               0x1F /* 00011111 */);
-	s->bracket =
-		bidi_bracket + (uint_least8_t)((((uint_least32_t)in) >> 13) &
-	                                       0xFF /* 11111111 */);
-	s->visited = (bool)((((uint_least32_t)in) >> 21) & 0x01 /* 00000001 */);
-	s->rawprop = (enum bidi_property)((((uint_least32_t)in) >> 22) &
-	                                  0x1F /* 00011111 */);
+	return (uint_least8_t)get_state(STATE_PROP, ir->buf[ir->cur.off]);
+}
+
+static inline enum bidi_property
+ir_get_next_prop(const struct isolate_runner *ir)
+{
+	return (ir->next.off == SIZE_MAX) ?
+	               ir->eos :
+	               (uint_least8_t)get_state(STATE_PROP,
+	                                        ir->buf[ir->next.off]);
+}
+
+static inline int_least8_t
+ir_get_current_level(const struct isolate_runner *ir)
+{
+	return (int_least8_t)get_state(STATE_LEVEL, ir->buf[ir->cur.off]);
 }
 
 static void
-isolate_runner_init(int_least32_t *buf, size_t buflen, size_t off,
-                    uint_least8_t paragraph_level, bool within,
-                    struct isolate_runner *ir)
+ir_set_current_prop(struct isolate_runner *ir, enum bidi_property prop)
 {
-	struct state s;
-	size_t i;
-	int_least8_t cur_level, sos_level;
+	set_state(STATE_PROP, (int_least16_t)prop, &(ir->buf[ir->cur.off]));
+}
 
-	state_deserialize(buf[off], &s);
+static void
+ir_init(int_least32_t *buf, size_t buflen, size_t off,
+        uint_least8_t paragraph_level, bool within, struct isolate_runner *ir)
+{
+	size_t i;
+	int_least8_t sos_level;
 
 	/* initialize invariants */
 	ir->buf = buf;
 	ir->buflen = buflen;
 	ir->paragraph_level = paragraph_level;
-	ir->isolating_run_level = s.level;
 
 	/* advance off until we are at a non-removed character */
-	while (s.level == -1) {
-		off++;
-		state_deserialize(buf[off], &s);
+	for (; off < buflen; off++) {
+		if (get_state(STATE_LEVEL, buf[off]) != -1) {
+			break;
+		}
+	}
+	if (off == buflen) {
+		/* we encountered no more non-removed character, terminate */
+		ir->next.off = SIZE_MAX;
+		return;
 	}
 
+	/* set the isolating run level to that of the current offset */
+	ir->isolating_run_level =
+		(int_least8_t)get_state(STATE_LEVEL, buf[off]);
+
+	/* initialize sos and eos to dummy values */
+	ir->sos = ir->eos = NUM_BIDI_PROPS;
+
 	/*
-	 * we store the current offset in the next offset, so it is
-	 * shifted in properly at the first advancement
+	 * we write the information of the "current" state into next,
+	 * so that the shift-in at the first advancement moves it in
+	 * cur, as desired.
 	 */
 	ir->next.off = off;
-	ir->next.prop = s.prop;
 
 	/*
-	 * determine the previous state but store it in cur.prop
-	 * cur.off is set to SIZE_MAX and cur.level to -1, as both are
-	 * discarded on the first advancement anyway
+	 * determine the previous state but store its offset in cur.off,
+	 * given it's shifted in on the first advancement
 	 */
-	cur_level = s.level;
-	ir->cur.prop = NUM_BIDI_PROPS;
+	ir->cur.off = SIZE_MAX;
 	for (i = off, sos_level = -1; i >= 1; i--) {
-		state_deserialize(buf[i - 1], &s);
-
-		if (s.level != -1) {
+		if (get_state(STATE_LEVEL, buf[i - 1]) != -1) {
 			/*
 			 * we found a character that has not been
 			 * removed in X9
 			 */
-			sos_level = s.level;
+			sos_level = (int_least8_t)get_state(STATE_LEVEL,
+			                                    buf[i - 1]);
 
 			if (within) {
 				/* we just take it */
-				ir->cur.prop = s.prop;
+				ir->cur.off = i;
 			}
 
 			break;
@@ -158,36 +240,33 @@ isolate_runner_init(int_least32_t *buf, size_t buflen, size_t off,
 	}
 	if (sos_level == -1) {
 		/*
-		 * there were no preceding characters, set sos-level
-		 * to paragraph embedding level
+		 * there were no preceding non-removed characters, set
+		 * sos-level to paragraph embedding level
 		 */
 		sos_level = (int_least8_t)paragraph_level;
 	}
 
-	if (!within || ir->cur.prop == NUM_BIDI_PROPS) {
+	if (!within || ir->cur.off == SIZE_MAX) {
 		/*
 		 * we are at the beginning of the sequence; initialize
 		 * it faithfully according to the algorithm by looking
 		 * at the sos-level
 		 */
-		if (MAX(sos_level, cur_level) % 2 == 0) {
+		if (MAX(sos_level, ir->isolating_run_level) % 2 == 0) {
 			/* the higher level is even, set sos to L */
-			ir->cur.prop = BIDI_PROP_L;
+			ir->sos = BIDI_PROP_L;
 		} else {
 			/* the higher level is odd, set sos to R */
-			ir->cur.prop = BIDI_PROP_R;
+			ir->sos = BIDI_PROP_R;
 		}
 	}
-
-	ir->cur.off = SIZE_MAX;
-	ir->cur.level = -1;
 }
 
 static int
-isolate_runner_advance(struct isolate_runner *ir)
+ir_advance(struct isolate_runner *ir)
 {
-	struct state s;
-	int_least8_t isolate_level, last_isolate_level;
+	enum bidi_property prop;
+	int_least8_t level, isolate_level, last_isolate_level;
 	size_t i;
 
 	if (ir->next.off == SIZE_MAX) {
@@ -196,45 +275,43 @@ isolate_runner_advance(struct isolate_runner *ir)
 	}
 
 	/* shift in */
-	ir->prev.prop = ir->cur.prop;
+	ir->prev.off = ir->cur.off;
 	ir->cur.off = ir->next.off;
-	state_deserialize(ir->buf[ir->cur.off], &s);
-	ir->cur.prop = ir->next.prop;
-	ir->cur.level = s.level;
 
 	/* mark as visited */
-	s.visited = true;
-	state_serialize(&s, &(ir->buf[ir->cur.off]));
+	set_state(STATE_VISITED, 1, &(ir->buf[ir->cur.off]));
 
 	/*
 	 * update last strong type, which is guaranteed to work properly
-	 * on the first advancement as the prev.prop holds the sos type,
-	 * which can only be either R or L, which are both strong types
+	 * on the first advancement as the prev.off is SIZE_T and the
+	 * implied sos type can only be either R or L, which are both
+	 * strong types
 	 */
-	if (ir->prev.prop == BIDI_PROP_R || ir->prev.prop == BIDI_PROP_L ||
-	    ir->prev.prop == BIDI_PROP_AL) {
-		ir->last_strong_type = ir->prev.prop;
+	if (ir_get_previous_prop(ir) == BIDI_PROP_R ||
+	    ir_get_previous_prop(ir) == BIDI_PROP_L ||
+	    ir_get_previous_prop(ir) == BIDI_PROP_AL) {
+		ir->last_strong_type = ir_get_previous_prop(ir);
 	}
 
 	/* initialize next state by going to the next character in the sequence
 	 */
 	ir->next.off = SIZE_MAX;
-	ir->next.prop = NUM_BIDI_PROPS;
 
 	last_isolate_level = -1;
 	for (i = ir->cur.off, isolate_level = 0; i < ir->buflen; i++) {
-		state_deserialize(ir->buf[i], &s);
+		level = (int_least8_t)get_state(STATE_LEVEL, ir->buf[i]);
+		prop = (uint_least8_t)get_state(STATE_PROP, ir->buf[i]);
 
-		if (s.level == -1) {
+		if (level == -1) {
 			/* this is one of the ignored characters, skip */
 			continue;
-		} else if (s.level == ir->isolating_run_level) {
-			last_isolate_level = s.level;
+		} else if (level == ir->isolating_run_level) {
+			last_isolate_level = level;
 		}
 
 		/* follow BD8/BD9 and P2 to traverse the current sequence */
-		if (s.prop == BIDI_PROP_LRI || s.prop == BIDI_PROP_RLI ||
-		    s.prop == BIDI_PROP_FSI) {
+		if (prop == BIDI_PROP_LRI || prop == BIDI_PROP_RLI ||
+		    prop == BIDI_PROP_FSI) {
 			/*
 			 * we encountered an isolate initiator, increment
 			 * counter, but go into processing when we
@@ -246,7 +323,7 @@ isolate_runner_advance(struct isolate_runner *ir)
 			if (isolate_level != 1) {
 				continue;
 			}
-		} else if (s.prop == BIDI_PROP_PDI && isolate_level > 0) {
+		} else if (prop == BIDI_PROP_PDI && isolate_level > 0) {
 			isolate_level--;
 
 			/*
@@ -270,21 +347,20 @@ isolate_runner_advance(struct isolate_runner *ir)
 		if (i == ir->cur.off) {
 			/* we were in the first initializing round */
 			continue;
-		} else if (s.level == ir->isolating_run_level) {
+		} else if (level == ir->isolating_run_level) {
 			/* isolate_level-skips have been handled before, we're
 			 * good */
 			/* still in the sequence */
-			ir->next.off = (size_t)i;
-			ir->next.prop = s.prop;
+			ir->next.off = i;
 		} else {
 			/* out of sequence or isolated, compare levels via eos
 			 */
-			if (MAX(last_isolate_level, s.level) % 2 == 0) {
-				ir->next.prop = BIDI_PROP_L;
-			} else {
-				ir->next.prop = BIDI_PROP_R;
-			}
 			ir->next.off = SIZE_MAX;
+			if (MAX(last_isolate_level, level) % 2 == 0) {
+				ir->eos = BIDI_PROP_L;
+			} else {
+				ir->eos = BIDI_PROP_R;
+			}
 		}
 		break;
 	}
@@ -295,147 +371,107 @@ isolate_runner_advance(struct isolate_runner *ir)
 		 * level of the last element in the isolating run sequence
 		 * with the paragraph level.
 		 */
+		ir->next.off = SIZE_MAX;
 		if (MAX(last_isolate_level, ir->paragraph_level) % 2 == 0) {
 			/* the higher level is even, set eos to L */
-			ir->next.prop = BIDI_PROP_L;
+			ir->eos = BIDI_PROP_L;
 		} else {
-			/* the higher level is odd, set sos to R */
-			ir->next.prop = BIDI_PROP_R;
+			/* the higher level is odd, set eos to R */
+			ir->eos = BIDI_PROP_R;
 		}
-		ir->next.off = SIZE_MAX;
 	}
 
 	return 0;
-}
-
-static void
-isolate_runner_set_current_prop(struct isolate_runner *ir,
-                                enum bidi_property prop)
-{
-	struct state s;
-
-	state_deserialize(ir->buf[ir->cur.off], &s);
-	s.prop = prop;
-	state_serialize(&s, &(ir->buf[ir->cur.off]));
-
-	ir->cur.prop = prop;
-}
-
-static inline enum bidi_property
-get_bidi_property(uint_least32_t cp)
-{
-	if (likely(cp <= 0x10FFFF)) {
-		return (enum bidi_property)(
-			(bidi_minor[bidi_major[cp >> 8] + (cp & 0xff)]) &
-			0x1F /* 00011111 */);
-	} else {
-		return BIDI_PROP_L;
-	}
-}
-
-static inline uint_least8_t
-get_bidi_bracket_off(uint_least32_t cp)
-{
-	if (likely(cp <= 0x10FFFF)) {
-		return (bidi_minor[bidi_major[cp >> 8] + (cp & 0xff)]) >> 5;
-	} else {
-		return 0;
-	}
 }
 
 static size_t
 process_isolating_run_sequence(int_least32_t *buf, size_t buflen, size_t off,
                                uint_least8_t paragraph_level)
 {
-	enum bidi_property sequence_prop;
+	enum bidi_property sequence_prop, prop;
 	struct isolate_runner ir, tmp;
 	size_t runsince, sequence_end;
 
 	/* W1 */
-	isolate_runner_init(buf, buflen, off, paragraph_level, false, &ir);
-	while (!isolate_runner_advance(&ir)) {
-		if (ir.cur.prop == BIDI_PROP_NSM) {
-			if (ir.prev.prop == BIDI_PROP_LRI ||
-			    ir.prev.prop == BIDI_PROP_RLI ||
-			    ir.prev.prop == BIDI_PROP_FSI ||
-			    ir.prev.prop == BIDI_PROP_PDI) {
-				isolate_runner_set_current_prop(&ir,
-				                                BIDI_PROP_ON);
+	ir_init(buf, buflen, off, paragraph_level, false, &ir);
+	while (!ir_advance(&ir)) {
+		if (ir_get_current_prop(&ir) == BIDI_PROP_NSM) {
+			prop = ir_get_previous_prop(&ir);
+
+			if (prop == BIDI_PROP_LRI || prop == BIDI_PROP_RLI ||
+			    prop == BIDI_PROP_FSI || prop == BIDI_PROP_PDI) {
+				ir_set_current_prop(&ir, BIDI_PROP_ON);
 			} else {
-				isolate_runner_set_current_prop(&ir,
-				                                ir.prev.prop);
+				ir_set_current_prop(&ir, prop);
 			}
 		}
 	}
 
 	/* W2 */
-	isolate_runner_init(buf, buflen, off, paragraph_level, false, &ir);
-	while (!isolate_runner_advance(&ir)) {
-		if (ir.cur.prop == BIDI_PROP_EN &&
+	ir_init(buf, buflen, off, paragraph_level, false, &ir);
+	while (!ir_advance(&ir)) {
+		if (ir_get_current_prop(&ir) == BIDI_PROP_EN &&
 		    ir.last_strong_type == BIDI_PROP_AL) {
-			isolate_runner_set_current_prop(&ir, BIDI_PROP_AN);
+			ir_set_current_prop(&ir, BIDI_PROP_AN);
 		}
 	}
 
 	/* W3 */
-	isolate_runner_init(buf, buflen, off, paragraph_level, false, &ir);
-	while (!isolate_runner_advance(&ir)) {
-		if (ir.cur.prop == BIDI_PROP_AL) {
-			isolate_runner_set_current_prop(&ir, BIDI_PROP_R);
+	ir_init(buf, buflen, off, paragraph_level, false, &ir);
+	while (!ir_advance(&ir)) {
+		if (ir_get_current_prop(&ir) == BIDI_PROP_AL) {
+			ir_set_current_prop(&ir, BIDI_PROP_R);
 		}
 	}
 
 	/* W4 */
-	isolate_runner_init(buf, buflen, off, paragraph_level, false, &ir);
-	while (!isolate_runner_advance(&ir)) {
-		if (ir.prev.prop == BIDI_PROP_EN &&
-		    (ir.cur.prop == BIDI_PROP_ES ||
-		     ir.cur.prop == BIDI_PROP_CS) &&
-		    ir.next.prop == BIDI_PROP_EN) {
-			isolate_runner_set_current_prop(&ir, BIDI_PROP_EN);
+	ir_init(buf, buflen, off, paragraph_level, false, &ir);
+	while (!ir_advance(&ir)) {
+		if (ir_get_previous_prop(&ir) == BIDI_PROP_EN &&
+		    (ir_get_current_prop(&ir) == BIDI_PROP_ES ||
+		     ir_get_current_prop(&ir) == BIDI_PROP_CS) &&
+		    ir_get_next_prop(&ir) == BIDI_PROP_EN) {
+			ir_set_current_prop(&ir, BIDI_PROP_EN);
 		}
 
-		if (ir.prev.prop == BIDI_PROP_AN &&
-		    ir.cur.prop == BIDI_PROP_CS &&
-		    ir.next.prop == BIDI_PROP_AN) {
-			isolate_runner_set_current_prop(&ir, BIDI_PROP_AN);
+		if (ir_get_previous_prop(&ir) == BIDI_PROP_AN &&
+		    ir_get_current_prop(&ir) == BIDI_PROP_CS &&
+		    ir_get_next_prop(&ir) == BIDI_PROP_AN) {
+			ir_set_current_prop(&ir, BIDI_PROP_AN);
 		}
 	}
 
 	/* W5 */
 	runsince = SIZE_MAX;
-	isolate_runner_init(buf, buflen, off, paragraph_level, false, &ir);
-	while (!isolate_runner_advance(&ir)) {
-		if (ir.cur.prop == BIDI_PROP_ET) {
+	ir_init(buf, buflen, off, paragraph_level, false, &ir);
+	while (!ir_advance(&ir)) {
+		if (ir_get_current_prop(&ir) == BIDI_PROP_ET) {
 			if (runsince == SIZE_MAX) {
 				/* a new run has begun */
 				runsince = ir.cur.off;
 			}
-		} else if (ir.cur.prop == BIDI_PROP_EN) {
+		} else if (ir_get_current_prop(&ir) == BIDI_PROP_EN) {
 			/* set the preceding sequence */
 			if (runsince != SIZE_MAX) {
-				isolate_runner_init(buf, buflen, runsince,
-				                    paragraph_level,
-				                    (runsince > off), &tmp);
-				while (!isolate_runner_advance(&tmp) &&
+				ir_init(buf, buflen, runsince, paragraph_level,
+				        (runsince > off), &tmp);
+				while (!ir_advance(&tmp) &&
 				       tmp.cur.off < ir.cur.off) {
-					isolate_runner_set_current_prop(
-						&tmp, BIDI_PROP_EN);
+					ir_set_current_prop(&tmp, BIDI_PROP_EN);
 				}
 				runsince = SIZE_MAX;
 			} else {
-				isolate_runner_init(buf, buflen, ir.cur.off,
-				                    paragraph_level,
-				                    (ir.cur.off > off), &tmp);
-				isolate_runner_advance(&tmp);
+				ir_init(buf, buflen, ir.cur.off,
+				        paragraph_level, (ir.cur.off > off),
+				        &tmp);
+				ir_advance(&tmp);
 			}
 			/* follow the succeeding sequence */
-			while (!isolate_runner_advance(&tmp)) {
-				if (tmp.cur.prop != BIDI_PROP_ET) {
+			while (!ir_advance(&tmp)) {
+				if (ir_get_current_prop(&tmp) != BIDI_PROP_ET) {
 					break;
 				}
-				isolate_runner_set_current_prop(&tmp,
-				                                BIDI_PROP_EN);
+				ir_set_current_prop(&tmp, BIDI_PROP_EN);
 			}
 		} else {
 			/* sequence ended */
@@ -444,21 +480,22 @@ process_isolating_run_sequence(int_least32_t *buf, size_t buflen, size_t off,
 	}
 
 	/* W6 */
-	isolate_runner_init(buf, buflen, off, paragraph_level, false, &ir);
-	while (!isolate_runner_advance(&ir)) {
-		if (ir.cur.prop == BIDI_PROP_ES ||
-		    ir.cur.prop == BIDI_PROP_ET ||
-		    ir.cur.prop == BIDI_PROP_CS) {
-			isolate_runner_set_current_prop(&ir, BIDI_PROP_ON);
+	ir_init(buf, buflen, off, paragraph_level, false, &ir);
+	while (!ir_advance(&ir)) {
+		prop = ir_get_current_prop(&ir);
+
+		if (prop == BIDI_PROP_ES || prop == BIDI_PROP_ET ||
+		    prop == BIDI_PROP_CS) {
+			ir_set_current_prop(&ir, BIDI_PROP_ON);
 		}
 	}
 
 	/* W7 */
-	isolate_runner_init(buf, buflen, off, paragraph_level, false, &ir);
-	while (!isolate_runner_advance(&ir)) {
-		if (ir.cur.prop == BIDI_PROP_EN &&
+	ir_init(buf, buflen, off, paragraph_level, false, &ir);
+	while (!ir_advance(&ir)) {
+		if (ir_get_current_prop(&ir) == BIDI_PROP_EN &&
 		    ir.last_strong_type == BIDI_PROP_L) {
-			isolate_runner_set_current_prop(&ir, BIDI_PROP_L);
+			ir_set_current_prop(&ir, BIDI_PROP_L);
 		}
 	}
 
@@ -467,33 +504,33 @@ process_isolating_run_sequence(int_least32_t *buf, size_t buflen, size_t off,
 	/* N1 */
 	sequence_end = SIZE_MAX;
 	sequence_prop = NUM_BIDI_PROPS;
-	isolate_runner_init(buf, buflen, off, paragraph_level, false, &ir);
-	while (!isolate_runner_advance(&ir)) {
+	ir_init(buf, buflen, off, paragraph_level, false, &ir);
+	while (!ir_advance(&ir)) {
 		if (sequence_end == SIZE_MAX) {
-			if (ir.cur.prop == BIDI_PROP_B ||
-			    ir.cur.prop == BIDI_PROP_S ||
-			    ir.cur.prop == BIDI_PROP_WS ||
-			    ir.cur.prop == BIDI_PROP_ON ||
-			    ir.cur.prop == BIDI_PROP_FSI ||
-			    ir.cur.prop == BIDI_PROP_LRI ||
-			    ir.cur.prop == BIDI_PROP_RLI ||
-			    ir.cur.prop == BIDI_PROP_PDI) {
+			prop = ir_get_current_prop(&ir);
+
+			if (prop == BIDI_PROP_B || prop == BIDI_PROP_S ||
+			    prop == BIDI_PROP_WS || prop == BIDI_PROP_ON ||
+			    prop == BIDI_PROP_FSI || prop == BIDI_PROP_LRI ||
+			    prop == BIDI_PROP_RLI || prop == BIDI_PROP_PDI) {
 				/* the current character is an NI (neutral or
 				 * isolate) */
 
 				/* scan ahead to the end of the NI-sequence */
-				isolate_runner_init(buf, buflen, ir.cur.off,
-				                    paragraph_level,
-				                    (ir.cur.off > off), &tmp);
-				while (!isolate_runner_advance(&tmp)) {
-					if (tmp.next.prop != BIDI_PROP_B &&
-					    tmp.next.prop != BIDI_PROP_S &&
-					    tmp.next.prop != BIDI_PROP_WS &&
-					    tmp.next.prop != BIDI_PROP_ON &&
-					    tmp.next.prop != BIDI_PROP_FSI &&
-					    tmp.next.prop != BIDI_PROP_LRI &&
-					    tmp.next.prop != BIDI_PROP_RLI &&
-					    tmp.next.prop != BIDI_PROP_PDI) {
+				ir_init(buf, buflen, ir.cur.off,
+				        paragraph_level, (ir.cur.off > off),
+				        &tmp);
+				while (!ir_advance(&tmp)) {
+					prop = ir_get_next_prop(&tmp);
+
+					if (prop != BIDI_PROP_B &&
+					    prop != BIDI_PROP_S &&
+					    prop != BIDI_PROP_WS &&
+					    prop != BIDI_PROP_ON &&
+					    prop != BIDI_PROP_FSI &&
+					    prop != BIDI_PROP_LRI &&
+					    prop != BIDI_PROP_RLI &&
+					    prop != BIDI_PROP_PDI) {
 						break;
 					}
 				}
@@ -502,16 +539,22 @@ process_isolating_run_sequence(int_least32_t *buf, size_t buflen, size_t off,
 				 * check what follows and see if the text has
 				 * the same direction on both sides
 				 */
-				if (ir.prev.prop == BIDI_PROP_L &&
-				    tmp.next.prop == BIDI_PROP_L) {
+				if (ir_get_previous_prop(&ir) == BIDI_PROP_L &&
+				    ir_get_next_prop(&tmp) == BIDI_PROP_L) {
 					sequence_end = tmp.cur.off;
 					sequence_prop = BIDI_PROP_L;
-				} else if ((ir.prev.prop == BIDI_PROP_R ||
-				            ir.prev.prop == BIDI_PROP_EN ||
-				            ir.prev.prop == BIDI_PROP_AN) &&
-				           (tmp.next.prop == BIDI_PROP_R ||
-				            tmp.next.prop == BIDI_PROP_EN ||
-				            tmp.next.prop == BIDI_PROP_AN)) {
+				} else if ((ir_get_previous_prop(&ir) ==
+				                    BIDI_PROP_R ||
+				            ir_get_previous_prop(&ir) ==
+				                    BIDI_PROP_EN ||
+				            ir_get_previous_prop(&ir) ==
+				                    BIDI_PROP_AN) &&
+				           (ir_get_next_prop(&tmp) ==
+				                    BIDI_PROP_R ||
+				            ir_get_next_prop(&tmp) ==
+				                    BIDI_PROP_EN ||
+				            ir_get_next_prop(&tmp) ==
+				                    BIDI_PROP_AN)) {
 					sequence_end = tmp.cur.off;
 					sequence_prop = BIDI_PROP_R;
 				}
@@ -520,8 +563,7 @@ process_isolating_run_sequence(int_least32_t *buf, size_t buflen, size_t off,
 
 		if (sequence_end != SIZE_MAX) {
 			if (ir.cur.off <= sequence_end) {
-				isolate_runner_set_current_prop(&ir,
-				                                sequence_prop);
+				ir_set_current_prop(&ir, sequence_prop);
 			} else {
 				/* end of sequence, reset */
 				sequence_end = SIZE_MAX;
@@ -531,24 +573,21 @@ process_isolating_run_sequence(int_least32_t *buf, size_t buflen, size_t off,
 	}
 
 	/* N2 */
-	isolate_runner_init(buf, buflen, off, paragraph_level, false, &ir);
-	while (!isolate_runner_advance(&ir)) {
-		if (ir.cur.prop == BIDI_PROP_B || ir.cur.prop == BIDI_PROP_S ||
-		    ir.cur.prop == BIDI_PROP_WS ||
-		    ir.cur.prop == BIDI_PROP_ON ||
-		    ir.cur.prop == BIDI_PROP_FSI ||
-		    ir.cur.prop == BIDI_PROP_LRI ||
-		    ir.cur.prop == BIDI_PROP_RLI ||
-		    ir.cur.prop == BIDI_PROP_PDI) {
+	ir_init(buf, buflen, off, paragraph_level, false, &ir);
+	while (!ir_advance(&ir)) {
+		prop = ir_get_current_prop(&ir);
+
+		if (prop == BIDI_PROP_B || prop == BIDI_PROP_S ||
+		    prop == BIDI_PROP_WS || prop == BIDI_PROP_ON ||
+		    prop == BIDI_PROP_FSI || prop == BIDI_PROP_LRI ||
+		    prop == BIDI_PROP_RLI || prop == BIDI_PROP_PDI) {
 			/* N2 */
-			if (ir.cur.level % 2 == 0) {
+			if (ir_get_current_level(&ir) % 2 == 0) {
 				/* even embedding level */
-				isolate_runner_set_current_prop(&ir,
-				                                BIDI_PROP_L);
+				ir_set_current_prop(&ir, BIDI_PROP_L);
 			} else {
 				/* odd embedding level */
-				isolate_runner_set_current_prop(&ir,
-				                                BIDI_PROP_R);
+				ir_set_current_prop(&ir, BIDI_PROP_R);
 			}
 		}
 	}
@@ -561,7 +600,7 @@ get_paragraph_level(enum grapheme_bidirectional_override override,
                     bool terminate_on_pdi, const int_least32_t *buf,
                     size_t buflen)
 {
-	struct state s;
+	enum bidi_property prop;
 	int_least8_t isolate_level;
 	size_t bufoff;
 
@@ -575,9 +614,9 @@ get_paragraph_level(enum grapheme_bidirectional_override override,
 	/* determine paragraph level (rules P1-P3) */
 
 	for (bufoff = 0, isolate_level = 0; bufoff < buflen; bufoff++) {
-		state_deserialize(buf[bufoff], &s);
+		prop = (uint_least8_t)get_state(STATE_PROP, buf[bufoff]);
 
-		if (s.prop == BIDI_PROP_PDI && isolate_level == 0 &&
+		if (prop == BIDI_PROP_PDI && isolate_level == 0 &&
 		    terminate_on_pdi) {
 			/*
 			 * we are in a FSI-subsection of a paragraph and
@@ -587,12 +626,12 @@ get_paragraph_level(enum grapheme_bidirectional_override override,
 		}
 
 		/* BD8/BD9 */
-		if ((s.prop == BIDI_PROP_LRI || s.prop == BIDI_PROP_RLI ||
-		     s.prop == BIDI_PROP_FSI) &&
+		if ((prop == BIDI_PROP_LRI || prop == BIDI_PROP_RLI ||
+		     prop == BIDI_PROP_FSI) &&
 		    isolate_level < MAX_DEPTH) {
 			/* we hit an isolate initiator, increment counter */
 			isolate_level++;
-		} else if (s.prop == BIDI_PROP_PDI && isolate_level > 0) {
+		} else if (prop == BIDI_PROP_PDI && isolate_level > 0) {
 			isolate_level--;
 		}
 
@@ -602,9 +641,9 @@ get_paragraph_level(enum grapheme_bidirectional_override override,
 		}
 
 		/* P3 */
-		if (s.prop == BIDI_PROP_L) {
+		if (prop == BIDI_PROP_L) {
 			return 0;
-		} else if (s.prop == BIDI_PROP_AL || s.prop == BIDI_PROP_R) {
+		} else if (prop == BIDI_PROP_AL || prop == BIDI_PROP_R) {
 			return 1;
 		}
 	}
@@ -616,8 +655,8 @@ static void
 get_paragraph_embedding_levels(enum grapheme_bidirectional_override override,
                                int_least32_t *buf, size_t buflen)
 {
-	enum bidi_property tmp_prop;
-	struct state s, t;
+	enum bidi_property prop;
+	int_least8_t level;
 
 	struct {
 		int_least8_t level;
@@ -639,10 +678,9 @@ get_paragraph_embedding_levels(enum grapheme_bidirectional_override override,
 		valid_isolate_count = 0;
 
 	for (bufoff = 0; bufoff < buflen; bufoff++) {
-		state_deserialize(buf[bufoff], &s);
-		tmp_prop = s.prop;
+		prop = (uint_least8_t)get_state(STATE_PROP, buf[bufoff]);
 again:
-		if (tmp_prop == BIDI_PROP_RLE) {
+		if (prop == BIDI_PROP_RLE) {
 			/* X2 */
 			if (dirstat->level + (dirstat->level % 2 != 0) + 1 <=
 			            MAX_DEPTH &&
@@ -661,7 +699,7 @@ again:
 				overflow_embedding_count +=
 					(overflow_isolate_count == 0);
 			}
-		} else if (tmp_prop == BIDI_PROP_LRE) {
+		} else if (prop == BIDI_PROP_LRE) {
 			/* X3 */
 			if (dirstat->level + (dirstat->level % 2 == 0) + 1 <=
 			            MAX_DEPTH &&
@@ -680,7 +718,7 @@ again:
 				overflow_embedding_count +=
 					(overflow_isolate_count == 0);
 			}
-		} else if (tmp_prop == BIDI_PROP_RLO) {
+		} else if (prop == BIDI_PROP_RLO) {
 			/* X4 */
 			if (dirstat->level + (dirstat->level % 2 != 0) + 1 <=
 			            MAX_DEPTH &&
@@ -699,7 +737,7 @@ again:
 				overflow_embedding_count +=
 					(overflow_isolate_count == 0);
 			}
-		} else if (tmp_prop == BIDI_PROP_LRO) {
+		} else if (prop == BIDI_PROP_LRO) {
 			/* X5 */
 			if (dirstat->level + (dirstat->level % 2 == 0) + 1 <=
 			            MAX_DEPTH &&
@@ -718,17 +756,18 @@ again:
 				overflow_embedding_count +=
 					(overflow_isolate_count == 0);
 			}
-		} else if (tmp_prop == BIDI_PROP_RLI) {
+		} else if (prop == BIDI_PROP_RLI) {
 			/* X5a */
-			s.level = dirstat->level;
+			set_state(STATE_LEVEL, dirstat->level, &(buf[bufoff]));
 			if (dirstat->override ==
 			    GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR) {
-				s.prop = BIDI_PROP_L;
+				set_state(STATE_PROP, BIDI_PROP_L,
+				          &(buf[bufoff]));
 			} else if (dirstat->override ==
 			           GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL) {
-				s.prop = BIDI_PROP_R;
+				set_state(STATE_PROP, BIDI_PROP_R,
+				          &(buf[bufoff]));
 			}
-			state_serialize(&s, &(buf[bufoff]));
 
 			if (dirstat->level + (dirstat->level % 2 != 0) + 1 <=
 			            MAX_DEPTH &&
@@ -748,17 +787,18 @@ again:
 				/* overflow RLI */
 				overflow_isolate_count++;
 			}
-		} else if (tmp_prop == BIDI_PROP_LRI) {
+		} else if (prop == BIDI_PROP_LRI) {
 			/* X5b */
-			s.level = dirstat->level;
+			set_state(STATE_LEVEL, dirstat->level, &(buf[bufoff]));
 			if (dirstat->override ==
 			    GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR) {
-				s.prop = BIDI_PROP_L;
+				set_state(STATE_PROP, BIDI_PROP_L,
+				          &(buf[bufoff]));
 			} else if (dirstat->override ==
 			           GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL) {
-				s.prop = BIDI_PROP_R;
+				set_state(STATE_PROP, BIDI_PROP_R,
+				          &(buf[bufoff]));
 			}
-			state_serialize(&s, &(buf[bufoff]));
 
 			if (dirstat->level + (dirstat->level % 2 == 0) + 1 <=
 			            MAX_DEPTH &&
@@ -778,33 +818,32 @@ again:
 				/* overflow LRI */
 				overflow_isolate_count++;
 			}
-		} else if (tmp_prop == BIDI_PROP_FSI) {
+		} else if (prop == BIDI_PROP_FSI) {
 			/* X5c */
 			if (get_paragraph_level(
 				    GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL,
 				    true, buf + (bufoff + 1),
 				    buflen - (bufoff + 1)) == 1) {
-				tmp_prop = BIDI_PROP_RLI;
+				prop = BIDI_PROP_RLI;
 				goto again;
 			} else { /* ... == 0 */
-				tmp_prop = BIDI_PROP_LRI;
+				prop = BIDI_PROP_LRI;
 				goto again;
 			}
-		} else if (tmp_prop != BIDI_PROP_B &&
-		           tmp_prop != BIDI_PROP_BN &&
-		           tmp_prop != BIDI_PROP_PDF &&
-		           tmp_prop != BIDI_PROP_PDI) {
+		} else if (prop != BIDI_PROP_B && prop != BIDI_PROP_BN &&
+		           prop != BIDI_PROP_PDF && prop != BIDI_PROP_PDI) {
 			/* X6 */
-			s.level = dirstat->level;
+			set_state(STATE_LEVEL, dirstat->level, &(buf[bufoff]));
 			if (dirstat->override ==
 			    GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR) {
-				s.prop = BIDI_PROP_L;
+				set_state(STATE_PROP, BIDI_PROP_L,
+				          &(buf[bufoff]));
 			} else if (dirstat->override ==
 			           GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL) {
-				s.prop = BIDI_PROP_R;
+				set_state(STATE_PROP, BIDI_PROP_R,
+				          &(buf[bufoff]));
 			}
-			state_serialize(&s, &(buf[bufoff]));
-		} else if (tmp_prop == BIDI_PROP_PDI) {
+		} else if (prop == BIDI_PROP_PDI) {
 			/* X6a */
 			if (overflow_isolate_count > 0) {
 				/* PDI matches an overflow isolate initiator */
@@ -844,16 +883,17 @@ again:
 				valid_isolate_count--;
 			}
 
-			s.level = dirstat->level;
+			set_state(STATE_LEVEL, dirstat->level, &(buf[bufoff]));
 			if (dirstat->override ==
 			    GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR) {
-				s.prop = BIDI_PROP_L;
+				set_state(STATE_PROP, BIDI_PROP_L,
+				          &(buf[bufoff]));
 			} else if (dirstat->override ==
 			           GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL) {
-				s.prop = BIDI_PROP_R;
+				set_state(STATE_PROP, BIDI_PROP_R,
+				          &(buf[bufoff]));
 			}
-			state_serialize(&s, &(buf[bufoff]));
-		} else if (tmp_prop == BIDI_PROP_PDF) {
+		} else if (prop == BIDI_PROP_PDF) {
 			/* X7 */
 			if (overflow_isolate_count > 0) {
 				/* do nothing */
@@ -863,25 +903,23 @@ again:
 			           dirstat > directional_status) {
 				dirstat--;
 			}
-		} else if (tmp_prop == BIDI_PROP_B) {
+		} else if (prop == BIDI_PROP_B) {
 			/* X8 */
-			s.level = (int_least8_t)paragraph_level;
-			state_serialize(&s, &(buf[bufoff]));
+			set_state(STATE_LEVEL, paragraph_level, &(buf[bufoff]));
 		}
 
 		/* X9 */
-		if (tmp_prop == BIDI_PROP_RLE || tmp_prop == BIDI_PROP_LRE ||
-		    tmp_prop == BIDI_PROP_RLO || tmp_prop == BIDI_PROP_LRO ||
-		    tmp_prop == BIDI_PROP_PDF || tmp_prop == BIDI_PROP_BN) {
-			s.level = -1;
-			state_serialize(&s, &(buf[bufoff]));
+		if (prop == BIDI_PROP_RLE || prop == BIDI_PROP_LRE ||
+		    prop == BIDI_PROP_RLO || prop == BIDI_PROP_LRO ||
+		    prop == BIDI_PROP_PDF || prop == BIDI_PROP_BN) {
+			set_state(STATE_LEVEL, -1, &(buf[bufoff]));
 		}
 	}
 
 	/* X10 (W1-W7, N0-N2) */
 	for (bufoff = 0; bufoff < buflen; bufoff++) {
-		state_deserialize(buf[bufoff], &s);
-		if (!s.visited && s.level != -1) {
+		if (get_state(STATE_VISITED, buf[bufoff]) == 0 &&
+		    get_state(STATE_LEVEL, buf[bufoff]) != -1) {
 			bufoff += process_isolating_run_sequence(
 				buf, buflen, bufoff, paragraph_level);
 		}
@@ -892,52 +930,53 @@ again:
 	 * isolating run sequences, we apply this rule separately)
 	 */
 	for (bufoff = 0; bufoff < buflen; bufoff++) {
-		state_deserialize(buf[bufoff], &s);
+		level = (int_least8_t)get_state(STATE_LEVEL, buf[bufoff]);
+		prop = (uint_least8_t)get_state(STATE_PROP, buf[bufoff]);
 
-		if (s.level % 2 == 0) {
+		if (level % 2 == 0) {
 			/* even level */
-			if (s.prop == BIDI_PROP_R) {
-				s.level += 1;
-			} else if (s.prop == BIDI_PROP_AN ||
-			           s.prop == BIDI_PROP_EN) {
-				s.level += 2;
+			if (prop == BIDI_PROP_R) {
+				set_state(STATE_LEVEL, level + 1,
+				          &(buf[bufoff]));
+			} else if (prop == BIDI_PROP_AN ||
+			           prop == BIDI_PROP_EN) {
+				set_state(STATE_LEVEL, level + 2,
+				          &(buf[bufoff]));
 			}
 		} else {
 			/* odd level */
-			if (s.prop == BIDI_PROP_L || s.prop == BIDI_PROP_EN ||
-			    s.prop == BIDI_PROP_AN) {
-				s.level += 1;
+			if (prop == BIDI_PROP_L || prop == BIDI_PROP_EN ||
+			    prop == BIDI_PROP_AN) {
+				set_state(STATE_LEVEL, level + 1,
+				          &(buf[bufoff]));
 			}
 		}
-
-		state_serialize(&s, &(buf[bufoff]));
 	}
 
 	/* L1 (rules 1-3) */
 	runsince = SIZE_MAX;
 	for (bufoff = 0; bufoff < buflen; bufoff++) {
-		state_deserialize(buf[bufoff], &s);
+		level = (int_least8_t)get_state(STATE_LEVEL, buf[bufoff]);
+		prop = (uint_least8_t)get_state(STATE_RAWPROP, buf[bufoff]);
 
-		if (s.level == -1) {
+		if (level == -1) {
 			/* ignored character */
 			continue;
 		}
 
-		if (s.rawprop == BIDI_PROP_WS || s.rawprop == BIDI_PROP_FSI ||
-		    s.rawprop == BIDI_PROP_LRI || s.rawprop == BIDI_PROP_RLI ||
-		    s.rawprop == BIDI_PROP_PDI) {
+		if (prop == BIDI_PROP_WS || prop == BIDI_PROP_FSI ||
+		    prop == BIDI_PROP_LRI || prop == BIDI_PROP_RLI ||
+		    prop == BIDI_PROP_PDI) {
 			if (runsince == SIZE_MAX) {
 				/* a new run has begun */
 				runsince = bufoff;
 			}
-		} else if (s.rawprop == BIDI_PROP_S ||
-		           s.rawprop == BIDI_PROP_B) {
+		} else if (prop == BIDI_PROP_S || prop == BIDI_PROP_B) {
 			/* L1.4 -- ignored for now, < beachten! */
 			for (i = runsince; i < bufoff; i++) {
-				state_deserialize(buf[i], &t);
-				if (t.level != -1) {
-					t.level = (int_least8_t)paragraph_level;
-					state_serialize(&t, &(buf[i]));
+				if (get_state(STATE_LEVEL, buf[i]) != -1) {
+					set_state(STATE_LEVEL, paragraph_level,
+					          &(buf[i]));
 				}
 			}
 			runsince = SIZE_MAX;
@@ -946,9 +985,8 @@ again:
 			runsince = SIZE_MAX;
 		}
 
-		if (s.rawprop == BIDI_PROP_S || s.rawprop == BIDI_PROP_B) {
-			s.level = (int_least8_t)paragraph_level;
-			state_serialize(&s, &(buf[bufoff]));
+		if (prop == BIDI_PROP_S || prop == BIDI_PROP_B) {
+			set_state(STATE_LEVEL, paragraph_level, &(buf[bufoff]));
 		}
 		continue;
 	}
@@ -958,13 +996,33 @@ again:
 		 * are in a run
 		 */
 		for (i = runsince; i < buflen; i++) {
-			state_deserialize(buf[i], &s);
-			if (s.level != -1) {
-				s.level = (int_least8_t)paragraph_level;
+			if (get_state(STATE_LEVEL, buf[i]) != -1) {
+				set_state(STATE_LEVEL, paragraph_level,
+				          &(buf[i]));
 			}
-			state_serialize(&s, &(buf[i]));
 		}
 		runsince = SIZE_MAX;
+	}
+}
+
+static inline uint_least8_t
+get_bidi_property(uint_least32_t cp)
+{
+	if (likely(cp <= 0x10FFFF)) {
+		return (bidi_minor[bidi_major[cp >> 8] + (cp & 0xff)]) &
+		       0x1F /* 00011111 */;
+	} else {
+		return BIDI_PROP_L;
+	}
+}
+
+static inline uint_least8_t
+get_bidi_bracket_off(uint_least32_t cp)
+{
+	if (likely(cp <= 0x10FFFF)) {
+		return (bidi_minor[bidi_major[cp >> 8] + (cp & 0xff)]) >> 5;
+	} else {
+		return 0;
 	}
 }
 
@@ -973,7 +1031,6 @@ get_embedding_levels(HERODOTUS_READER *r,
                      enum grapheme_bidirectional_override override,
                      int_least32_t *buf, size_t buflen)
 {
-	struct state s;
 	size_t bufoff, bufsize, lastparoff;
 	uint_least32_t cp;
 
@@ -1001,20 +1058,24 @@ get_embedding_levels(HERODOTUS_READER *r,
 			 * the iteration to be able to give a good
 			 * return value
 			 */
-			s.paragraph_level = 0;
-			s.level = 0;
-			s.prop = get_bidi_property(cp);
-			s.bracket = bidi_bracket + get_bidi_bracket_off(cp);
-			s.visited = 0;
-			s.rawprop = get_bidi_property(cp);
-			state_serialize(&s, &(buf[bufoff]));
+			set_state(STATE_PROP,
+			          (uint_least8_t)get_bidi_property(cp),
+			          &(buf[bufoff]));
+			set_state(STATE_BRACKET_OFF, get_bidi_bracket_off(cp),
+			          &(buf[bufoff]));
+			set_state(STATE_LEVEL, 0, &(buf[bufoff]));
+			set_state(STATE_PARAGRAPH_LEVEL, 0, &(buf[bufoff]));
+			set_state(STATE_VISITED, 0, &(buf[bufoff]));
+			set_state(STATE_RAWPROP,
+			          (uint_least8_t)get_bidi_property(cp),
+			          &(buf[bufoff]));
 		}
 	}
 	bufsize = herodotus_reader_number_read(r);
 
 	for (bufoff = 0, lastparoff = 0; bufoff < bufsize; bufoff++) {
-		state_deserialize(buf[bufoff], &s);
-		if (s.prop != BIDI_PROP_B && bufoff != bufsize - 1) {
+		if (get_state(STATE_PROP, buf[bufoff]) != BIDI_PROP_B &&
+		    bufoff != bufsize - 1) {
 			continue;
 		}
 
@@ -1032,8 +1093,7 @@ get_embedding_levels(HERODOTUS_READER *r,
 
 	/* bake the levels into the buffer, discarding the metadata */
 	for (bufoff = 0; bufoff < bufsize; bufoff++) {
-		state_deserialize(buf[bufoff], &s);
-		buf[bufoff] = s.level;
+		buf[bufoff] = get_state(STATE_LEVEL, buf[bufoff]);
 	}
 
 	/*
