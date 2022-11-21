@@ -679,6 +679,10 @@ preprocess_paragraph(enum grapheme_bidirectional_override override,
 
 	for (bufoff = 0; bufoff < buflen; bufoff++) {
 		prop = (uint_least8_t)get_state(STATE_PROP, buf[bufoff]);
+
+		/* set paragraph level, which we need for line-level-processing */
+		set_state(STATE_PARAGRAPH_LEVEL, paragraph_level,
+		          &(buf[bufoff]));
 again:
 		if (prop == BIDI_PROP_RLE) {
 			/* X2 */
@@ -997,7 +1001,7 @@ again:
 	}
 	if (runsince != SIZE_MAX) {
 		/*
-		 * this is the end of the line and we
+		 * this is the end of the paragraph and we
 		 * are in a run
 		 */
 		for (i = runsince; i < buflen; i++) {
@@ -1133,10 +1137,43 @@ void
 grapheme_bidirectional_get_line_embedding_levels(
 	const int_least32_t *linedata, size_t linelen, int_least8_t *linelevel)
 {
-	size_t i;
+	enum bidi_property prop;
+	size_t i, runsince;
 
-	/* write the levels into the level-array */
+	/* rule L1.4 */
+	runsince = SIZE_MAX;
 	for (i = 0; i < linelen; i++) {
-		linelevel[i] = get_state(STATE_LEVEL, linedata[i]);
+		prop = (uint_least8_t)get_state(STATE_RAWPROP, linedata[i]);
+
+		/* write level into level array */
+		if ((linelevel[i] = (int_least8_t)get_state(
+		                    STATE_LEVEL, linedata[i])) == -1) {
+			/* ignored character */
+			continue;
+		}
+
+		if (prop == BIDI_PROP_WS || prop == BIDI_PROP_FSI ||
+		    prop == BIDI_PROP_LRI || prop == BIDI_PROP_RLI ||
+		    prop == BIDI_PROP_PDI) {
+			if (runsince == SIZE_MAX) {
+				/* a new run has begun */
+				runsince = i;
+			}
+		} else {
+			/* sequence ended */
+			runsince = SIZE_MAX;
+		}
+	}
+	if (runsince != SIZE_MAX) {
+		/*
+		 * we hit the end of the line but were in a run;
+		 * reset the line levels to the paragraph level
+		 */
+		for (i = runsince; i < linelen; i++) {
+			if (linelevel[i] != -1) {
+				linelevel[i] = get_state(
+					STATE_PARAGRAPH_LEVEL, linedata[i]);
+			}
+		}
 	}
 }
