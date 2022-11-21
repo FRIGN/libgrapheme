@@ -16,14 +16,14 @@ enum grapheme_bidirectional_override {
 };
 
 void grapheme_bidirectional_get_line_embedding_levels(
-	const int_least32_t *, size_t, int_least8_t *);
+	const uint_least32_t *, size_t, int_least8_t *);
 
 size_t grapheme_bidirectional_preprocess(
 	const uint_least32_t *, size_t, enum grapheme_bidirectional_override,
-	int_least32_t *, size_t);
+	uint_least32_t *, size_t);
 size_t grapheme_bidirectional_preprocess_utf8(
 	const char *, size_t, enum grapheme_bidirectional_override,
-	int_least32_t *, size_t);
+	uint_least32_t *, size_t);
 
 size_t grapheme_bidirectional_reorder_line(
 	const uint_least32_t *, const int_least8_t *, size_t,

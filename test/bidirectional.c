@@ -12,7 +12,7 @@
 int
 main(int argc, char *argv[])
 {
-	int_least32_t data[512]; /* TODO iterate and get max, allocate */
+	uint_least32_t data[512]; /* TODO iterate and get max, allocate */
 	int_least8_t lev[512];
 	size_t i, num_tests, failed, datalen, ret, j, m;
 

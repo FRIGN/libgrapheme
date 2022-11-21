@@ -8,127 +8,71 @@
 
 #define MAX_DEPTH 125
 
-#if 0
 enum state_type {
 	STATE_PROP,            /* in 0..23, bidi_property */
+	STATE_PRESERVED_PROP,  /* in 0..23, preserved bidi_property for L1-rules */
 	STATE_BRACKET_OFF,     /* in 0..255, offset in bidi_bracket */
 	STATE_LEVEL,           /* in 0..MAX_DEPTH+1=126, embedding level */
 	STATE_PARAGRAPH_LEVEL, /* in 0..1, paragraph embedding level */
 	STATE_VISITED,         /* in 0..1, visited within isolating run */
 };
 
-/* without rawprop, as it should be */
 static struct {
-	int_least32_t filter_mask;
-	int_least32_t clear_mask;
-	size_t mask_shift;
-	int_least16_t value_offset;
-} state_lut[] = {
-	[STATE_PROP] = {
-		.filter_mask  = 0x00001F, /* 00000000 00000000 00011111 */
-		.clear_mask   = 0x3FFFE0, /* 00111111 11111111 11100000 */
-		.mask_shift   = 0,
-		.value_offset = 0,
-	},
-	[STATE_BRACKET_OFF] = {
-		.filter_mask  = 0x001FE0, /* 00000000 00011111 11100000 */
-		.clear_mask   = 0x3FE01F, /* 00111111 11100000 00011111 */
-		.mask_shift   = 5,
-		.value_offset = 0,
-	},
-	[STATE_LEVEL] = {
-		.filter_mask  = 0x0FE000, /* 00001111 11100000 00000000 */
-		.clear_mask   = 0x301FFF, /* 00110000 00011111 11111111 */
-		.mask_shift   = 13,
-		.value_offset = -1,
-	},
-	[STATE_PARAGRAPH_LEVEL] = {
-		.filter_mask  = 0x100000, /* 00010000 00000000 00000000 */
-		.clear_mask   = 0x2FFFFF, /* 00101111 11111111 11111111 */
-		.mask_shift   = 20,
-		.value_offset = 0,
-	},
-	[STATE_VISITED] = {
-		.filter_mask  = 0x200000, /* 00100000 00000000 00000000 */
-		.clear_mask   = 0x1FFFFF, /* 00011111 11111111 11111111 */
-		.mask_shift   = 21,
-		.value_offset = 0,
-	},
-};
-#endif
-
-enum state_type {
-	STATE_PROP,            /* in 0..23, bidi_property */
-	STATE_BRACKET_OFF,     /* in 0..255, offset in bidi_bracket */
-	STATE_LEVEL,           /* in 0..MAX_DEPTH+1=126, embedding level */
-	STATE_PARAGRAPH_LEVEL, /* in 0..1, paragraph embedding level */
-	STATE_VISITED,         /* in 0..1, visited within isolating run */
-	STATE_RAWPROP,
-};
-
-static struct {
-	int_least32_t filter_mask;
-	int_least32_t clear_mask;
+	uint_least32_t filter_mask;
 	size_t mask_shift;
 	int_least16_t value_offset;
 } state_lut[] = {
 	[STATE_PROP] = {
 		.filter_mask  = 0x000001F, /* 00000000 00000000 00000000 00011111 */
-		.clear_mask   = 0x7FFFFE0, /* 00000111 11111111 11111111 11100000 */
 		.mask_shift   = 0,
 		.value_offset = 0,
 	},
-	[STATE_BRACKET_OFF] = {
-		.filter_mask  = 0x0001FE0, /* 00000000 00000000 00011111 11100000 */
-		.clear_mask   = 0x7FFE01F, /* 00000111 11111111 11100000 00011111 */
+	[STATE_PRESERVED_PROP] = {
+		.filter_mask  = 0x00003E0, /* 00000000 00000000 00000011 11100000 */
 		.mask_shift   = 5,
 		.value_offset = 0,
 	},
+	[STATE_BRACKET_OFF] = {
+		.filter_mask  = 0x003FC00, /* 00000000 00000011 11111100 00000000 */
+		.mask_shift   = 10,
+		.value_offset = 0,
+	},
 	[STATE_LEVEL] = {
-		.filter_mask  = 0x00FE000, /* 00000000 00001111 11100000 00000000 */
-		.clear_mask   = 0x7F01FFF, /* 00000111 11110000 00011111 11111111 */
-		.mask_shift   = 13,
+		.filter_mask  = 0x1FC0000, /* 00000001 11111100 00000000 00000000 */
+		.mask_shift   = 18,
 		.value_offset = -1,
 	},
 	[STATE_PARAGRAPH_LEVEL] = {
-		.filter_mask  = 0x0100000, /* 00000000 00010000 00000000 00000000 */
-		.clear_mask   = 0x7EFFFFF, /* 00000111 11101111 11111111 11111111 */
-		.mask_shift   = 20,
+		.filter_mask  = 0x2000000, /* 00000010 00000000 00000000 00000000 */
+		.mask_shift   = 25,
 		.value_offset = 0,
 	},
 	[STATE_VISITED] = {
-		.filter_mask  = 0x0200000, /* 00000000 00100000 00000000 00000000 */
-		.clear_mask   = 0x7DFFFFF, /* 00000111 11011111 11111111 11111111 */
-		.mask_shift   = 21,
-		.value_offset = 0,
-	},
-	[STATE_RAWPROP] = {
-		.filter_mask  = 0x7C00000, /* 00000111 11000000 00000000 00000000 */
-		.clear_mask   = 0x03FFFFF, /* 00000000 00111111 11111111 11111111 */
-		.mask_shift   = 22,
+		.filter_mask  = 0x4000000, /* 00000100 00000000 00000000 00000000 */
+		.mask_shift   = 26,
 		.value_offset = 0,
 	},
 };
 
 static inline int_least16_t
-get_state(enum state_type t, int_least32_t input)
+get_state(enum state_type t, uint_least32_t input)
 {
-	return (int_least16_t)(((input & state_lut[t].filter_mask) >>
-	                        state_lut[t].mask_shift) +
-	                       state_lut[t].value_offset);
+	return (int_least16_t)((input & state_lut[t].filter_mask) >>
+	                       state_lut[t].mask_shift) +
+	                       state_lut[t].value_offset;
 }
 
 static inline void
-set_state(enum state_type t, int_least16_t value, int_least32_t *output)
+set_state(enum state_type t, int_least16_t value, uint_least32_t *output)
 {
-	*output &= state_lut[t].clear_mask;
-	*output |= ((value - state_lut[t].value_offset)
+	*output &= ~state_lut[t].filter_mask;
+	*output |= ((uint_least32_t)(value - state_lut[t].value_offset)
 	            << state_lut[t].mask_shift) &
 	           state_lut[t].filter_mask;
 }
 
 struct isolate_runner {
-	int_least32_t *buf;
+	uint_least32_t *buf;
 	size_t buflen;
 
 	struct {
@@ -179,7 +123,7 @@ ir_set_current_prop(struct isolate_runner *ir, enum bidi_property prop)
 }
 
 static void
-ir_init(int_least32_t *buf, size_t buflen, size_t off,
+ir_init(uint_least32_t *buf, size_t buflen, size_t off,
         uint_least8_t paragraph_level, bool within, struct isolate_runner *ir)
 {
 	size_t i;
@@ -385,7 +329,7 @@ ir_advance(struct isolate_runner *ir)
 }
 
 static size_t
-preprocess_isolating_run_sequence(int_least32_t *buf, size_t buflen, size_t off,
+preprocess_isolating_run_sequence(uint_least32_t *buf, size_t buflen, size_t off,
                                   uint_least8_t paragraph_level)
 {
 	enum bidi_property sequence_prop, prop;
@@ -597,7 +541,7 @@ preprocess_isolating_run_sequence(int_least32_t *buf, size_t buflen, size_t off,
 
 static uint_least8_t
 get_paragraph_level(enum grapheme_bidirectional_override override,
-                    bool terminate_on_pdi, const int_least32_t *buf,
+                    bool terminate_on_pdi, const uint_least32_t *buf,
                     size_t buflen)
 {
 	enum bidi_property prop;
@@ -653,7 +597,7 @@ get_paragraph_level(enum grapheme_bidirectional_override override,
 
 static void
 preprocess_paragraph(enum grapheme_bidirectional_override override,
-                     int_least32_t *buf, size_t buflen)
+                     uint_least32_t *buf, size_t buflen)
 {
 	enum bidi_property prop;
 	int_least8_t level;
@@ -961,7 +905,7 @@ again:
 	runsince = SIZE_MAX;
 	for (bufoff = 0; bufoff < buflen; bufoff++) {
 		level = (int_least8_t)get_state(STATE_LEVEL, buf[bufoff]);
-		prop = (uint_least8_t)get_state(STATE_RAWPROP, buf[bufoff]);
+		prop = (uint_least8_t)get_state(STATE_PRESERVED_PROP, buf[bufoff]);
 
 		if (level == -1) {
 			/* ignored character */
@@ -1038,7 +982,7 @@ get_bidi_bracket_off(uint_least32_t cp)
 static size_t
 preprocess(HERODOTUS_READER *r,
            enum grapheme_bidirectional_override override,
-           int_least32_t *buf, size_t buflen)
+           uint_least32_t *buf, size_t buflen)
 {
 	size_t bufoff, bufsize, lastparoff;
 	uint_least32_t cp;
@@ -1075,7 +1019,7 @@ preprocess(HERODOTUS_READER *r,
 			set_state(STATE_LEVEL, 0, &(buf[bufoff]));
 			set_state(STATE_PARAGRAPH_LEVEL, 0, &(buf[bufoff]));
 			set_state(STATE_VISITED, 0, &(buf[bufoff]));
-			set_state(STATE_RAWPROP,
+			set_state(STATE_PRESERVED_PROP,
 			          (uint_least8_t)get_bidi_property(cp),
 			          &(buf[bufoff]));
 		}
@@ -1110,7 +1054,7 @@ preprocess(HERODOTUS_READER *r,
 size_t
 grapheme_bidirectional_preprocess(
 	const uint_least32_t *src, size_t srclen,
-	enum grapheme_bidirectional_override override, int_least32_t *dest,
+	enum grapheme_bidirectional_override override, uint_least32_t *dest,
 	size_t destlen)
 {
 	HERODOTUS_READER r;
@@ -1123,7 +1067,7 @@ grapheme_bidirectional_preprocess(
 size_t
 grapheme_bidirectional_preprocess_utf8(
 	const char *src, size_t srclen,
-	enum grapheme_bidirectional_override override, int_least32_t *dest,
+	enum grapheme_bidirectional_override override, uint_least32_t *dest,
 	size_t destlen)
 {
 	HERODOTUS_READER r;
@@ -1135,7 +1079,7 @@ grapheme_bidirectional_preprocess_utf8(
 
 void
 grapheme_bidirectional_get_line_embedding_levels(
-	const int_least32_t *linedata, size_t linelen, int_least8_t *linelevel)
+	const uint_least32_t *linedata, size_t linelen, int_least8_t *linelevel)
 {
 	enum bidi_property prop;
 	size_t i, runsince;
@@ -1143,7 +1087,7 @@ grapheme_bidirectional_get_line_embedding_levels(
 	/* rule L1.4 */
 	runsince = SIZE_MAX;
 	for (i = 0; i < linelen; i++) {
-		prop = (uint_least8_t)get_state(STATE_RAWPROP, linedata[i]);
+		prop = (uint_least8_t)get_state(STATE_PRESERVED_PROP, linedata[i]);
 
 		/* write level into level array */
 		if ((linelevel[i] = (int_least8_t)get_state(
@@ -1171,7 +1115,7 @@ grapheme_bidirectional_get_line_embedding_levels(
 		 */
 		for (i = runsince; i < linelen; i++) {
 			if (linelevel[i] != -1) {
-				linelevel[i] = get_state(
+				linelevel[i] = (int_least8_t)get_state(
 					STATE_PARAGRAPH_LEVEL, linedata[i]);
 			}
 		}
