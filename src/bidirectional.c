@@ -385,8 +385,8 @@ ir_advance(struct isolate_runner *ir)
 }
 
 static size_t
-process_isolating_run_sequence(int_least32_t *buf, size_t buflen, size_t off,
-                               uint_least8_t paragraph_level)
+preprocess_isolating_run_sequence(int_least32_t *buf, size_t buflen, size_t off,
+                                  uint_least8_t paragraph_level)
 {
 	enum bidi_property sequence_prop, prop;
 	struct isolate_runner ir, tmp;
@@ -652,8 +652,8 @@ get_paragraph_level(enum grapheme_bidirectional_override override,
 }
 
 static void
-get_paragraph_embedding_levels(enum grapheme_bidirectional_override override,
-                               int_least32_t *buf, size_t buflen)
+preprocess_paragraph(enum grapheme_bidirectional_override override,
+                     int_least32_t *buf, size_t buflen)
 {
 	enum bidi_property prop;
 	int_least8_t level;
@@ -920,7 +920,7 @@ again:
 	for (bufoff = 0; bufoff < buflen; bufoff++) {
 		if (get_state(STATE_VISITED, buf[bufoff]) == 0 &&
 		    get_state(STATE_LEVEL, buf[bufoff]) != -1) {
-			bufoff += process_isolating_run_sequence(
+			bufoff += preprocess_isolating_run_sequence(
 				buf, buflen, bufoff, paragraph_level);
 		}
 	}
@@ -964,6 +964,12 @@ again:
 			continue;
 		}
 
+		/* rules 1 and 2 */
+		if (prop == BIDI_PROP_S || prop == BIDI_PROP_B) {
+			set_state(STATE_LEVEL, paragraph_level, &(buf[bufoff]));
+		}
+
+		/* rule 3 */
 		if (prop == BIDI_PROP_WS || prop == BIDI_PROP_FSI ||
 		    prop == BIDI_PROP_LRI || prop == BIDI_PROP_RLI ||
 		    prop == BIDI_PROP_PDI) {
@@ -971,8 +977,12 @@ again:
 				/* a new run has begun */
 				runsince = bufoff;
 			}
-		} else if (prop == BIDI_PROP_S || prop == BIDI_PROP_B) {
-			/* L1.4 -- ignored for now, < beachten! */
+		} else if ((prop == BIDI_PROP_S || prop == BIDI_PROP_B) &&
+		           runsince != SIZE_MAX) {
+			/*
+			 * we hit a segment or paragraph separator in a
+			 * sequence, reset sequence-levels
+			 */
 			for (i = runsince; i < bufoff; i++) {
 				if (get_state(STATE_LEVEL, buf[i]) != -1) {
 					set_state(STATE_LEVEL, paragraph_level,
@@ -984,11 +994,6 @@ again:
 			/* sequence ended */
 			runsince = SIZE_MAX;
 		}
-
-		if (prop == BIDI_PROP_S || prop == BIDI_PROP_B) {
-			set_state(STATE_LEVEL, paragraph_level, &(buf[bufoff]));
-		}
-		continue;
 	}
 	if (runsince != SIZE_MAX) {
 		/*
@@ -1027,9 +1032,9 @@ get_bidi_bracket_off(uint_least32_t cp)
 }
 
 static size_t
-get_embedding_levels(HERODOTUS_READER *r,
-                     enum grapheme_bidirectional_override override,
-                     int_least32_t *buf, size_t buflen)
+preprocess(HERODOTUS_READER *r,
+           enum grapheme_bidirectional_override override,
+           int_least32_t *buf, size_t buflen)
 {
 	size_t bufoff, bufsize, lastparoff;
 	uint_least32_t cp;
@@ -1086,14 +1091,9 @@ get_embedding_levels(HERODOTUS_READER *r,
 		 * the terminating character or last character of the
 		 * string respectively
 		 */
-		get_paragraph_embedding_levels(override, buf + lastparoff,
-		                               bufoff + 1 - lastparoff);
+		preprocess_paragraph(override, buf + lastparoff,
+		                      bufoff + 1 - lastparoff);
 		lastparoff = bufoff + 1;
-	}
-
-	/* bake the levels into the buffer, discarding the metadata */
-	for (bufoff = 0; bufoff < bufsize; bufoff++) {
-		buf[bufoff] = get_state(STATE_LEVEL, buf[bufoff]);
 	}
 
 	/*
@@ -1104,7 +1104,7 @@ get_embedding_levels(HERODOTUS_READER *r,
 }
 
 size_t
-grapheme_get_bidirectional_embedding_levels(
+grapheme_bidirectional_preprocess(
 	const uint_least32_t *src, size_t srclen,
 	enum grapheme_bidirectional_override override, int_least32_t *dest,
 	size_t destlen)
@@ -1113,11 +1113,11 @@ grapheme_get_bidirectional_embedding_levels(
 
 	herodotus_reader_init(&r, HERODOTUS_TYPE_CODEPOINT, src, srclen);
 
-	return get_embedding_levels(&r, override, dest, destlen);
+	return preprocess(&r, override, dest, destlen);
 }
 
 size_t
-grapheme_get_bidirectional_embedding_levels_utf8(
+grapheme_bidirectional_preprocess_utf8(
 	const char *src, size_t srclen,
 	enum grapheme_bidirectional_override override, int_least32_t *dest,
 	size_t destlen)
@@ -1126,5 +1126,17 @@ grapheme_get_bidirectional_embedding_levels_utf8(
 
 	herodotus_reader_init(&r, HERODOTUS_TYPE_UTF8, src, srclen);
 
-	return get_embedding_levels(&r, override, dest, destlen);
+	return preprocess(&r, override, dest, destlen);
+}
+
+void
+grapheme_bidirectional_get_line_embedding_levels(
+	const int_least32_t *linedata, size_t linelen, int_least8_t *linelevel)
+{
+	size_t i;
+
+	/* write the levels into the level-array */
+	for (i = 0; i < linelen; i++) {
+		linelevel[i] = get_state(STATE_LEVEL, linedata[i]);
+	}
 }
