@@ -34,7 +34,7 @@ main(int argc, char *argv[])
 				bidirectional_test[i].cplen,
 				bidirectional_test[i].mode[m], data, datalen);
 			grapheme_bidirectional_get_line_embedding_levels(
-				data, datalen, lev);
+				data, ret, lev);
 
 			if (ret != bidirectional_test[i].cplen ||
 			    ret > datalen) {
