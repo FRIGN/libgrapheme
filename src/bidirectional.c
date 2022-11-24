@@ -10,7 +10,7 @@
 
 enum state_type {
 	STATE_PROP,            /* in 0..23, bidi_property */
-	STATE_PRESERVED_PROP,  /* in 0..23, preserved bidi_property for L1-rules */
+	STATE_PRESERVED_PROP,  /* in 0..23, preserved bidi_prop for L1-rule */
 	STATE_BRACKET_OFF,     /* in 0..255, offset in bidi_bracket */
 	STATE_LEVEL,           /* in 0..MAX_DEPTH+1=126, embedding level */
 	STATE_PARAGRAPH_LEVEL, /* in 0..1, paragraph embedding level */
@@ -59,7 +59,7 @@ get_state(enum state_type t, uint_least32_t input)
 {
 	return (int_least16_t)((input & state_lut[t].filter_mask) >>
 	                       state_lut[t].mask_shift) +
-	                       state_lut[t].value_offset;
+	       state_lut[t].value_offset;
 }
 
 static inline void
@@ -329,8 +329,8 @@ ir_advance(struct isolate_runner *ir)
 }
 
 static size_t
-preprocess_isolating_run_sequence(uint_least32_t *buf, size_t buflen, size_t off,
-                                  uint_least8_t paragraph_level)
+preprocess_isolating_run_sequence(uint_least32_t *buf, size_t buflen,
+                                  size_t off, uint_least8_t paragraph_level)
 {
 	enum bidi_property sequence_prop, prop;
 	struct isolate_runner ir, tmp;
@@ -624,7 +624,7 @@ preprocess_paragraph(enum grapheme_bidirectional_override override,
 	for (bufoff = 0; bufoff < buflen; bufoff++) {
 		prop = (uint_least8_t)get_state(STATE_PROP, buf[bufoff]);
 
-		/* set paragraph level, which we need for line-level-processing */
+		/* set paragraph level we need for line-level-processing */
 		set_state(STATE_PARAGRAPH_LEVEL, paragraph_level,
 		          &(buf[bufoff]));
 again:
@@ -905,7 +905,8 @@ again:
 	runsince = SIZE_MAX;
 	for (bufoff = 0; bufoff < buflen; bufoff++) {
 		level = (int_least8_t)get_state(STATE_LEVEL, buf[bufoff]);
-		prop = (uint_least8_t)get_state(STATE_PRESERVED_PROP, buf[bufoff]);
+		prop = (uint_least8_t)get_state(STATE_PRESERVED_PROP,
+		                                buf[bufoff]);
 
 		if (level == -1) {
 			/* ignored character */
@@ -980,8 +981,7 @@ get_bidi_bracket_off(uint_least32_t cp)
 }
 
 static size_t
-preprocess(HERODOTUS_READER *r,
-           enum grapheme_bidirectional_override override,
+preprocess(HERODOTUS_READER *r, enum grapheme_bidirectional_override override,
            uint_least32_t *buf, size_t buflen)
 {
 	size_t bufoff, bufsize, lastparoff;
@@ -1040,7 +1040,7 @@ preprocess(HERODOTUS_READER *r,
 		 * string respectively
 		 */
 		preprocess_paragraph(override, buf + lastparoff,
-		                      bufoff + 1 - lastparoff);
+		                     bufoff + 1 - lastparoff);
 		lastparoff = bufoff + 1;
 	}
 
@@ -1052,10 +1052,9 @@ preprocess(HERODOTUS_READER *r,
 }
 
 size_t
-grapheme_bidirectional_preprocess(
-	const uint_least32_t *src, size_t srclen,
-	enum grapheme_bidirectional_override override, uint_least32_t *dest,
-	size_t destlen)
+grapheme_bidirectional_preprocess(const uint_least32_t *src, size_t srclen,
+                                  enum grapheme_bidirectional_override override,
+                                  uint_least32_t *dest, size_t destlen)
 {
 	HERODOTUS_READER r;
 
@@ -1078,8 +1077,9 @@ grapheme_bidirectional_preprocess_utf8(
 }
 
 void
-grapheme_bidirectional_get_line_embedding_levels(
-	const uint_least32_t *linedata, size_t linelen, int_least8_t *linelevel)
+grapheme_bidirectional_get_line_embedding_levels(const uint_least32_t *linedata,
+                                                 size_t linelen,
+                                                 int_least8_t *linelevel)
 {
 	enum bidi_property prop;
 	size_t i, runsince;
@@ -1087,11 +1087,12 @@ grapheme_bidirectional_get_line_embedding_levels(
 	/* rule L1.4 */
 	runsince = SIZE_MAX;
 	for (i = 0; i < linelen; i++) {
-		prop = (uint_least8_t)get_state(STATE_PRESERVED_PROP, linedata[i]);
+		prop = (uint_least8_t)get_state(STATE_PRESERVED_PROP,
+		                                linedata[i]);
 
 		/* write level into level array */
 		if ((linelevel[i] = (int_least8_t)get_state(
-		                    STATE_LEVEL, linedata[i])) == -1) {
+			     STATE_LEVEL, linedata[i])) == -1) {
 			/* ignored character */
 			continue;
 		}
