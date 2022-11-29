@@ -636,8 +636,9 @@ preprocess_bracket_pairs(uint_least32_t *buf, size_t buflen, size_t off,
 
 					/* remove all uncompleted FIFO elements
 					 * above i - 1 */
-					for (j = i; j < fifo_len; j++) {
+					for (j = i; j < fifo_len;) {
 						if (fifo[j].complete) {
+							j++;
 							continue;
 						}
 
