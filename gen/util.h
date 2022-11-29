@@ -43,9 +43,9 @@ void properties_compress(const struct properties *,
                          struct properties_compressed *comp);
 double properties_get_major_minor(const struct properties_compressed *,
                                   struct properties_major_minor *);
-void properties_print_lookup_table(char *, size_t *, size_t);
+void properties_print_lookup_table(const char *, const size_t *, size_t);
 void properties_print_derived_lookup_table(
-	char *, char *, size_t *, size_t,
+	char *, size_t *, size_t,
 	int_least64_t (*get_value)(const struct properties *, size_t),
 	const void *);
 

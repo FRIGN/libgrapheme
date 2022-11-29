@@ -25,9 +25,6 @@ main(int argc, char *argv[])
 	}
 
 	for (i = 0, failed = 0; i < LEN(bidirectional_test); i++) {
-		/*if (i != 490798)
-		        continue;*/
-
 		for (m = 0; m < bidirectional_test[i].modelen; m++) {
 			ret = grapheme_bidirectional_preprocess(
 				bidirectional_test[i].cp,

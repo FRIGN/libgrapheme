@@ -471,8 +471,8 @@ main(int argc, char *argv[])
 	(void)argc;
 
 	parse_file_with_callback("data/BidiTest.txt", test_callback, NULL);
-	/*parse_file_with_callback("data/BidiCharacterTest.txt",
-	                         character_test_callback, NULL);*/
+	parse_file_with_callback("data/BidiCharacterTest.txt",
+	                         character_test_callback, NULL);
 	bidirectional_test_list_print(test, testlen, "bidirectional_test",
 	                              argv[0]);
 

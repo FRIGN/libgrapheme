@@ -405,9 +405,10 @@ properties_get_major_minor(const struct properties_compressed *comp,
 }
 
 void
-properties_print_lookup_table(char *name, size_t *data, size_t datalen)
+properties_print_lookup_table(const char *name, const size_t *data,
+                              size_t datalen)
 {
-	char *type;
+	const char *type;
 	size_t i, maxval;
 
 	for (i = 0, maxval = 0; i < datalen; i++) {
@@ -437,11 +438,41 @@ properties_print_lookup_table(char *name, size_t *data, size_t datalen)
 
 void
 properties_print_derived_lookup_table(
-	char *name, char *type, size_t *offset, size_t offsetlen,
+	char *name, size_t *offset, size_t offsetlen,
 	int_least64_t (*get_value)(const struct properties *, size_t),
 	const void *payload)
 {
+	const char *type;
 	size_t i;
+	int_least64_t minval, maxval;
+
+	for (i = 0, minval = INT_LEAST64_MAX, maxval = INT_LEAST64_MIN;
+	     i < offsetlen; i++) {
+		if (get_value(payload, offset[i]) > maxval) {
+			maxval = get_value(payload, offset[i]);
+		} else if (get_value(payload, offset[i]) < minval) {
+			minval = get_value(payload, offset[i]);
+		}
+	}
+
+	if (minval < 0) {
+		/* we need a signed type */
+		type = (minval >= INT_LEAST8_MIN && maxval <= INT_LEAST8_MAX) ?
+		               "int_least8_t" :
+		       (minval >= INT_LEAST16_MIN &&
+		        maxval <= INT_LEAST16_MAX) ?
+		               "int_least16_t" :
+		       (minval >= INT_LEAST32_MIN &&
+		        maxval <= INT_LEAST32_MAX) ?
+		               "int_least32_t" :
+		               "int_least64_t";
+	} else {
+		/* we are fine with an unsigned type */
+		type = (maxval <= UINT_LEAST8_MAX)  ? "uint_least8_t" :
+		       (maxval <= UINT_LEAST16_MAX) ? "uint_least16_t" :
+		       (maxval <= UINT_LEAST32_MAX) ? "uint_least32_t" :
+		                                      "uint_least64_t";
+	}
 
 	printf("static const %s %s[] = {\n\t", type, name);
 	for (i = 0; i < offsetlen; i++) {
@@ -499,7 +530,7 @@ set_value_bp(struct properties_payload *payload, uint_least32_t cp,
 static int_least64_t
 get_value_bp(const struct properties *prop, size_t offset)
 {
-	return (uint_least8_t)prop[offset].property;
+	return prop[offset].property;
 }
 
 void
@@ -606,9 +637,8 @@ properties_generate_break_property(
 	properties_print_enum(spec, speclen, buf1, buf2);
 	properties_print_lookup_table(buf3, mm.major, 0x1100);
 	printf("\n");
-	properties_print_derived_lookup_table(buf4, "uint_least8_t", mm.minor,
-	                                      mm.minorlen, get_value_bp,
-	                                      comp.data);
+	properties_print_derived_lookup_table(buf4, mm.minor, mm.minorlen,
+	                                      get_value_bp, comp.data);
 
 	/* free data */
 	free(prop);

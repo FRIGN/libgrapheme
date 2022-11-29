@@ -74,6 +74,7 @@ set_state(enum state_type t, int_least16_t value, uint_least32_t *output)
 struct isolate_runner {
 	uint_least32_t *buf;
 	size_t buflen;
+	size_t start;
 
 	struct {
 		size_t off;
@@ -83,7 +84,6 @@ struct isolate_runner {
 
 	uint_least8_t paragraph_level;
 	int_least8_t isolating_run_level;
-	enum bidi_property last_strong_type;
 };
 
 static inline enum bidi_property
@@ -110,14 +110,28 @@ ir_get_next_prop(const struct isolate_runner *ir)
 	                                        ir->buf[ir->next.off]);
 }
 
+static inline enum bidi_property
+ir_get_current_preserved_prop(const struct isolate_runner *ir)
+{
+	return (uint_least8_t)get_state(STATE_PRESERVED_PROP,
+	                                ir->buf[ir->cur.off]);
+}
+
 static inline int_least8_t
 ir_get_current_level(const struct isolate_runner *ir)
 {
 	return (int_least8_t)get_state(STATE_LEVEL, ir->buf[ir->cur.off]);
 }
 
+static inline const struct bracket *
+ir_get_current_bracket_prop(const struct isolate_runner *ir)
+{
+	return bidi_bracket +
+	       (int_least8_t)get_state(STATE_BRACKET_OFF, ir->buf[ir->cur.off]);
+}
+
 static void
-ir_set_current_prop(struct isolate_runner *ir, enum bidi_property prop)
+ir_set_current_prop(const struct isolate_runner *ir, enum bidi_property prop)
 {
 	set_state(STATE_PROP, (int_least16_t)prop, &(ir->buf[ir->cur.off]));
 }
@@ -133,6 +147,7 @@ ir_init(uint_least32_t *buf, size_t buflen, size_t off,
 	ir->buf = buf;
 	ir->buflen = buflen;
 	ir->paragraph_level = paragraph_level;
+	ir->start = off;
 
 	/* advance off until we are at a non-removed character */
 	for (; off < buflen; off++) {
@@ -225,18 +240,6 @@ ir_advance(struct isolate_runner *ir)
 	/* mark as visited */
 	set_state(STATE_VISITED, 1, &(ir->buf[ir->cur.off]));
 
-	/*
-	 * update last strong type, which is guaranteed to work properly
-	 * on the first advancement as the prev.off is SIZE_T and the
-	 * implied sos type can only be either R or L, which are both
-	 * strong types
-	 */
-	if (ir_get_previous_prop(ir) == BIDI_PROP_R ||
-	    ir_get_previous_prop(ir) == BIDI_PROP_L ||
-	    ir_get_previous_prop(ir) == BIDI_PROP_AL) {
-		ir->last_strong_type = ir_get_previous_prop(ir);
-	}
-
 	/* initialize next state by going to the next character in the sequence
 	 */
 	ir->next.off = SIZE_MAX;
@@ -328,6 +331,355 @@ ir_advance(struct isolate_runner *ir)
 	return 0;
 }
 
+static enum bidi_property
+ir_get_last_strong_prop(const struct isolate_runner *ir)
+{
+	struct isolate_runner tmp;
+	enum bidi_property last_strong_prop = ir->sos, prop;
+
+	ir_init(ir->buf, ir->buflen, ir->start, ir->paragraph_level, false,
+	        &tmp);
+	for (; !ir_advance(&tmp) && tmp.cur.off < ir->cur.off;) {
+		prop = ir_get_current_prop(&tmp);
+
+		if (prop == BIDI_PROP_R || prop == BIDI_PROP_L ||
+		    prop == BIDI_PROP_AL) {
+			last_strong_prop = prop;
+		}
+	}
+
+	return last_strong_prop;
+}
+
+static enum bidi_property
+ir_get_last_strong_or_number_prop(const struct isolate_runner *ir)
+{
+	struct isolate_runner tmp;
+	enum bidi_property last_strong_or_number_prop = ir->sos, prop;
+
+	ir_init(ir->buf, ir->buflen, ir->start, ir->paragraph_level, false,
+	        &tmp);
+	for (; !ir_advance(&tmp) && tmp.cur.off < ir->cur.off;) {
+		prop = ir_get_current_prop(&tmp);
+
+		if (prop == BIDI_PROP_R || prop == BIDI_PROP_L ||
+		    prop == BIDI_PROP_AL || prop == BIDI_PROP_EN ||
+		    prop == BIDI_PROP_AN) {
+			last_strong_or_number_prop = prop;
+		}
+	}
+
+	return last_strong_or_number_prop;
+}
+
+static void
+preprocess_bracket_pair(const struct isolate_runner *start,
+                        const struct isolate_runner *end)
+{
+	enum bidi_property prop, bracket_prop, last_strong_or_number_prop;
+	struct isolate_runner ir;
+	size_t strong_type_off;
+
+	/*
+	 * check if the bracket contains a strong type (L or R|EN|AN)
+	 */
+	for (ir = *start, strong_type_off = SIZE_MAX,
+	    bracket_prop = NUM_BIDI_PROPS;
+	     !ir_advance(&ir) && ir.cur.off < end->cur.off;) {
+		prop = ir_get_current_prop(&ir);
+
+		if (prop == BIDI_PROP_L) {
+			strong_type_off = ir.cur.off;
+			if (ir.isolating_run_level % 2 == 0) {
+				/*
+				 * set the type for both brackets to L (so they
+				 * match the strong type they contain)
+				 */
+				bracket_prop = BIDI_PROP_L;
+			}
+		} else if (prop == BIDI_PROP_R || prop == BIDI_PROP_EN ||
+		           prop == BIDI_PROP_AN) {
+			strong_type_off = ir.cur.off;
+			if (ir.isolating_run_level % 2 != 0) {
+				/*
+				 * set the type for both brackets to R (so they
+				 * match the strong type they contain)
+				 */
+				bracket_prop = BIDI_PROP_R;
+			}
+		}
+	}
+	if (strong_type_off == SIZE_MAX) {
+		/*
+		 * there are no strong types within the brackets and we just
+		 * leave the brackets as is
+		 */
+		return;
+	}
+
+	if (bracket_prop == NUM_BIDI_PROPS) {
+		/*
+		 * We encountered a strong type, but it was opposite
+		 * to the embedding direction.
+		 * Check the previous strong type before the opening
+		 * bracket
+		 */
+		last_strong_or_number_prop =
+			ir_get_last_strong_or_number_prop(start);
+		if (last_strong_or_number_prop == BIDI_PROP_L &&
+		    ir.isolating_run_level % 2 != 0) {
+			/*
+			 * the previous strong type is also opposite
+			 * to the embedding direction, so the context
+			 * was established and we set the brackets
+			 * accordingly.
+			 */
+			bracket_prop = BIDI_PROP_L;
+		} else if ((last_strong_or_number_prop == BIDI_PROP_R ||
+		            last_strong_or_number_prop == BIDI_PROP_EN ||
+		            last_strong_or_number_prop == BIDI_PROP_AN) &&
+		           ir.isolating_run_level % 2 == 0) {
+			/*
+			 * the previous strong type is also opposite
+			 * to the embedding direction, so the context
+			 * was established and we set the brackets
+			 * accordingly.
+			 */
+			bracket_prop = BIDI_PROP_R;
+		} else {
+			/* set brackets to the embedding direction */
+			if (ir.isolating_run_level % 2 == 0) {
+				bracket_prop = BIDI_PROP_L;
+			} else {
+				bracket_prop = BIDI_PROP_R;
+			}
+		}
+	}
+
+	ir_set_current_prop(start, bracket_prop);
+	ir_set_current_prop(end, bracket_prop);
+
+	/*
+	 * any sequence of NSMs after opening or closing brackets get
+	 * the same property as the one we set on the brackets
+	 */
+	for (ir = *start; !ir_advance(&ir) && ir_get_current_preserved_prop(
+						      &ir) == BIDI_PROP_NSM;) {
+		ir_set_current_prop(&ir, bracket_prop);
+	}
+	for (ir = *end; !ir_advance(&ir) &&
+	                ir_get_current_preserved_prop(&ir) == BIDI_PROP_NSM;) {
+		ir_set_current_prop(&ir, bracket_prop);
+	}
+}
+
+static void
+preprocess_bracket_pairs(uint_least32_t *buf, size_t buflen, size_t off,
+                         uint_least8_t paragraph_level)
+{
+	/*
+	 * The N0-rule deals with bracket pairs that shall be determined
+	 * with the rule BD16. This is specified as an algorithm with a
+	 * stack of 63 bracket openings that are used to resolve into a
+	 * separate list of pairs, which is then to be sorted by opening
+	 * position. Thus, even though the bracketing-depth is limited
+	 * by 63, the algorithm, as is, requires dynamic memory
+	 * management.
+	 *
+	 * A naive approach (used by Fribidi) would be to screw the
+	 * stack-approach and simply directly determine the
+	 * corresponding closing bracket offset for a given opening
+	 * bracket, leading to O(n²) time complexity in the worst case
+	 * with a lot of brackets. While many brackets are not common,
+	 * it is still possible to find a middle ground where you obtain
+	 * strongly linear time complexity in most common cases:
+	 *
+	 * Instead of a stack, we use a FIFO data structure which is
+	 * filled with bracket openings in the order of appearance (thus
+	 * yielding an implicit sorting!) at the top. If the
+	 * corresponding closing bracket is encountered, it is added to
+	 * the respective entry, making it ready to "move out" at the
+	 * bottom (i.e. passed to the bracket processing). Due to the
+	 * nature of the specified pair detection algorithm, which only
+	 * cares about the bracket type and nothing else (bidi class,
+	 * level, etc.), we can mix processing and bracket detection.
+	 *
+	 * Obviously, if you, for instance, have one big bracket pair at
+	 * the bottom that has not been closed yet, it will block the
+	 * bracket processing and the FIFO might hit its capacity limit.
+	 * At this point, the blockage is manually resolved using the
+	 * naive quadratic approach.
+	 *
+	 * To remain within the specified standard behaviour, which
+	 * mandates that processing of brackets should stop when the
+	 * bracketing-depth is at 63, we simply check in an "overflow"
+	 * scenario if all 63 elements in the LIFO are unfinished, which
+	 * corresponds with such a bracketing depth.
+	 */
+	enum bidi_property prop;
+
+	struct {
+		bool complete;
+		size_t bracket_class;
+		struct isolate_runner start;
+		struct isolate_runner end;
+	} fifo[63];
+	const struct bracket *bracket_prop, *tmp_bracket_prop;
+	struct isolate_runner ir, tmp_ir;
+	size_t fifo_len = 0, i, blevel, j, k;
+
+	ir_init(buf, buflen, off, paragraph_level, false, &ir);
+	while (!ir_advance(&ir)) {
+		prop = ir_get_current_prop(&ir);
+		bracket_prop = ir_get_current_bracket_prop(&ir);
+		if (prop == BIDI_PROP_ON &&
+		    bracket_prop->type == BIDI_BRACKET_OPEN) {
+			if (fifo_len == LEN(fifo)) {
+				/*
+				 * The FIFO is full, check first if it's
+				 * completely blocked (i.e. no finished
+				 * bracket pairs, triggering the standard
+				 * that mandates to abort in such a case
+				 */
+				for (i = 0; i < fifo_len; i++) {
+					if (fifo[i].complete) {
+						break;
+					}
+				}
+				if (i == fifo_len) {
+					/* abort processing */
+					return;
+				}
+
+				/*
+				 * by construction, the bottom entry
+				 * in the FIFO is guaranteed to be
+				 * unfinished (given we "consume" all
+				 * finished bottom entries after each
+				 * iteration).
+				 *
+				 * iterate, starting after the opening
+				 * bracket, and find the corresponding
+				 * closing bracket.
+				 *
+				 * if we find none, just drop the FIFO
+				 * entry silently
+				 */
+				for (tmp_ir = fifo[0].start, blevel = 0;
+				     !ir_advance(&tmp_ir);) {
+					tmp_bracket_prop =
+						ir_get_current_bracket_prop(
+							&tmp_ir);
+
+					if (tmp_bracket_prop->type ==
+					            BIDI_BRACKET_OPEN &&
+					    tmp_bracket_prop->class ==
+					            bracket_prop->class) {
+						/* we encountered another
+						 * opening bracket of the
+						 * same class */
+						blevel++;
+
+					} else if (tmp_bracket_prop->type ==
+					                   BIDI_BRACKET_CLOSE &&
+					           tmp_bracket_prop->class ==
+					                   bracket_prop
+					                           ->class) {
+						/* we encountered a closing
+						 * bracket of the same class
+						 */
+						if (blevel == 0) {
+							/* this is the
+							 * corresponding
+							 * closing bracket
+							 */
+							fifo[0].complete = true;
+							fifo[0].end = ir;
+						} else {
+							blevel--;
+						}
+					}
+				}
+				if (fifo[0].complete) {
+					/* we found the matching bracket */
+					preprocess_bracket_pair(
+						&(fifo[i].start),
+						&(fifo[i].end));
+				}
+
+				/* shift FIFO one to the left */
+				for (i = 1; i < fifo_len; i++) {
+					fifo[i - 1] = fifo[i];
+				}
+				fifo_len--;
+			}
+
+			/* add element to the FIFO */
+			fifo_len++;
+			fifo[fifo_len - 1].complete = false;
+			fifo[fifo_len - 1].bracket_class = bracket_prop->class;
+			fifo[fifo_len - 1].start = ir;
+		} else if (prop == BIDI_PROP_ON &&
+		           bracket_prop->type == BIDI_BRACKET_CLOSE) {
+			/*
+			 * go backwards in the FIFO, skip finished entries
+			 * and simply ignore (do nothing) the closing
+			 * bracket if we do not match anything
+			 */
+			for (i = fifo_len; i > 0; i--) {
+				if (bracket_prop->class ==
+				            fifo[i - 1].bracket_class &&
+				    !fifo[i - 1].complete) {
+					/* we have found a pair */
+					fifo[i - 1].complete = true;
+					fifo[i - 1].end = ir;
+
+					/* remove all uncompleted FIFO elements
+					 * above i - 1 */
+					for (j = i; j < fifo_len; j++) {
+						if (fifo[j].complete) {
+							continue;
+						}
+
+						/* shift FIFO one to the left */
+						for (k = j + 1; k < fifo_len;
+						     k++) {
+							fifo[k - 1] = fifo[k];
+						}
+						fifo_len--;
+					}
+					break;
+				}
+			}
+		}
+
+		/* process all ready bracket pairs from the FIFO bottom */
+		while (fifo_len > 0 && fifo[0].complete) {
+			preprocess_bracket_pair(&(fifo[0].start),
+			                        &(fifo[0].end));
+
+			/* shift FIFO one to the left */
+			for (j = 0; j + 1 < fifo_len; j++) {
+				fifo[j] = fifo[j + 1];
+			}
+			fifo_len--;
+		}
+	}
+
+	/*
+	 * afterwards, we still might have unfinished bracket pairs
+	 * that will remain as such, but the subsequent finished pairs
+	 * also need to be taken into account, so we go through the
+	 * FIFO once more and process all finished pairs
+	 */
+	for (i = 0; i < fifo_len; i++) {
+		if (fifo[i].complete) {
+			preprocess_bracket_pair(&(fifo[i].start),
+			                        &(fifo[i].end));
+		}
+	}
+}
+
 static size_t
 preprocess_isolating_run_sequence(uint_least32_t *buf, size_t buflen,
                                   size_t off, uint_least8_t paragraph_level)
@@ -355,7 +707,7 @@ preprocess_isolating_run_sequence(uint_least32_t *buf, size_t buflen,
 	ir_init(buf, buflen, off, paragraph_level, false, &ir);
 	while (!ir_advance(&ir)) {
 		if (ir_get_current_prop(&ir) == BIDI_PROP_EN &&
-		    ir.last_strong_type == BIDI_PROP_AL) {
+		    ir_get_last_strong_prop(&ir) == BIDI_PROP_AL) {
 			ir_set_current_prop(&ir, BIDI_PROP_AN);
 		}
 	}
@@ -438,12 +790,13 @@ preprocess_isolating_run_sequence(uint_least32_t *buf, size_t buflen,
 	ir_init(buf, buflen, off, paragraph_level, false, &ir);
 	while (!ir_advance(&ir)) {
 		if (ir_get_current_prop(&ir) == BIDI_PROP_EN &&
-		    ir.last_strong_type == BIDI_PROP_L) {
+		    ir_get_last_strong_prop(&ir) == BIDI_PROP_L) {
 			ir_set_current_prop(&ir, BIDI_PROP_L);
 		}
 	}
 
 	/* N0 */
+	preprocess_bracket_pairs(buf, buflen, off, paragraph_level);
 
 	/* N1 */
 	sequence_end = SIZE_MAX;
@@ -457,10 +810,11 @@ preprocess_isolating_run_sequence(uint_least32_t *buf, size_t buflen,
 			    prop == BIDI_PROP_WS || prop == BIDI_PROP_ON ||
 			    prop == BIDI_PROP_FSI || prop == BIDI_PROP_LRI ||
 			    prop == BIDI_PROP_RLI || prop == BIDI_PROP_PDI) {
-				/* the current character is an NI (neutral or
-				 * isolate) */
+				/* the current character is an NI (neutral
+				 * or isolate) */
 
-				/* scan ahead to the end of the NI-sequence */
+				/* scan ahead to the end of the NI-sequence
+				 */
 				ir_init(buf, buflen, ir.cur.off,
 				        paragraph_level, (ir.cur.off > off),
 				        &tmp);
@@ -480,8 +834,8 @@ preprocess_isolating_run_sequence(uint_least32_t *buf, size_t buflen,
 				}
 
 				/*
-				 * check what follows and see if the text has
-				 * the same direction on both sides
+				 * check what follows and see if the text
+				 * has the same direction on both sides
 				 */
 				if (ir_get_previous_prop(&ir) == BIDI_PROP_L &&
 				    ir_get_next_prop(&tmp) == BIDI_PROP_L) {
@@ -794,7 +1148,8 @@ again:
 		} else if (prop == BIDI_PROP_PDI) {
 			/* X6a */
 			if (overflow_isolate_count > 0) {
-				/* PDI matches an overflow isolate initiator */
+				/* PDI matches an overflow isolate initiator
+				 */
 				overflow_isolate_count--;
 			} else if (valid_isolate_count > 0) {
 				/* PDI matches a normal isolate initiator */
@@ -812,9 +1167,10 @@ again:
 					 *
 					 * POSSIBLE OPTIMIZATION: Whenever
 					 * we push on the stack, check if it
-					 * has the directional isolate status
-					 * true and store a pointer to it
-					 * so we can jump to it very quickly.
+					 * has the directional isolate
+					 * status true and store a pointer
+					 * to it so we can jump to it very
+					 * quickly.
 					 */
 					dirstat--;
 				}
@@ -974,7 +1330,9 @@ static inline uint_least8_t
 get_bidi_bracket_off(uint_least32_t cp)
 {
 	if (likely(cp <= 0x10FFFF)) {
-		return (bidi_minor[bidi_major[cp >> 8] + (cp & 0xff)]) >> 5;
+		return (uint_least8_t)((bidi_minor[bidi_major[cp >> 8] +
+		                                   (cp & 0xff)]) >>
+		                       5);
 	} else {
 		return 0;
 	}

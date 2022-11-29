@@ -218,21 +218,21 @@ main(int argc, char *argv[])
 
 	properties_print_lookup_table("upper_major", mm_upper.major, 0x1100);
 	printf("\n");
-	properties_print_derived_lookup_table("upper_minor", "int_least32_t",
-	                                      mm_upper.minor, mm_upper.minorlen,
-	                                      get_value, comp_upper.data);
+	properties_print_derived_lookup_table("upper_minor", mm_upper.minor,
+	                                      mm_upper.minorlen, get_value,
+	                                      comp_upper.data);
 	printf("\n");
 	properties_print_lookup_table("lower_major", mm_lower.major, 0x1100);
 	printf("\n");
-	properties_print_derived_lookup_table("lower_minor", "int_least32_t",
-	                                      mm_lower.minor, mm_lower.minorlen,
-	                                      get_value, comp_lower.data);
+	properties_print_derived_lookup_table("lower_minor", mm_lower.minor,
+	                                      mm_lower.minorlen, get_value,
+	                                      comp_lower.data);
 	printf("\n");
 	properties_print_lookup_table("title_major", mm_title.major, 0x1100);
 	printf("\n");
-	properties_print_derived_lookup_table("title_minor", "int_least32_t",
-	                                      mm_title.minor, mm_title.minorlen,
-	                                      get_value, comp_title.data);
+	properties_print_derived_lookup_table("title_minor", mm_title.minor,
+	                                      mm_title.minorlen, get_value,
+	                                      comp_title.data);
 	printf("\n");
 
 	printf("static const struct special_case upper_special[] = {\n");

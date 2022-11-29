@@ -233,7 +233,7 @@ test/utf8-encode: test/utf8-encode.o test/util.o libgrapheme.a
 test/utf8-decode: test/utf8-decode.o test/util.o libgrapheme.a
 test/word: test/word.o test/util.o libgrapheme.a
 
-gen/bidirectional.h: data/BidiBrackets.txt data/BidiMirroring.txt data/DerivedBidiClass.txt gen/bidirectional
+gen/bidirectional.h: data/BidiBrackets.txt data/BidiMirroring.txt data/DerivedBidiClass.txt data/UnicodeData.txt gen/bidirectional
 gen/bidirectional-test.h: data/BidiCharacterTest.txt data/BidiTest.txt gen/bidirectional-test
 gen/case.h: data/DerivedCoreProperties.txt data/UnicodeData.txt data/SpecialCasing.txt gen/case
 gen/character.h: data/emoji-data.txt data/GraphemeBreakProperty.txt gen/character
