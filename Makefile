@@ -109,7 +109,7 @@ MAN3 =\
 MAN7 =\
 	man/libgrapheme\
 
-all: data/LICENSE $(MAN3:=.3) $(MAN7:=.7) libgrapheme.a $(SONAME)
+all: data/LICENSE $(MAN3:=.3) $(MAN7:=.7) $(ANAME) $(SONAME)
 
 data/BidiBrackets.txt:
 	wget -O $@ https://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/BidiBrackets.txt
@@ -206,44 +206,44 @@ test/utf8-decode.o: test/utf8-decode.c Makefile config.mk grapheme.h test/util.h
 test/util.o: test/util.c Makefile config.mk test/util.h
 test/word.o: test/word.c Makefile config.mk gen/word-test.h grapheme.h test/util.h
 
-benchmark/bidirectional: benchmark/bidirectional.o benchmark/util.o libgrapheme.a
-benchmark/case: benchmark/case.o benchmark/util.o libgrapheme.a
-benchmark/character: benchmark/character.o benchmark/util.o libgrapheme.a
-benchmark/line: benchmark/line.o benchmark/util.o libgrapheme.a
-benchmark/sentence: benchmark/sentence.o benchmark/util.o libgrapheme.a
-benchmark/utf8-decode: benchmark/utf8-decode.o benchmark/util.o libgrapheme.a
-benchmark/word: benchmark/word.o benchmark/util.o libgrapheme.a
-gen/bidirectional: gen/bidirectional.o gen/util.o
-gen/bidirectional-test: gen/bidirectional-test.o gen/util.o
-gen/case: gen/case.o gen/util.o
-gen/character: gen/character.o gen/util.o
-gen/character-test: gen/character-test.o gen/util.o
-gen/line: gen/line.o gen/util.o
-gen/line-test: gen/line-test.o gen/util.o
-gen/sentence: gen/sentence.o gen/util.o
-gen/sentence-test: gen/sentence-test.o gen/util.o
-gen/word: gen/word.o gen/util.o
-gen/word-test: gen/word-test.o gen/util.o
-test/bidirectional: test/bidirectional.o test/util.o libgrapheme.a
-test/case: test/case.o test/util.o libgrapheme.a
-test/character: test/character.o test/util.o libgrapheme.a
-test/line: test/line.o test/util.o libgrapheme.a
-test/sentence: test/sentence.o test/util.o libgrapheme.a
-test/utf8-encode: test/utf8-encode.o test/util.o libgrapheme.a
-test/utf8-decode: test/utf8-decode.o test/util.o libgrapheme.a
-test/word: test/word.o test/util.o libgrapheme.a
+benchmark/bidirectional$(BINSUFFIX): benchmark/bidirectional.o benchmark/util.o $(ANAME)
+benchmark/case$(BINSUFFIX): benchmark/case.o benchmark/util.o $(ANAME)
+benchmark/character$(BINSUFFIX): benchmark/character.o benchmark/util.o $(ANAME)
+benchmark/line$(BINSUFFIX): benchmark/line.o benchmark/util.o $(ANAME)
+benchmark/sentence$(BINSUFFIX): benchmark/sentence.o benchmark/util.o $(ANAME)
+benchmark/utf8-decode$(BINSUFFIX): benchmark/utf8-decode.o benchmark/util.o $(ANAME)
+benchmark/word$(BINSUFFIX): benchmark/word.o benchmark/util.o $(ANAME)
+gen/bidirectional$(BINSUFFIX): gen/bidirectional.o gen/util.o
+gen/bidirectional-test$(BINSUFFIX): gen/bidirectional-test.o gen/util.o
+gen/case$(BINSUFFIX): gen/case.o gen/util.o
+gen/character$(BINSUFFIX): gen/character.o gen/util.o
+gen/character-test$(BINSUFFIX): gen/character-test.o gen/util.o
+gen/line$(BINSUFFIX): gen/line.o gen/util.o
+gen/line-test$(BINSUFFIX): gen/line-test.o gen/util.o
+gen/sentence$(BINSUFFIX): gen/sentence.o gen/util.o
+gen/sentence-test$(BINSUFFIX): gen/sentence-test.o gen/util.o
+gen/word$(BINSUFFIX): gen/word.o gen/util.o
+gen/word-test$(BINSUFFIX): gen/word-test.o gen/util.o
+test/bidirectional$(BINSUFFIX): test/bidirectional.o test/util.o $(ANAME)
+test/case$(BINSUFFIX): test/case.o test/util.o $(ANAME)
+test/character$(BINSUFFIX): test/character.o test/util.o $(ANAME)
+test/line$(BINSUFFIX): test/line.o test/util.o $(ANAME)
+test/sentence$(BINSUFFIX): test/sentence.o test/util.o $(ANAME)
+test/utf8-encode$(BINSUFFIX): test/utf8-encode.o test/util.o $(ANAME)
+test/utf8-decode$(BINSUFFIX): test/utf8-decode.o test/util.o $(ANAME)
+test/word$(BINSUFFIX): test/word.o test/util.o $(ANAME)
 
-gen/bidirectional.h: data/BidiBrackets.txt data/BidiMirroring.txt data/DerivedBidiClass.txt data/UnicodeData.txt gen/bidirectional
-gen/bidirectional-test.h: data/BidiCharacterTest.txt data/BidiTest.txt gen/bidirectional-test
-gen/case.h: data/DerivedCoreProperties.txt data/UnicodeData.txt data/SpecialCasing.txt gen/case
-gen/character.h: data/emoji-data.txt data/GraphemeBreakProperty.txt gen/character
-gen/character-test.h: data/GraphemeBreakTest.txt gen/character-test
-gen/line.h: data/emoji-data.txt data/EastAsianWidth.txt data/LineBreak.txt gen/line
-gen/line-test.h: data/LineBreakTest.txt gen/line-test
-gen/sentence.h: data/SentenceBreakProperty.txt gen/sentence
-gen/sentence-test.h: data/SentenceBreakTest.txt gen/sentence-test
-gen/word.h: data/WordBreakProperty.txt gen/word
-gen/word-test.h: data/WordBreakTest.txt gen/word-test
+gen/bidirectional.h: data/BidiBrackets.txt data/BidiMirroring.txt data/DerivedBidiClass.txt data/UnicodeData.txt gen/bidirectional$(BINSUFFIX)
+gen/bidirectional-test.h: data/BidiCharacterTest.txt data/BidiTest.txt gen/bidirectional-test$(BINSUFFIX)
+gen/case.h: data/DerivedCoreProperties.txt data/UnicodeData.txt data/SpecialCasing.txt gen/case$(BINSUFFIX)
+gen/character.h: data/emoji-data.txt data/GraphemeBreakProperty.txt gen/character$(BINSUFFIX)
+gen/character-test.h: data/GraphemeBreakTest.txt gen/character-test$(BINSUFFIX)
+gen/line.h: data/emoji-data.txt data/EastAsianWidth.txt data/LineBreak.txt gen/line$(BINSUFFIX)
+gen/line-test.h: data/LineBreakTest.txt gen/line-test$(BINSUFFIX)
+gen/sentence.h: data/SentenceBreakProperty.txt gen/sentence$(BINSUFFIX)
+gen/sentence-test.h: data/SentenceBreakTest.txt gen/sentence-test$(BINSUFFIX)
+gen/word.h: data/WordBreakProperty.txt gen/word$(BINSUFFIX)
+gen/word-test.h: data/WordBreakTest.txt gen/word-test$(BINSUFFIX)
 
 man/grapheme_is_character_break.3: man/grapheme_is_character_break.sh Makefile config.mk
 man/grapheme_is_uppercase.3: man/grapheme_is_uppercase.sh man/template/is_case.sh Makefile config.mk
@@ -280,19 +280,19 @@ $(BENCHMARK:=.o) benchmark/util.o $(TEST:=.o) test/util.o:
 $(SRC:=.o):
 	$(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(SHFLAGS) $(@:.o=.c)
 
-$(BENCHMARK):
-	$(CC) -o $@ $(LDFLAGS) $@.o benchmark/util.o libgrapheme.a -lutf8proc
+$(BENCHMARK:=$(BINSUFFIX)):
+	$(CC) -o $@ $(LDFLAGS) $(@:$(BINSUFFIX)=.o) benchmark/util.o $(ANAME) -lutf8proc
 
-$(GEN):
-	$(BUILD_CC) -o $@ $(BUILD_LDFLAGS) $@.o gen/util.o
+$(GEN:=$(BINSUFFIX)):
+	$(BUILD_CC) -o $@ $(BUILD_LDFLAGS) $(@:$(BINSUFFIX)=.o) gen/util.o
 
-$(TEST):
-	$(CC) -o $@ $(LDFLAGS) $@.o test/util.o libgrapheme.a
+$(TEST:=$(BINSUFFIX)):
+	$(CC) -o $@ $(LDFLAGS) $(@:$(BINSUFFIX)=.o) test/util.o $(ANAME)
 
 $(GEN:=.h):
-	$(@:.h=) > $@
+	$(@:.h=$(BINSUFFIX)) > $@
 
-libgrapheme.a: $(SRC:=.o)
+$(ANAME): $(SRC:=.o)
 	$(AR) -rc $@ $?
 	$(RANLIB) $@
 
@@ -305,13 +305,13 @@ $(MAN3:=.3):
 $(MAN7:=.7):
 	SH="$(SH)" MAN_DATE="$(MAN_DATE)" UNICODE_VERSION="$(UNICODE_VERSION)" $(SH) $(@:.7=.sh) > $@
 
-benchmark: $(BENCHMARK)
-	for m in $(BENCHMARK); do ./$$m; done
+benchmark: $(BENCHMARK:=$(BINSUFFIX))
+	for m in $(BENCHMARK:=$(BINSUFFIX)); do ./$$m; done
 
 check: test
 
-test: $(TEST)
-	for m in $(TEST); do ./$$m; done
+test: $(TEST:=$(BINSUFFIX))
+	for m in $(TEST:=$(BINSUFFIX)); do ./$$m; done
 
 install: all
 	mkdir -p "$(DESTDIR)$(LIBPREFIX)"
@@ -320,7 +320,7 @@ install: all
 	mkdir -p "$(DESTDIR)$(MANPREFIX)/man7"
 	cp -f $(MAN3:=.3) "$(DESTDIR)$(MANPREFIX)/man3"
 	cp -f $(MAN7:=.7) "$(DESTDIR)$(MANPREFIX)/man7"
-	cp -f libgrapheme.a "$(DESTDIR)$(LIBPREFIX)"
+	cp -f $(ANAME) "$(DESTDIR)$(LIBPREFIX)"
 	cp -f $(SONAME) "$(DESTDIR)$(LIBPREFIX)/$(SONAME)"
 	if [ "$(SOSYMLINK)" = "true" ]; then i=0; while [ "$$i" -le $(VERSION_MINOR) ]; do ln -sf "$(SONAME)" "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so.$(VERSION_MAJOR).$$i"; i=$$((i+1)); done; fi
 	if [ "$(SOSYMLINK)" = "true" ]; then ln -sf "$(SONAME)" "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so.$(VERSION_MAJOR)"; fi
@@ -332,7 +332,7 @@ install: all
 uninstall:
 	for m in $(MAN3:=.3); do rm -f "$(DESTDIR)$(MANPREFIX)/man3/`basename $$m`"; done
 	for m in $(MAN7:=.7); do rm -f "$(DESTDIR)$(MANPREFIX)/man7/`basename $$m`"; done
-	rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.a"
+	rm -f "$(DESTDIR)$(LIBPREFIX)/$(ANAME)"
 	rm -f "$(DESTDIR)$(LIBPREFIX)/$(SONAME)"
 	if [ "$(SOSYMLINK)" = "true" ]; then i=0; while [ "$$i" -le $(VERSION_MINOR) ]; do rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so.$(VERSION_MAJOR).$$i"; i=$$((i+1)); done; fi
 	if [ "$(SOSYMLINK)" = "true" ]; then rm -f "$(DESTDIR)$(LIBPREFIX)/libgrapheme.so.$(VERSION_MAJOR)"; fi
@@ -342,7 +342,7 @@ uninstall:
 	if ! [ -z "$(PCPREFIX)" ]; then rm -f "$(DESTDIR)$(PCPREFIX)/libgrapheme.pc"; fi
 
 clean:
-	rm -f $(BENCHMARK:=.o) benchmark/util.o $(BENCHMARK) $(GEN:=.h) $(GEN:=.o) gen/util.o $(GEN) $(SRC:=.o) src/util.o $(TEST:=.o) test/util.o $(TEST) libgrapheme.a $(SONAME) $(MAN3:=.3) $(MAN7:=.7)
+	rm -f $(BENCHMARK:=.o) benchmark/util.o $(BENCHMARK:=$(BINSUFFIX)) $(GEN:=.h) $(GEN:=.o) gen/util.o $(GEN:=$(BINSUFFIX)) $(SRC:=.o) src/util.o $(TEST:=.o) test/util.o $(TEST:=$(BINSUFFIX)) $(ANAME) $(SONAME) $(MAN3:=.3) $(MAN7:=.7)
 
 clean-data:
 	rm -f $(DATA)

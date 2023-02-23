@@ -8,6 +8,11 @@ LIBPREFIX = $(PREFIX)/lib
 MANPREFIX = $(PREFIX)/share/man
 PCPREFIX  = $(LIBPREFIX)/pkgconfig
 
+# names
+ANAME     = libgrapheme.a
+SONAME    = libgrapheme.so.$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)
+BINSUFFIX = 
+
 # flags
 CPPFLAGS = -D_DEFAULT_SOURCE
 CFLAGS   = -std=c99 -Os -Wall -Wextra -Wpedantic
@@ -18,9 +23,7 @@ BUILD_CFLAGS   = $(CFLAGS)
 BUILD_LDFLAGS  = $(LDFLAGS)
 
 SHFLAGS   = -fPIC -ffreestanding
-
 SOFLAGS   = -shared -nostdlib -Wl,--soname=libgrapheme.so.$(VERSION_MAJOR).$(VERSION_MINOR)
-SONAME    = libgrapheme.so.$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)
 SOSYMLINK = true
 
 # tools (unset $LDCONFIG to not call ldconfig(1) after install/uninstall)
