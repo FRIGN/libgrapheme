@@ -36,7 +36,7 @@ case $(uname) in
 		replace_line 'SOSYMLINK' ''     'false'
 		replace_line 'LDCONFIG'  ''     ''
 		;;
-	CYGWIN*|MSYS*|WINGW*)
+	CYGWIN*|MSYS*|MINGW*)
 		replace_line 'ANAME'     '    ' 'libgrapheme.lib'
 		replace_line 'SONAME'    '   '  'libgrapheme.dll'
 		replace_line 'BINSUFFIX' ''     '.exe'
