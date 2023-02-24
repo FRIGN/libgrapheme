@@ -14,7 +14,7 @@ SONAME    = libgrapheme.so.$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)
 BINSUFFIX = 
 
 # flags
-CPPFLAGS = -D_DEFAULT_SOURCE
+CPPFLAGS = -D_ISOC99_SOURCE
 CFLAGS   = -std=c99 -Os -Wall -Wextra -Wpedantic
 LDFLAGS  = -s
 

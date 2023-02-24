@@ -71,10 +71,9 @@ generate_utf8_test_buffer(const struct break_test *test, size_t testlen,
 }
 
 static double
-time_diff(struct timespec *a, struct timespec *b)
+time_diff(clock_t a, clock_t b)
 {
-	return (double)(b->tv_sec - a->tv_sec) +
-	       (double)(b->tv_nsec - a->tv_nsec) * 1E-9;
+	return (double)(b - a) / CLOCKS_PER_SEC;
 }
 
 void
@@ -82,14 +81,14 @@ run_benchmark(void (*func)(const void *), const void *payload, const char *name,
               const char *comment, const char *unit, double *baseline,
               size_t num_iterations, size_t units_per_iteration)
 {
-	struct timespec start, end;
+	clock_t start, end;
 	size_t i;
 	double diff;
 
 	printf("\t%s ", name);
 	fflush(stdout);
 
-	clock_gettime(CLOCK_MONOTONIC, &start);
+	start = clock();
 	for (i = 0; i < num_iterations; i++) {
 		func(payload);
 
@@ -98,8 +97,8 @@ run_benchmark(void (*func)(const void *), const void *payload, const char *name,
 			fflush(stdout);
 		}
 	}
-	clock_gettime(CLOCK_MONOTONIC, &end);
-	diff = time_diff(&start, &end) / (double)num_iterations /
+	end = clock();
+	diff = time_diff(start, end) / (double)num_iterations /
 	       (double)units_per_iteration;
 
 	if (isnan(*baseline)) {

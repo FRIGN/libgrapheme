@@ -146,6 +146,43 @@ range_parse(const char *str, struct range *range)
 	return 0;
 }
 
+static bool
+get_line(char **buf, size_t *bufsize, FILE *fp, size_t *len)
+{
+	int ret = EOF;
+
+	for (*len = 0;; (*len)++) {
+		if (*len > 0 && *buf != NULL && (*buf)[*len - 1] == '\n') {
+			/*
+			 * if the previously read character was a newline,
+			 * we fake an end-of-file so we NUL-terminate and
+			 * are done.
+			 */
+			ret = EOF;
+		} else {
+			ret = fgetc(fp);
+		}
+
+		if (*len >= *bufsize) {
+			/* the buffer needs to be expanded */
+			*bufsize += 512;
+			if ((*buf = realloc(*buf, *bufsize)) == NULL) {
+				fprintf(stderr, "get_line: Out of memory.\n");
+				exit(1);
+			}
+		}
+
+		if (ret != EOF) {
+			(*buf)[*len] = (char)ret;
+		} else {
+			(*buf)[*len] = '\0';
+			break;
+		}
+	}
+
+	return *len == 0 && (feof(fp) || ferror(fp));
+}
+
 void
 parse_file_with_callback(const char *fname,
                          int (*callback)(const char *, char **, size_t, char *,
@@ -154,8 +191,7 @@ parse_file_with_callback(const char *fname,
 {
 	FILE *fp;
 	char *line = NULL, **field = NULL, *comment;
-	size_t linebufsize = 0, i, fieldbufsize = 0, j, nfields;
-	ssize_t len;
+	size_t linebufsize = 0, i, fieldbufsize = 0, j, nfields, len;
 
 	/* open file */
 	if (!(fp = fopen(fname, "r"))) {
@@ -164,7 +200,7 @@ parse_file_with_callback(const char *fname,
 		exit(1);
 	}
 
-	while ((len = getline(&line, &linebufsize, fp)) >= 0) {
+	while (!get_line(&line, &linebufsize, fp, &len)) {
 		/* remove trailing newline */
 		if (len > 0 && line[len - 1] == '\n') {
 			line[len - 1] = '\0';
@@ -654,7 +690,8 @@ break_test_callback(const char *fname, char **field, size_t nfields,
 {
 	struct break_test *t,
 		**test = ((struct break_test_payload *)payload)->test;
-	size_t i, *testlen = ((struct break_test_payload *)payload)->testlen;
+	size_t i, *testlen = ((struct break_test_payload *)payload)->testlen,
+		  commentlen;
 	char *token;
 
 	(void)fname;
@@ -733,11 +770,15 @@ break_test_callback(const char *fname, char **field, size_t nfields,
 	}
 
 	/* store comment */
-	if (comment != NULL &&
-	    ((*test)[*testlen - 1].descr = strdup(comment)) == NULL) {
-		fprintf(stderr, "break_test_callback: strdup: %s.\n",
-		        strerror(errno));
-		return 1;
+	if (comment != NULL) {
+		commentlen = strlen(comment) + 1;
+		if (((*test)[*testlen - 1].descr = malloc(commentlen)) ==
+		    NULL) {
+			fprintf(stderr, "break_test_callback: malloc: %s.\n",
+			        strerror(errno));
+			return 1;
+		}
+		memcpy((*test)[*testlen - 1].descr, comment, commentlen);
 	}
 
 	return 0;
