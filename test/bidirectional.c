@@ -14,9 +14,10 @@ main(int argc, char *argv[])
 {
 	uint_least32_t data[512]; /* TODO iterate and get max, allocate */
 	int_least8_t lev[512];
-	size_t i, num_tests, failed, datalen, ret, j, m;
+	size_t i, num_tests, failed, datalen, levlen, ret, j, m;
 
 	datalen = LEN(data);
+	levlen = LEN(lev);
 
 	(void)argc;
 
@@ -30,11 +31,16 @@ main(int argc, char *argv[])
 				bidirectional_test[i].cp,
 				bidirectional_test[i].cplen,
 				bidirectional_test[i].mode[m], data, datalen);
-			grapheme_bidirectional_get_line_embedding_levels(
-				data, ret, lev);
 
 			if (ret != bidirectional_test[i].cplen ||
 			    ret > datalen) {
+				goto err;
+			}
+
+			ret = grapheme_bidirectional_get_line_embedding_levels(
+				data, ret, lev, levlen);
+
+			if (ret > levlen) {
 				goto err;
 			}
 

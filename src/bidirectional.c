@@ -1435,23 +1435,29 @@ grapheme_bidirectional_preprocess_utf8(
 	return preprocess(&r, override, dest, destlen);
 }
 
-void
+size_t
 grapheme_bidirectional_get_line_embedding_levels(const uint_least32_t *linedata,
                                                  size_t linelen,
-                                                 int_least8_t *linelevel)
+                                                 int_least8_t *lev,
+                                                 size_t levlen)
 {
 	enum bidi_property prop;
 	size_t i, runsince;
+	int_least8_t level;
 
 	/* rule L1.4 */
 	runsince = SIZE_MAX;
 	for (i = 0; i < linelen; i++) {
+		level = (int_least8_t)get_state(STATE_LEVEL, linedata[i]);
 		prop = (uint_least8_t)get_state(STATE_PRESERVED_PROP,
 		                                linedata[i]);
 
-		/* write level into level array */
-		if ((linelevel[i] = (int_least8_t)get_state(
-			     STATE_LEVEL, linedata[i])) == -1) {
+		/* write level into level array if we still have space */
+		if (i < levlen) {
+			lev[i] = level;
+		}
+
+		if (level == -1) {
 			/* ignored character */
 			continue;
 		}
@@ -1473,11 +1479,13 @@ grapheme_bidirectional_get_line_embedding_levels(const uint_least32_t *linedata,
 		 * we hit the end of the line but were in a run;
 		 * reset the line levels to the paragraph level
 		 */
-		for (i = runsince; i < linelen; i++) {
-			if (linelevel[i] != -1) {
-				linelevel[i] = (int_least8_t)get_state(
+		for (i = runsince; i < MIN(linelen, levlen); i++) {
+			if (lev[i] != -1) {
+				lev[i] = (int_least8_t)get_state(
 					STATE_PARAGRAPH_LEVEL, linedata[i]);
 			}
 		}
 	}
+
+	return linelen;
 }

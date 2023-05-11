@@ -15,8 +15,9 @@ enum grapheme_bidirectional_override {
 	GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL,
 };
 
-void grapheme_bidirectional_get_line_embedding_levels(const uint_least32_t *,
-                                                      size_t, int_least8_t *);
+size_t grapheme_bidirectional_get_line_embedding_levels(const uint_least32_t *,
+                                                        size_t, int_least8_t *,
+                                                        size_t);
 
 size_t grapheme_bidirectional_preprocess(const uint_least32_t *, size_t,
                                          enum grapheme_bidirectional_override,
