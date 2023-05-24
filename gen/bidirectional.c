@@ -402,9 +402,43 @@ fill_missing(uint_least32_t cp)
 	}
 }
 
+static struct properties *prop_mirror = NULL;
+
+static int
+mirror_callback(const char *file, char **field, size_t nfields, char *comment,
+                void *payload)
+{
+	uint_least32_t cp, cp_mirror;
+
+	(void)file;
+	(void)comment;
+	(void)payload;
+
+	hextocp(field[0], strlen(field[0]), &cp);
+
+	cp_mirror = cp;
+
+	if (nfields >= 2 && strlen(field[1]) > 0 &&
+	    hextocp(field[1], strlen(field[1]), &cp_mirror)) {
+		return 1;
+	}
+
+	prop_mirror[cp].property = (int_least32_t)cp_mirror - (int_least32_t)cp;
+
+	return 0;
+}
+
+static int_least64_t
+get_value(const struct properties *prop, size_t offset)
+{
+	return prop[offset].property;
+}
+
 int
 main(int argc, char *argv[])
 {
+	struct properties_compressed comp_mirror;
+	struct properties_major_minor mm_mirror;
 	size_t i;
 
 	(void)argc;
@@ -437,6 +471,33 @@ main(int argc, char *argv[])
 		       b[i].class);
 	}
 	printf("};\n");
+
+	/*
+	 * allocate property buffer for all 0x110000 codepoints
+	 *
+	 * the buffers contain the offset from the "base" character
+	 * to the respective mirrored character. By callocing we set all
+	 * fields to zero, which is also the Unicode "default" in the sense
+	 * that the coe point is its mirror (unless we fill it in)
+	 */
+	if (!(prop_mirror = calloc(UINT32_C(0x110000), sizeof(*prop_mirror)))) {
+		fprintf(stderr, "calloc: %s\n", strerror(errno));
+		exit(1);
+	}
+	parse_file_with_callback(FILE_BIDI_MIRRORING, mirror_callback, NULL);
+
+	/* compress properties */
+	properties_compress(prop_mirror, &comp_mirror);
+
+	fprintf(stderr, "%s: mirror-LUT compression-ratio: %.2f%%\n", argv[0],
+	        properties_get_major_minor(&comp_mirror, &mm_mirror));
+
+	/* print tables */
+	properties_print_lookup_table("mirror_major", mm_mirror.major, 0x1100);
+	printf("\n");
+	properties_print_derived_lookup_table("mirror_minor", mm_mirror.minor,
+	                                      mm_mirror.minorlen, get_value,
+	                                      comp_mirror.data);
 
 	return 0;
 }
