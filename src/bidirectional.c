@@ -1398,7 +1398,10 @@ preprocess(HERODOTUS_READER *r, enum grapheme_bidirectional_direction override,
 
 	if (resolved != NULL) {
 		/* store resolved paragraph level in output variable */
-		*resolved = paragraph_level;
+		/* TODO use enum-type */
+		*resolved = (paragraph_level == 0) ?
+			GRAPHEME_BIDIRECTIONAL_DIRECTION_LTR :
+			GRAPHEME_BIDIRECTIONAL_DIRECTION_RTL;
 	}
 
 	if (buf == NULL) {

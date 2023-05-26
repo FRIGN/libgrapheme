@@ -12,6 +12,7 @@
 int
 main(int argc, char *argv[])
 {
+	enum grapheme_bidirectional_direction resolved;
 	uint_least32_t data[512],
 		output[512]; /* TODO iterate and get max, allocate */
 	int_least8_t lev[512];
@@ -34,11 +35,17 @@ main(int argc, char *argv[])
 				bidirectional_test[i].cp,
 				bidirectional_test[i].cplen,
 				bidirectional_test[i].mode[m], data, datalen,
-				NULL);
+				&resolved);
 			ret2 = 0;
 
 			if (ret != bidirectional_test[i].cplen ||
 			    ret > datalen) {
+				goto err;
+			}
+
+			/* resolved paragraph level (if specified in the test) */
+			if (bidirectional_test[i].resolved != GRAPHEME_BIDIRECTIONAL_DIRECTION_NEUTRAL &&
+			    resolved != bidirectional_test[i].resolved) {
 				goto err;
 			}
 

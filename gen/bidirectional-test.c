@@ -14,6 +14,7 @@ struct bidirectional_test {
 	size_t cplen;
 	enum grapheme_bidirectional_direction mode[3];
 	size_t modelen;
+	enum grapheme_bidirectional_direction resolved;
 	int_least8_t *level;
 	int_least8_t *reorder;
 	size_t reorderlen;
@@ -212,6 +213,7 @@ bidirectional_test_list_print(const struct bidirectional_test *test,
 	       "\tsize_t cplen;\n"
 	       "\tenum grapheme_bidirectional_direction *mode;\n"
 	       "\tsize_t modelen;\n"
+	       "\tenum grapheme_bidirectional_direction resolved;\n"
 	       "\tint_least8_t *level;\n"
 	       "\tint_least8_t *reorder;\n"
 	       "\tsize_t reorderlen;\n} %s[] = {\n",
@@ -249,6 +251,20 @@ bidirectional_test_list_print(const struct bidirectional_test *test,
 		}
 		printf(" },\n");
 		printf("\t\t.modelen    = %zu,\n", test[i].modelen);
+
+		printf("\t\t.resolved   = ");
+		if (test[i].resolved ==
+		    GRAPHEME_BIDIRECTIONAL_DIRECTION_NEUTRAL) {
+			printf("GRAPHEME_BIDIRECTIONAL_DIRECTION_"
+			       "NEUTRAL");
+		} else if (test[i].resolved ==
+		           GRAPHEME_BIDIRECTIONAL_DIRECTION_LTR) {
+			printf("GRAPHEME_BIDIRECTIONAL_DIRECTION_LTR");
+		} else if (test[i].resolved ==
+		           GRAPHEME_BIDIRECTIONAL_DIRECTION_RTL) {
+			printf("GRAPHEME_BIDIRECTIONAL_DIRECTION_RTL");
+		}
+		printf(",\n");
 
 		printf("\t\t.level      = (int_least8_t[]){");
 		for (j = 0; j < test[i].cplen; j++) {
@@ -407,6 +423,11 @@ test_callback(const char *file, char **field, size_t nfields, char *comment,
 			        field[1]);
 			exit(1);
 		}
+
+		/* the resolved paragraph level is always neutral as the test
+		 * file does not specify it */
+		test[testlen - 1].resolved =
+			GRAPHEME_BIDIRECTIONAL_DIRECTION_NEUTRAL;
 	}
 
 	return 0;
@@ -458,6 +479,21 @@ character_test_callback(const char *file, char **field, size_t nfields,
 		exit(1);
 	}
 	test[testlen - 1].modelen = 1;
+
+	/* parse resolved paragraph level */
+	if (strlen(field[2]) != 1) {
+		fprintf(stderr, "malformed resolved paragraph level.\n");
+		exit(1);
+	} else if (field[2][0] == '0') {
+		test[testlen - 1].resolved =
+			GRAPHEME_BIDIRECTIONAL_DIRECTION_LTR;
+	} else if (field[2][0] == '1') {
+		test[testlen - 1].resolved =
+			GRAPHEME_BIDIRECTIONAL_DIRECTION_RTL;
+	} else {
+		fprintf(stderr, "unhandled resolved paragraph level.\n");
+		exit(1);
+	}
 
 	if (tmp != test[testlen - 1].cplen) {
 		fprintf(stderr, "mismatch between string and level lengths.\n");
