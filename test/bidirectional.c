@@ -43,8 +43,10 @@ main(int argc, char *argv[])
 				goto err;
 			}
 
-			/* resolved paragraph level (if specified in the test) */
-			if (bidirectional_test[i].resolved != GRAPHEME_BIDIRECTIONAL_DIRECTION_NEUTRAL &&
+			/* resolved paragraph level (if specified in the test)
+			 */
+			if (bidirectional_test[i].resolved !=
+			            GRAPHEME_BIDIRECTIONAL_DIRECTION_NEUTRAL &&
 			    resolved != bidirectional_test[i].resolved) {
 				goto err;
 			}

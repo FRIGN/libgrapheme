@@ -130,7 +130,8 @@ strtolevel(const char *str, size_t len, int_least8_t *level)
 	/* check if the string is completely numerical */
 	for (i = 0; i < len; i++) {
 		if (str[i] < '0' && str[i] > '9') {
-			fprintf(stderr, "strtolevel: '%.*s' is not an integer.\n",
+			fprintf(stderr,
+			        "strtolevel: '%.*s' is not an integer.\n",
 			        (int)len, str);
 			return 1;
 		}
@@ -182,7 +183,8 @@ strtoreorder(const char *str, size_t len, int_least16_t *reorder)
 	/* check if the string is completely numerical */
 	for (i = 0; i < len; i++) {
 		if (str[i] < '0' && str[i] > '9') {
-			fprintf(stderr, "strtoreorder: '%.*s' is not an integer.\n",
+			fprintf(stderr,
+			        "strtoreorder: '%.*s' is not an integer.\n",
 			        (int)len, str);
 			return 1;
 		}
@@ -190,7 +192,7 @@ strtoreorder(const char *str, size_t len, int_least16_t *reorder)
 
 	if (len == 3) {
 		*reorder = (str[0] - '0') * 100 + (str[1] - '0') * 10 +
-		         (str[2] - '0');
+		           (str[2] - '0');
 	} else if (len == 2) {
 		*reorder = (str[0] - '0') * 10 + (str[1] - '0');
 	} else if (len == 1) {
@@ -204,7 +206,6 @@ toolarge:
 	fprintf(stderr, "strtoreorder: '%.*s' is too large.\n", (int)len, str);
 	return 1;
 }
-
 
 static int
 parse_level_list(const char *str, int_least8_t **level, size_t *levellen)
@@ -274,8 +275,8 @@ parse_reorder_list(const char *str, int_least16_t **reorder, size_t *reorderlen)
 	for (i = 0, tmp1 = tmp2 = str; tmp2 != NULL; i++) {
 		tmp2 = strchr(tmp1, ' ');
 		if (strtoreorder(tmp1,
-		               tmp2 ? (size_t)(tmp2 - tmp1) : strlen(tmp1),
-		               &((*reorder)[i]))) {
+		                 tmp2 ? (size_t)(tmp2 - tmp1) : strlen(tmp1),
+		                 &((*reorder)[i]))) {
 			return 1;
 		}
 		if (tmp2 != NULL) {
@@ -423,7 +424,7 @@ test_callback(const char *file, char **field, size_t nfields, char *comment,
 			}
 			free(current_reorder);
 			parse_reorder_list(tmp, &current_reorder,
-			                 &current_reorder_len);
+			                   &current_reorder_len);
 		} else {
 			fprintf(stderr, "Unknown @-input-line.\n");
 			exit(1);
@@ -549,7 +550,7 @@ character_test_callback(const char *file, char **field, size_t nfields,
 	              &(test[testlen - 1].cplen));
 	parse_level_list(field[3], &(test[testlen - 1].level), &tmp);
 	parse_reorder_list(field[4], &(test[testlen - 1].reorder),
-	                 &(test[testlen - 1].reorderlen));
+	                   &(test[testlen - 1].reorderlen));
 
 	/* parse paragraph-level-mode */
 	if (strlen(field[1]) != 1) {
