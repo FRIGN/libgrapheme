@@ -16,7 +16,7 @@ struct bidirectional_test {
 	size_t modelen;
 	enum grapheme_bidirectional_direction resolved;
 	int_least8_t *level;
-	int_least8_t *reorder;
+	int_least16_t *reorder;
 	size_t reorderlen;
 };
 
@@ -130,14 +130,15 @@ strtolevel(const char *str, size_t len, int_least8_t *level)
 	/* check if the string is completely numerical */
 	for (i = 0; i < len; i++) {
 		if (str[i] < '0' && str[i] > '9') {
-			fprintf(stderr, "hextocp: '%.*s' is not an integer.\n",
+			fprintf(stderr, "strtolevel: '%.*s' is not an integer.\n",
 			        (int)len, str);
 			return 1;
 		}
 	}
 
 	if (len == 3) {
-		if (str[0] != '1') {
+		if (str[0] != '1' || str[1] > '2' ||
+		    (str[1] == '2' && str[2] > '7')) {
 			goto toolarge;
 		}
 		*level = (str[0] - '0') * 100 + (str[1] - '0') * 10 +
@@ -152,9 +153,58 @@ strtolevel(const char *str, size_t len, int_least8_t *level)
 
 	return 0;
 toolarge:
-	fprintf(stderr, "hextocp: '%.*s' is too large.\n", (int)len, str);
+	fprintf(stderr, "strtolevel: '%.*s' is too large.\n", (int)len, str);
 	return 1;
 }
+
+static int
+strtoreorder(const char *str, size_t len, int_least16_t *reorder)
+{
+	size_t i;
+
+	if (len == 1 && str[0] == 'x') {
+		/*
+		 * 'x' indicates those characters that are ignored.
+		 * We indicate this with a reorder of -1
+		 */
+		*reorder = -1;
+		return 0;
+	}
+
+	if (len > 3) {
+		/*
+		 * given we want to only express (positive) numbers from
+		 * 0..999 (at most!), more than 3 digits means an excess
+		 */
+		goto toolarge;
+	}
+
+	/* check if the string is completely numerical */
+	for (i = 0; i < len; i++) {
+		if (str[i] < '0' && str[i] > '9') {
+			fprintf(stderr, "strtoreorder: '%.*s' is not an integer.\n",
+			        (int)len, str);
+			return 1;
+		}
+	}
+
+	if (len == 3) {
+		*reorder = (str[0] - '0') * 100 + (str[1] - '0') * 10 +
+		         (str[2] - '0');
+	} else if (len == 2) {
+		*reorder = (str[0] - '0') * 10 + (str[1] - '0');
+	} else if (len == 1) {
+		*reorder = (str[0] - '0');
+	} else { /* len == 0 */
+		*reorder = 0;
+	}
+
+	return 0;
+toolarge:
+	fprintf(stderr, "strtoreorder: '%.*s' is too large.\n", (int)len, str);
+	return 1;
+}
+
 
 static int
 parse_level_list(const char *str, int_least8_t **level, size_t *levellen)
@@ -196,6 +246,46 @@ parse_level_list(const char *str, int_least8_t **level, size_t *levellen)
 	return 0;
 }
 
+static int
+parse_reorder_list(const char *str, int_least16_t **reorder, size_t *reorderlen)
+{
+	size_t count, i;
+	const char *tmp1 = NULL, *tmp2 = NULL;
+
+	if (strlen(str) == 0) {
+		*reorder = NULL;
+		*reorderlen = 0;
+		return 0;
+	}
+
+	/* count the number of spaces in the string and infer list length */
+	for (count = 1, tmp1 = str; (tmp2 = strchr(tmp1, ' ')) != NULL;
+	     count++, tmp1 = tmp2 + 1) {
+		;
+	}
+
+	/* allocate resources */
+	if (!(*reorder = calloc((*reorderlen = count), sizeof(**reorder)))) {
+		fprintf(stderr, "calloc: %s\n", strerror(errno));
+		exit(1);
+	}
+
+	/* go through the string again, parsing the reorders */
+	for (i = 0, tmp1 = tmp2 = str; tmp2 != NULL; i++) {
+		tmp2 = strchr(tmp1, ' ');
+		if (strtoreorder(tmp1,
+		               tmp2 ? (size_t)(tmp2 - tmp1) : strlen(tmp1),
+		               &((*reorder)[i]))) {
+			return 1;
+		}
+		if (tmp2 != NULL) {
+			tmp1 = tmp2 + 1;
+		}
+	}
+
+	return 0;
+}
+
 static void
 bidirectional_test_list_print(const struct bidirectional_test *test,
                               size_t testlen, const char *identifier,
@@ -215,7 +305,7 @@ bidirectional_test_list_print(const struct bidirectional_test *test,
 	       "\tsize_t modelen;\n"
 	       "\tenum grapheme_bidirectional_direction resolved;\n"
 	       "\tint_least8_t *level;\n"
-	       "\tint_least8_t *reorder;\n"
+	       "\tint_least16_t *reorder;\n"
 	       "\tsize_t reorderlen;\n} %s[] = {\n",
 	       identifier);
 	for (i = 0; i < testlen; i++) {
@@ -277,9 +367,9 @@ bidirectional_test_list_print(const struct bidirectional_test *test,
 
 		printf("\t\t.reorder    = ");
 		if (test[i].reorderlen > 0) {
-			printf("(int_least8_t[]){");
+			printf("(int_least16_t[]){");
 			for (j = 0; j < test[i].reorderlen; j++) {
-				printf(" %" PRIdLEAST8, test[i].reorder[j]);
+				printf(" %" PRIdLEAST16, test[i].reorder[j]);
 				if (j + 1 < test[i].reorderlen) {
 					putchar(',');
 				}
@@ -300,7 +390,7 @@ static size_t testlen;
 
 static int_least8_t *current_level;
 static size_t current_level_len;
-static int_least8_t *current_reorder;
+static int_least16_t *current_reorder;
 static size_t current_reorder_len;
 
 static int
@@ -332,7 +422,7 @@ test_callback(const char *file, char **field, size_t nfields, char *comment,
 				;
 			}
 			free(current_reorder);
-			parse_level_list(tmp, &current_reorder,
+			parse_reorder_list(tmp, &current_reorder,
 			                 &current_reorder_len);
 		} else {
 			fprintf(stderr, "Unknown @-input-line.\n");
@@ -458,7 +548,7 @@ character_test_callback(const char *file, char **field, size_t nfields,
 	parse_cp_list(field[0], &(test[testlen - 1].cp),
 	              &(test[testlen - 1].cplen));
 	parse_level_list(field[3], &(test[testlen - 1].level), &tmp);
-	parse_level_list(field[4], &(test[testlen - 1].reorder),
+	parse_reorder_list(field[4], &(test[testlen - 1].reorder),
 	                 &(test[testlen - 1].reorderlen));
 
 	/* parse paragraph-level-mode */
