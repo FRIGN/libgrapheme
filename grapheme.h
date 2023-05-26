@@ -8,31 +8,23 @@
 
 #define GRAPHEME_INVALID_CODEPOINT UINT32_C(0xFFFD)
 
-/* TODO call it simply "direction" without override */
-enum grapheme_bidirectional_override {
-	GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL,
-	GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR,
-	GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL,
+enum grapheme_bidirectional_direction {
+	GRAPHEME_BIDIRECTIONAL_DIRECTION_NEUTRAL,
+	GRAPHEME_BIDIRECTIONAL_DIRECTION_LTR,
+	GRAPHEME_BIDIRECTIONAL_DIRECTION_RTL,
 };
 
 size_t grapheme_bidirectional_get_line_embedding_levels(const uint_least32_t *,
                                                         size_t, int_least8_t *,
                                                         size_t);
 
-size_t grapheme_bidirectional_preprocess(const uint_least32_t *, size_t,
-                                         enum grapheme_bidirectional_override,
-                                         uint_least32_t *, size_t);
-size_t
-grapheme_bidirectional_preprocess_utf8(const char *, size_t,
-                                       enum grapheme_bidirectional_override,
-                                       uint_least32_t *, size_t);
+size_t grapheme_bidirectional_preprocess_paragraph(
+	const uint_least32_t *, size_t, enum grapheme_bidirectional_direction,
+	uint_least32_t *, size_t, enum grapheme_bidirectional_direction *);
 
 size_t grapheme_bidirectional_reorder_line(const uint_least32_t *,
-                                           const int_least8_t *, size_t,
+                                           const uint_least32_t *, size_t,
                                            uint_least32_t *, size_t);
-size_t grapheme_bidirectional_reorder_line_utf8(const char *,
-                                                const int_least8_t *, size_t,
-                                                char *, size_t);
 
 size_t grapheme_decode_utf8(const char *, size_t, uint_least32_t *);
 size_t grapheme_encode_utf8(uint_least32_t, char *, size_t);

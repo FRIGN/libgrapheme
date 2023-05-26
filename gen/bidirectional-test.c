@@ -12,7 +12,7 @@
 struct bidirectional_test {
 	uint_least32_t *cp;
 	size_t cplen;
-	enum grapheme_bidirectional_override mode[3];
+	enum grapheme_bidirectional_direction mode[3];
 	size_t modelen;
 	int_least8_t *level;
 	int_least8_t *reorder;
@@ -210,7 +210,7 @@ bidirectional_test_list_print(const struct bidirectional_test *test,
 	printf("static const struct {\n"
 	       "\tuint_least32_t *cp;\n"
 	       "\tsize_t cplen;\n"
-	       "\tenum grapheme_bidirectional_override *mode;\n"
+	       "\tenum grapheme_bidirectional_direction *mode;\n"
 	       "\tsize_t modelen;\n"
 	       "\tint_least8_t *level;\n"
 	       "\tint_least8_t *reorder;\n"
@@ -230,18 +230,18 @@ bidirectional_test_list_print(const struct bidirectional_test *test,
 		printf("\t\t.cplen      = %zu,\n", test[i].cplen);
 
 		printf("\t\t.mode       = (enum "
-		       "grapheme_bidirectional_override[]){");
+		       "grapheme_bidirectional_direction[]){");
 		for (j = 0; j < test[i].modelen; j++) {
 			if (test[i].mode[j] ==
-			    GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL) {
-				printf(" GRAPHEME_BIDIRECTIONAL_OVERRIDE_"
+			    GRAPHEME_BIDIRECTIONAL_DIRECTION_NEUTRAL) {
+				printf(" GRAPHEME_BIDIRECTIONAL_DIRECTION_"
 				       "NEUTRAL");
 			} else if (test[i].mode[j] ==
-			           GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR) {
-				printf(" GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR");
+			           GRAPHEME_BIDIRECTIONAL_DIRECTION_LTR) {
+				printf(" GRAPHEME_BIDIRECTIONAL_DIRECTION_LTR");
 			} else if (test[i].mode[j] ==
-			           GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL) {
-				printf(" GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL");
+			           GRAPHEME_BIDIRECTIONAL_DIRECTION_RTL) {
+				printf(" GRAPHEME_BIDIRECTIONAL_DIRECTION_RTL");
 			}
 			if (j + 1 < test[i].modelen) {
 				putchar(',');
@@ -374,32 +374,32 @@ test_callback(const char *file, char **field, size_t nfields, char *comment,
 			exit(1);
 		} else if (field[1][0] == '2') {
 			test[testlen - 1].mode[0] =
-				GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR;
+				GRAPHEME_BIDIRECTIONAL_DIRECTION_LTR;
 			test[testlen - 1].modelen = 1;
 		} else if (field[1][0] == '3') {
 			/* auto=0 and LTR=1 */
 			test[testlen - 1].mode[0] =
-				GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL;
+				GRAPHEME_BIDIRECTIONAL_DIRECTION_NEUTRAL;
 			test[testlen - 1].mode[1] =
-				GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR;
+				GRAPHEME_BIDIRECTIONAL_DIRECTION_LTR;
 			test[testlen - 1].modelen = 2;
 		} else if (field[1][0] == '4') {
 			test[testlen - 1].mode[0] =
-				GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL;
+				GRAPHEME_BIDIRECTIONAL_DIRECTION_RTL;
 			test[testlen - 1].modelen = 1;
 		} else if (field[1][0] == '5') {
 			test[testlen - 1].mode[0] =
-				GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL;
+				GRAPHEME_BIDIRECTIONAL_DIRECTION_NEUTRAL;
 			test[testlen - 1].mode[1] =
-				GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL;
+				GRAPHEME_BIDIRECTIONAL_DIRECTION_RTL;
 			test[testlen - 1].modelen = 2;
 		} else if (field[1][0] == '7') {
 			test[testlen - 1].mode[0] =
-				GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL;
+				GRAPHEME_BIDIRECTIONAL_DIRECTION_NEUTRAL;
 			test[testlen - 1].mode[1] =
-				GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR;
+				GRAPHEME_BIDIRECTIONAL_DIRECTION_LTR;
 			test[testlen - 1].mode[2] =
-				GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL;
+				GRAPHEME_BIDIRECTIONAL_DIRECTION_RTL;
 			test[testlen - 1].modelen = 3;
 		} else {
 			fprintf(stderr,
@@ -445,12 +445,14 @@ character_test_callback(const char *file, char **field, size_t nfields,
 		fprintf(stderr, "malformed paragraph-level-setting.\n");
 		exit(1);
 	} else if (field[1][0] == '0') {
-		test[testlen - 1].mode[0] = GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR;
+		test[testlen - 1].mode[0] =
+			GRAPHEME_BIDIRECTIONAL_DIRECTION_LTR;
 	} else if (field[1][0] == '1') {
-		test[testlen - 1].mode[0] = GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL;
+		test[testlen - 1].mode[0] =
+			GRAPHEME_BIDIRECTIONAL_DIRECTION_RTL;
 	} else if (field[1][0] == '2') {
 		test[testlen - 1].mode[0] =
-			GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL;
+			GRAPHEME_BIDIRECTIONAL_DIRECTION_NEUTRAL;
 	} else {
 		fprintf(stderr, "unhandled paragraph-level-setting.\n");
 		exit(1);

@@ -895,28 +895,17 @@ preprocess_isolating_run_sequence(uint_least32_t *buf, size_t buflen,
 }
 
 static uint_least8_t
-get_paragraph_level(enum grapheme_bidirectional_override override,
-                    bool terminate_on_pdi, const uint_least32_t *buf,
-                    size_t buflen)
+get_isolated_paragraph_level(const uint_least32_t *state, size_t statelen)
 {
 	enum bidi_property prop;
 	int_least8_t isolate_level;
-	size_t bufoff;
+	size_t stateoff;
 
-	/* check overrides first according to rule HL1 */
-	if (override == GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR) {
-		return 0;
-	} else if (override == GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL) {
-		return 1;
-	}
+	/* determine paragraph level (rules P1-P3) and terminate on PDI */
+	for (stateoff = 0, isolate_level = 0; stateoff < statelen; stateoff++) {
+		prop = get_state(STATE_PROP, state[stateoff]);
 
-	/* determine paragraph level (rules P1-P3) */
-
-	for (bufoff = 0, isolate_level = 0; bufoff < buflen; bufoff++) {
-		prop = (uint_least8_t)get_state(STATE_PROP, buf[bufoff]);
-
-		if (prop == BIDI_PROP_PDI && isolate_level == 0 &&
-		    terminate_on_pdi) {
+		if (prop == BIDI_PROP_PDI && isolate_level == 0) {
 			/*
 			 * we are in a FSI-subsection of a paragraph and
 			 * matched with the terminating PDI
@@ -950,28 +939,86 @@ get_paragraph_level(enum grapheme_bidirectional_override override,
 	return 0;
 }
 
+static inline uint_least8_t
+get_bidi_property(uint_least32_t cp)
+{
+	if (likely(cp <= 0x10FFFF)) {
+		return (bidi_minor[bidi_major[cp >> 8] + (cp & 0xff)]) &
+		       0x1F /* 00011111 */;
+	} else {
+		return BIDI_PROP_L;
+	}
+}
+
+static uint_least8_t
+get_paragraph_level(enum grapheme_bidirectional_direction override,
+                    const HERODOTUS_READER *r)
+{
+	HERODOTUS_READER tmp;
+	enum bidi_property prop;
+	int_least8_t isolate_level;
+	uint_least32_t cp;
+
+	/* check overrides first according to rule HL1 */
+	if (override == GRAPHEME_BIDIRECTIONAL_DIRECTION_LTR) {
+		return 0;
+	} else if (override == GRAPHEME_BIDIRECTIONAL_DIRECTION_RTL) {
+		return 1;
+	}
+
+	/* copy reader into temporary reader */
+	herodotus_reader_copy(r, &tmp);
+
+	/* determine paragraph level (rules P1-P3) */
+	for (isolate_level = 0; herodotus_read_codepoint(&tmp, true, &cp) ==
+	                        HERODOTUS_STATUS_SUCCESS;) {
+		prop = get_bidi_property(cp);
+
+		/* BD8/BD9 */
+		if ((prop == BIDI_PROP_LRI || prop == BIDI_PROP_RLI ||
+		     prop == BIDI_PROP_FSI) &&
+		    isolate_level < MAX_DEPTH) {
+			/* we hit an isolate initiator, increment counter */
+			isolate_level++;
+		} else if (prop == BIDI_PROP_PDI && isolate_level > 0) {
+			isolate_level--;
+		}
+
+		/* P2 */
+		if (isolate_level > 0) {
+			continue;
+		}
+
+		/* P3 */
+		if (prop == BIDI_PROP_L) {
+			return 0;
+		} else if (prop == BIDI_PROP_AL || prop == BIDI_PROP_R) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 static void
-preprocess_paragraph(enum grapheme_bidirectional_override override,
-                     uint_least32_t *buf, size_t buflen)
+preprocess_paragraph(uint_least8_t paragraph_level, uint_least32_t *buf,
+                     size_t buflen)
 {
 	enum bidi_property prop;
 	int_least8_t level;
 
 	struct {
 		int_least8_t level;
-		enum grapheme_bidirectional_override override;
+		enum grapheme_bidirectional_direction override;
 		bool directional_isolate;
 	} directional_status[MAX_DEPTH + 2], *dirstat = directional_status;
 
 	size_t overflow_isolate_count, overflow_embedding_count,
 		valid_isolate_count, bufoff, i, runsince;
-	uint_least8_t paragraph_level;
-
-	paragraph_level = get_paragraph_level(override, false, buf, buflen);
 
 	/* X1 */
 	dirstat->level = (int_least8_t)paragraph_level;
-	dirstat->override = GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL;
+	dirstat->override = GRAPHEME_BIDIRECTIONAL_DIRECTION_NEUTRAL;
 	dirstat->directional_isolate = false;
 	overflow_isolate_count = overflow_embedding_count =
 		valid_isolate_count = 0;
@@ -995,7 +1042,7 @@ again:
 					(dirstat - 1)->level +
 					((dirstat - 1)->level % 2 != 0) + 1;
 				dirstat->override =
-					GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL;
+					GRAPHEME_BIDIRECTIONAL_DIRECTION_NEUTRAL;
 				dirstat->directional_isolate = false;
 			} else {
 				/* overflow RLE */
@@ -1014,7 +1061,7 @@ again:
 					(dirstat - 1)->level +
 					((dirstat - 1)->level % 2 == 0) + 1;
 				dirstat->override =
-					GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL;
+					GRAPHEME_BIDIRECTIONAL_DIRECTION_NEUTRAL;
 				dirstat->directional_isolate = false;
 			} else {
 				/* overflow LRE */
@@ -1033,7 +1080,7 @@ again:
 					(dirstat - 1)->level +
 					((dirstat - 1)->level % 2 != 0) + 1;
 				dirstat->override =
-					GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL;
+					GRAPHEME_BIDIRECTIONAL_DIRECTION_RTL;
 				dirstat->directional_isolate = false;
 			} else {
 				/* overflow RLO */
@@ -1052,7 +1099,7 @@ again:
 					(dirstat - 1)->level +
 					((dirstat - 1)->level % 2 == 0) + 1;
 				dirstat->override =
-					GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR;
+					GRAPHEME_BIDIRECTIONAL_DIRECTION_LTR;
 				dirstat->directional_isolate = false;
 			} else {
 				/* overflow LRO */
@@ -1063,11 +1110,11 @@ again:
 			/* X5a */
 			set_state(STATE_LEVEL, dirstat->level, &(buf[bufoff]));
 			if (dirstat->override ==
-			    GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR) {
+			    GRAPHEME_BIDIRECTIONAL_DIRECTION_LTR) {
 				set_state(STATE_PROP, BIDI_PROP_L,
 				          &(buf[bufoff]));
 			} else if (dirstat->override ==
-			           GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL) {
+			           GRAPHEME_BIDIRECTIONAL_DIRECTION_RTL) {
 				set_state(STATE_PROP, BIDI_PROP_R,
 				          &(buf[bufoff]));
 			}
@@ -1084,7 +1131,7 @@ again:
 					(dirstat - 1)->level +
 					((dirstat - 1)->level % 2 != 0) + 1;
 				dirstat->override =
-					GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL;
+					GRAPHEME_BIDIRECTIONAL_DIRECTION_NEUTRAL;
 				dirstat->directional_isolate = true;
 			} else {
 				/* overflow RLI */
@@ -1094,11 +1141,11 @@ again:
 			/* X5b */
 			set_state(STATE_LEVEL, dirstat->level, &(buf[bufoff]));
 			if (dirstat->override ==
-			    GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR) {
+			    GRAPHEME_BIDIRECTIONAL_DIRECTION_LTR) {
 				set_state(STATE_PROP, BIDI_PROP_L,
 				          &(buf[bufoff]));
 			} else if (dirstat->override ==
-			           GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL) {
+			           GRAPHEME_BIDIRECTIONAL_DIRECTION_RTL) {
 				set_state(STATE_PROP, BIDI_PROP_R,
 				          &(buf[bufoff]));
 			}
@@ -1115,7 +1162,7 @@ again:
 					(dirstat - 1)->level +
 					((dirstat - 1)->level % 2 == 0) + 1;
 				dirstat->override =
-					GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL;
+					GRAPHEME_BIDIRECTIONAL_DIRECTION_NEUTRAL;
 				dirstat->directional_isolate = true;
 			} else {
 				/* overflow LRI */
@@ -1123,9 +1170,8 @@ again:
 			}
 		} else if (prop == BIDI_PROP_FSI) {
 			/* X5c */
-			if (get_paragraph_level(
-				    GRAPHEME_BIDIRECTIONAL_OVERRIDE_NEUTRAL,
-				    true, buf + (bufoff + 1),
+			if (get_isolated_paragraph_level(
+				    buf + (bufoff + 1),
 				    buflen - (bufoff + 1)) == 1) {
 				prop = BIDI_PROP_RLI;
 				goto again;
@@ -1138,11 +1184,11 @@ again:
 			/* X6 */
 			set_state(STATE_LEVEL, dirstat->level, &(buf[bufoff]));
 			if (dirstat->override ==
-			    GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR) {
+			    GRAPHEME_BIDIRECTIONAL_DIRECTION_LTR) {
 				set_state(STATE_PROP, BIDI_PROP_L,
 				          &(buf[bufoff]));
 			} else if (dirstat->override ==
-			           GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL) {
+			           GRAPHEME_BIDIRECTIONAL_DIRECTION_RTL) {
 				set_state(STATE_PROP, BIDI_PROP_R,
 				          &(buf[bufoff]));
 			}
@@ -1190,11 +1236,11 @@ again:
 
 			set_state(STATE_LEVEL, dirstat->level, &(buf[bufoff]));
 			if (dirstat->override ==
-			    GRAPHEME_BIDIRECTIONAL_OVERRIDE_LTR) {
+			    GRAPHEME_BIDIRECTIONAL_DIRECTION_LTR) {
 				set_state(STATE_PROP, BIDI_PROP_L,
 				          &(buf[bufoff]));
 			} else if (dirstat->override ==
-			           GRAPHEME_BIDIRECTIONAL_OVERRIDE_RTL) {
+			           GRAPHEME_BIDIRECTIONAL_DIRECTION_RTL) {
 				set_state(STATE_PROP, BIDI_PROP_R,
 				          &(buf[bufoff]));
 			}
@@ -1317,17 +1363,6 @@ again:
 }
 
 static inline uint_least8_t
-get_bidi_property(uint_least32_t cp)
-{
-	if (likely(cp <= 0x10FFFF)) {
-		return (bidi_minor[bidi_major[cp >> 8] + (cp & 0xff)]) &
-		       0x1F /* 00011111 */;
-	} else {
-		return BIDI_PROP_L;
-	}
-}
-
-static inline uint_least8_t
 get_bidi_bracket_off(uint_least32_t cp)
 {
 	if (likely(cp <= 0x10FFFF)) {
@@ -1340,20 +1375,35 @@ get_bidi_bracket_off(uint_least32_t cp)
 }
 
 static size_t
-preprocess(HERODOTUS_READER *r, enum grapheme_bidirectional_override override,
-           uint_least32_t *buf, size_t buflen)
+preprocess(HERODOTUS_READER *r, enum grapheme_bidirectional_direction override,
+           uint_least32_t *buf, size_t buflen,
+           enum grapheme_bidirectional_direction *resolved)
 {
-	size_t bufoff, bufsize, lastparoff;
+	HERODOTUS_READER tmp;
+	size_t bufoff, bufsize, paragraph_len;
 	uint_least32_t cp;
+	uint_least8_t paragraph_level;
+
+	/* determine length and level of the paragraph */
+	herodotus_reader_copy(r, &tmp);
+	for (; herodotus_read_codepoint(&tmp, true, &cp) ==
+	       HERODOTUS_STATUS_SUCCESS;) {
+		/* break on paragraph separator */
+		if (get_bidi_property(cp) == BIDI_PROP_B) {
+			break;
+		}
+	}
+	paragraph_len = herodotus_reader_number_read(&tmp);
+	paragraph_level = get_paragraph_level(override, r);
+
+	if (resolved != NULL) {
+		/* store resolved paragraph level in output variable */
+		*resolved = paragraph_level;
+	}
 
 	if (buf == NULL) {
-		for (; herodotus_read_codepoint(r, true, &cp) ==
-		       HERODOTUS_STATUS_SUCCESS;) {
-			;
-		}
-
 		/* see below for return value reasoning */
-		return herodotus_reader_number_read(r);
+		return paragraph_len;
 	}
 
 	/*
@@ -1361,6 +1411,7 @@ preprocess(HERODOTUS_READER *r, enum grapheme_bidirectional_override override,
 	 * and store them in the buffer
 	 */
 	for (bufoff = 0;
+	     bufoff < paragraph_len &&
 	     herodotus_read_codepoint(r, true, &cp) == HERODOTUS_STATUS_SUCCESS;
 	     bufoff++) {
 		if (bufoff < buflen) {
@@ -1385,7 +1436,7 @@ preprocess(HERODOTUS_READER *r, enum grapheme_bidirectional_override override,
 	}
 	bufsize = herodotus_reader_number_read(r);
 
-	for (bufoff = 0, lastparoff = 0; bufoff < bufsize; bufoff++) {
+	for (bufoff = 0; bufoff < bufsize; bufoff++) {
 		if (get_state(STATE_PROP, buf[bufoff]) != BIDI_PROP_B &&
 		    bufoff != bufsize - 1) {
 			continue;
@@ -1398,9 +1449,8 @@ preprocess(HERODOTUS_READER *r, enum grapheme_bidirectional_override override,
 		 * the terminating character or last character of the
 		 * string respectively
 		 */
-		preprocess_paragraph(override, buf + lastparoff,
-		                     bufoff + 1 - lastparoff);
-		lastparoff = bufoff + 1;
+		preprocess_paragraph(paragraph_level, buf, bufoff + 1);
+		break;
 	}
 
 	/*
@@ -1411,50 +1461,41 @@ preprocess(HERODOTUS_READER *r, enum grapheme_bidirectional_override override,
 }
 
 size_t
-grapheme_bidirectional_preprocess(const uint_least32_t *src, size_t srclen,
-                                  enum grapheme_bidirectional_override override,
-                                  uint_least32_t *dest, size_t destlen)
+grapheme_bidirectional_preprocess_paragraph(
+	const uint_least32_t *src, size_t srclen,
+	enum grapheme_bidirectional_direction override, uint_least32_t *dest,
+	size_t destlen, enum grapheme_bidirectional_direction *resolved)
 {
 	HERODOTUS_READER r;
 
 	herodotus_reader_init(&r, HERODOTUS_TYPE_CODEPOINT, src, srclen);
 
-	return preprocess(&r, override, dest, destlen);
+	return preprocess(&r, override, dest, destlen, resolved);
 }
 
-size_t
-grapheme_bidirectional_preprocess_utf8(
-	const char *src, size_t srclen,
-	enum grapheme_bidirectional_override override, uint_least32_t *dest,
-	size_t destlen)
-{
-	HERODOTUS_READER r;
-
-	herodotus_reader_init(&r, HERODOTUS_TYPE_UTF8, src, srclen);
-
-	return preprocess(&r, override, dest, destlen);
-}
-
-size_t
-grapheme_bidirectional_get_line_embedding_levels(const uint_least32_t *linedata,
-                                                 size_t linelen,
-                                                 int_least8_t *lev,
-                                                 size_t levlen)
+static inline size_t
+get_line_embedding_levels(const uint_least32_t *linedata, size_t linelen,
+                          int_least8_t (*get_level)(const void *, size_t),
+                          void (*set_level)(void *, size_t, int_least8_t),
+                          void *lev, size_t levsize, bool skipignored)
 {
 	enum bidi_property prop;
-	size_t i, runsince;
-	int_least8_t level;
+	size_t i, levlen, runsince;
+	int_least8_t level, runlevel;
 
 	/* rule L1.4 */
 	runsince = SIZE_MAX;
-	for (i = 0; i < linelen; i++) {
+	for (i = 0, levlen = 0; i < linelen; i++) {
 		level = (int_least8_t)get_state(STATE_LEVEL, linedata[i]);
 		prop = (uint_least8_t)get_state(STATE_PRESERVED_PROP,
 		                                linedata[i]);
 
 		/* write level into level array if we still have space */
-		if (i < levlen) {
-			lev[i] = level;
+		if (level != -1 || skipignored == false) {
+			if (levlen <= levsize) {
+				set_level(lev, levlen, level);
+			}
+			levlen++;
 		}
 
 		if (level == -1) {
@@ -1467,11 +1508,14 @@ grapheme_bidirectional_get_line_embedding_levels(const uint_least32_t *linedata,
 		    prop == BIDI_PROP_PDI) {
 			if (runsince == SIZE_MAX) {
 				/* a new run has begun */
-				runsince = i;
+				runsince = levlen - 1; /* levlen > 0 */
+				runlevel = get_state(STATE_PARAGRAPH_LEVEL,
+				                     linedata[i]);
 			}
 		} else {
 			/* sequence ended */
 			runsince = SIZE_MAX;
+			runlevel = -1;
 		}
 	}
 	if (runsince != SIZE_MAX) {
@@ -1479,13 +1523,207 @@ grapheme_bidirectional_get_line_embedding_levels(const uint_least32_t *linedata,
 		 * we hit the end of the line but were in a run;
 		 * reset the line levels to the paragraph level
 		 */
-		for (i = runsince; i < MIN(linelen, levlen); i++) {
-			if (lev[i] != -1) {
-				lev[i] = (int_least8_t)get_state(
-					STATE_PARAGRAPH_LEVEL, linedata[i]);
+		for (i = runsince; i < MIN(linelen, levsize); i++) {
+			if (get_level(lev, i) != -1) {
+				set_level(lev, i, runlevel);
 			}
 		}
 	}
 
-	return linelen;
+	return levlen;
+}
+
+static inline int_least8_t
+get_level_int8(const void *lev, size_t off)
+{
+	return ((int_least8_t *)lev)[off];
+}
+
+static inline void
+set_level_int8(void *lev, size_t off, int_least8_t value)
+{
+	((int_least8_t *)lev)[off] = value;
+}
+
+size_t
+grapheme_bidirectional_get_line_embedding_levels(const uint_least32_t *linedata,
+                                                 size_t linelen,
+                                                 int_least8_t *lev,
+                                                 size_t levlen)
+{
+	return get_line_embedding_levels(linedata, linelen, get_level_int8,
+	                                 set_level_int8, lev, levlen, false);
+}
+
+static inline int_least8_t
+get_level_uint32(const void *lev, size_t off)
+{
+	return (int_least8_t)((((uint_least32_t *)lev)[off] &
+	                       UINT32_C(0x1FE00000)) >>
+	                      21) -
+	       1;
+}
+
+static inline void
+set_level_uint32(void *lev, size_t off, int_least8_t value)
+{
+	((uint_least32_t *)lev)[off] ^=
+		((uint_least32_t *)lev)[off] & UINT32_C(0x1FE00000);
+	((uint_least32_t *)lev)[off] |= ((uint_least32_t)(value + 1)) << 21;
+}
+
+static inline int_least16_t
+get_mirror_offset(uint_least32_t cp)
+{
+	if (cp <= UINT32_C(0x10FFFF)) {
+		return mirror_minor[mirror_major[cp >> 8] + (cp & 0xFF)];
+	} else {
+		return 0;
+	}
+}
+
+size_t
+grapheme_bidirectional_reorder_line(const uint_least32_t *line,
+                                    const uint_least32_t *linedata,
+                                    size_t linelen, uint_least32_t *output,
+                                    size_t outputsize)
+{
+	size_t i, outputlen, first, last, j, k, l, laststart;
+	int_least8_t level, min_odd_level = MAX_DEPTH + 2, max_level = 0;
+	uint_least32_t tmp;
+
+	/* write output characters */
+	for (i = 0, outputlen = 0; i < linelen; i++) {
+		if (get_state(STATE_LEVEL, linedata[i]) != -1) {
+			if (outputlen < outputsize) {
+				output[outputlen] = line[i];
+			}
+			outputlen++;
+		}
+	}
+	if (outputlen >= outputsize) {
+		/* clear output buffer */
+		for (i = 0; i < outputsize; i++) {
+			output[i] = GRAPHEME_INVALID_CODEPOINT;
+		}
+
+		/* return required size */
+		return outputlen;
+	}
+
+	/*
+	 * write line embedding levels as metadata and codepoints into the
+	 * output
+	 */
+	get_line_embedding_levels(linedata, linelen, get_level_uint32,
+	                          set_level_uint32, output, linelen, true);
+
+	/* determine level range */
+	for (i = 0; i < outputlen; i++) {
+		level = get_level_uint32(output, i);
+
+		if (level == -1) {
+			/* ignored character */
+			continue;
+		}
+
+		if (level % 2 == 1 && level < min_odd_level) {
+			min_odd_level = level;
+		}
+		if (level > max_level) {
+			max_level = level;
+		}
+	}
+
+	for (level = max_level; level >= min_odd_level /* > 0 */; level--) {
+		for (i = 0; i < outputlen; i++) {
+			if (get_level_uint32(output, i) >= level) {
+				/*
+				 * the current character has the desired level
+				 */
+				first = last = i;
+
+				/* find the end of the level-sequence */
+				for (i++; i < outputlen; i++) {
+					if (get_level_uint32(output, i) >=
+					    level) {
+						/* the sequence continues */
+						last = i;
+					} else {
+						break;
+					}
+				}
+
+				/* invert the sequence first..last respecting
+				 * grapheme clusters
+				 *
+				 * The standard only speaks of combining marks
+				 * inversion, but we should in the perfect case
+				 * respect _all_ grapheme clusters, which we do
+				 * here!
+				 */
+
+				/* mark grapheme cluster breaks */
+				for (j = first; j <= last;
+				     j += grapheme_next_character_break(
+					     line + j, outputlen - j)) {
+					/*
+					 * we use a special trick here: The
+					 * first 21 bits of the state are filled
+					 * with the codepoint, the next 8 bits
+					 * are used for the level, so we can use
+					 * the 30th bit to mark the grapheme
+					 * cluster breaks. This allows us to
+					 * reinvert the grapheme clusters into
+					 * the proper direction later.
+					 */
+					output[j] |= UINT32_C(1) << 29;
+				}
+
+				/* global inversion */
+				for (k = first, l = last; k < l; k++, l--) {
+					/* swap */
+					tmp = output[k];
+					output[k] = output[l];
+					output[l] = tmp;
+				}
+
+				/* grapheme cluster reinversion */
+#if 0
+				for (j = first, laststart = first; j <= last;
+				     j++) {
+					if (output[j] & (UINT32_C(1) << 29)) {
+						/* we hit a mark! given the
+						 * grapheme cluster is inverted,
+						 * this means that the cluster
+						 * ended and we now reinvert it
+						 * again
+						 */
+						for (k = laststart, l = j;
+						     k < l; k++, l--) {
+							/* swap */
+							tmp = output[k];
+							output[k] = output[l];
+							output[l] = tmp;
+						}
+						laststart = j + 1;
+					}
+				}
+#endif
+
+				/* unmark grapheme cluster breaks */
+				for (j = first; j <= last; j++) {
+					output[j] ^= output[j] &
+					             UINT32_C(0x20000000);
+				}
+			}
+		}
+	}
+
+	/* remove embedding level metadata */
+	for (i = 0; i < outputlen; i++) {
+		output[i] ^= output[i] & UINT32_C(0x1FE00000);
+	}
+
+	return outputlen;
 }
