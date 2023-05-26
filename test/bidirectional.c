@@ -12,12 +12,15 @@
 int
 main(int argc, char *argv[])
 {
-	uint_least32_t data[512]; /* TODO iterate and get max, allocate */
+	uint_least32_t data[512],
+		output[512]; /* TODO iterate and get max, allocate */
 	int_least8_t lev[512];
-	size_t i, num_tests, failed, datalen, levlen, ret, j, m;
+	size_t i, num_tests, failed, datalen, levlen, outputlen, ret, j, m,
+		ret2;
 
 	datalen = LEN(data);
 	levlen = LEN(lev);
+	outputlen = LEN(output);
 
 	(void)argc;
 
@@ -27,16 +30,19 @@ main(int argc, char *argv[])
 
 	for (i = 0, failed = 0; i < LEN(bidirectional_test); i++) {
 		for (m = 0; m < bidirectional_test[i].modelen; m++) {
-			ret = grapheme_bidirectional_preprocess(
+			ret = grapheme_bidirectional_preprocess_paragraph(
 				bidirectional_test[i].cp,
 				bidirectional_test[i].cplen,
-				bidirectional_test[i].mode[m], data, datalen);
+				bidirectional_test[i].mode[m], data, datalen,
+				NULL);
+			ret2 = 0;
 
 			if (ret != bidirectional_test[i].cplen ||
 			    ret > datalen) {
 				goto err;
 			}
 
+			/* line levels */
 			ret = grapheme_bidirectional_get_line_embedding_levels(
 				data, ret, lev, levlen);
 
@@ -49,6 +55,25 @@ main(int argc, char *argv[])
 					goto err;
 				}
 			}
+
+			/* reordering */
+			ret2 = grapheme_bidirectional_reorder_line(
+				bidirectional_test[i].cp, data, ret, output,
+				outputlen);
+
+			if (ret2 != bidirectional_test[i].reorderlen) {
+				goto err;
+			}
+
+			for (j = 0; j < ret2; j++) {
+				if (output[j] !=
+				    bidirectional_test[i]
+				            .cp[bidirectional_test[i]
+				                        .reorder[j]]) {
+					goto err;
+				}
+			}
+
 			continue;
 err:
 			fprintf(stderr,
@@ -58,17 +83,32 @@ err:
 				fprintf(stderr, " 0x%04" PRIXLEAST32,
 				        bidirectional_test[i].cp[j]);
 			}
-			fprintf(stderr, " ],\n\tgot      (");
+			fprintf(stderr, " ],\n\tlevels: got      (");
 			for (j = 0; j < ret; j++) {
 				fprintf(stderr, " %" PRIdLEAST8,
 				        (int_least8_t)lev[j]);
 			}
-			fprintf(stderr, " ),\n\texpected (");
+			fprintf(stderr, " ),\n\tlevels: expected (");
 			for (j = 0; j < ret; j++) {
 				fprintf(stderr, " %" PRIdLEAST8,
 				        bidirectional_test[i].level[j]);
 			}
 			fprintf(stderr, " ).\n");
+
+			fprintf(stderr, "\treordering: got      (");
+			for (j = 0; j < ret2; j++) {
+				fprintf(stderr, " 0x%04" PRIxLEAST32,
+				        output[j]);
+			}
+			fprintf(stderr, " ),\n\treordering: expected (");
+			for (j = 0; j < bidirectional_test[i].reorderlen; j++) {
+				fprintf(stderr, " 0x%04" PRIxLEAST32,
+				        bidirectional_test[i]
+				                .cp[bidirectional_test[i]
+				                            .reorder[j]]);
+			}
+			fprintf(stderr, " ).\n");
+
 			failed++;
 		}
 	}
