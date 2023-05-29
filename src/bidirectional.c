@@ -1527,7 +1527,7 @@ get_line_embedding_levels(const uint_least32_t *linedata, size_t linelen,
 		 * we hit the end of the line but were in a run;
 		 * reset the line levels to the paragraph level
 		 */
-		for (i = runsince; i < MIN(linelen, levsize); i++) {
+		for (i = runsince; i < MIN(linelen, levlen); i++) {
 			if (get_level(lev, i) != -1) {
 				set_level(lev, i, runlevel);
 			}
@@ -1624,7 +1624,7 @@ grapheme_bidirectional_reorder_line(const uint_least32_t *line,
 	 * output
 	 */
 	get_line_embedding_levels(linedata, linelen, get_level_uint32,
-	                          set_level_uint32, output, linelen, true);
+	                          set_level_uint32, output, outputsize, true);
 
 	/* determine level range */
 	for (i = 0; i < outputlen; i++) {
