@@ -499,5 +499,10 @@ main(int argc, char *argv[])
 	                                      mm_mirror.minorlen, get_value,
 	                                      comp_mirror.data);
 
+	free(comp_mirror.data);
+	free(comp_mirror.offset);
+	free(mm_mirror.major);
+	free(mm_mirror.minor);
+
 	return 0;
 }
