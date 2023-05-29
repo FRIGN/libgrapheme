@@ -5,16 +5,27 @@
 #include <stdio.h>
 
 #include "../gen/bidirectional-test.h"
+#include "../gen/bidirectional.h"
 #include "../gen/types.h"
 #include "../grapheme.h"
 #include "util.h"
+
+static inline int_least16_t
+get_mirror_offset(uint_least32_t cp)
+{
+	if (cp <= UINT32_C(0x10FFFF)) {
+		return mirror_minor[mirror_major[cp >> 8] + (cp & 0xFF)];
+	} else {
+		return 0;
+	}
+}
 
 int
 main(int argc, char *argv[])
 {
 	enum grapheme_bidirectional_direction resolved;
-	uint_least32_t data[512],
-		output[512]; /* TODO iterate and get max, allocate */
+	uint_least32_t data[512], output[512],
+		target; /* TODO iterate and get max, allocate */
 	int_least8_t lev[512];
 	size_t i, num_tests, failed, datalen, levlen, outputlen, ret, j, m,
 		ret2;
@@ -75,10 +86,13 @@ main(int argc, char *argv[])
 			}
 
 			for (j = 0; j < ret2; j++) {
+				target = bidirectional_test[i]
+				                 .cp[bidirectional_test[i]
+				                             .reorder[j]];
 				if (output[j] !=
-				    bidirectional_test[i]
-				            .cp[bidirectional_test[i]
-				                        .reorder[j]]) {
+				    (uint_least32_t)((int_least32_t)target +
+				                     get_mirror_offset(
+							     target))) {
 					goto err;
 				}
 			}
