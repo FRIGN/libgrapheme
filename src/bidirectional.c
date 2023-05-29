@@ -903,7 +903,7 @@ get_isolated_paragraph_level(const uint_least32_t *state, size_t statelen)
 
 	/* determine paragraph level (rules P1-P3) and terminate on PDI */
 	for (stateoff = 0, isolate_level = 0; stateoff < statelen; stateoff++) {
-		prop = get_state(STATE_PROP, state[stateoff]);
+		prop = (uint_least8_t)get_state(STATE_PROP, state[stateoff]);
 
 		if (prop == BIDI_PROP_PDI && isolate_level == 0) {
 			/*
@@ -1488,6 +1488,7 @@ get_line_embedding_levels(const uint_least32_t *linedata, size_t linelen,
 
 	/* rule L1.4 */
 	runsince = SIZE_MAX;
+	runlevel = -1;
 	for (i = 0, levlen = 0; i < linelen; i++) {
 		level = (int_least8_t)get_state(STATE_LEVEL, linedata[i]);
 		prop = (uint_least8_t)get_state(STATE_PRESERVED_PROP,
@@ -1512,8 +1513,8 @@ get_line_embedding_levels(const uint_least32_t *linedata, size_t linelen,
 			if (runsince == SIZE_MAX) {
 				/* a new run has begun */
 				runsince = levlen - 1; /* levlen > 0 */
-				runlevel = get_state(STATE_PARAGRAPH_LEVEL,
-				                     linedata[i]);
+				runlevel = (int_least8_t)get_state(
+					STATE_PARAGRAPH_LEVEL, linedata[i]);
 			}
 		} else {
 			/* sequence ended */
@@ -1539,7 +1540,7 @@ get_line_embedding_levels(const uint_least32_t *linedata, size_t linelen,
 static inline int_least8_t
 get_level_int8(const void *lev, size_t off)
 {
-	return ((int_least8_t *)lev)[off];
+	return ((const int_least8_t *)lev)[off];
 }
 
 static inline void
@@ -1561,7 +1562,7 @@ grapheme_bidirectional_get_line_embedding_levels(const uint_least32_t *linedata,
 static inline int_least8_t
 get_level_uint32(const void *lev, size_t off)
 {
-	return (int_least8_t)((((uint_least32_t *)lev)[off] &
+	return (int_least8_t)((((const uint_least32_t *)lev)[off] &
 	                       UINT32_C(0x1FE00000)) >>
 	                      21) -
 	       1;
@@ -1591,15 +1592,19 @@ grapheme_bidirectional_reorder_line(const uint_least32_t *line,
                                     size_t linelen, uint_least32_t *output,
                                     size_t outputsize)
 {
-	size_t i, outputlen, first, last, j, k, l, laststart;
+	size_t i, outputlen, first, last, j, k, l /*, laststart*/;
 	int_least8_t level, min_odd_level = MAX_DEPTH + 2, max_level = 0;
 	uint_least32_t tmp;
 
-	/* write output characters */
+	/* write output characters (and apply possible mirroring) */
 	for (i = 0, outputlen = 0; i < linelen; i++) {
 		if (get_state(STATE_LEVEL, linedata[i]) != -1) {
 			if (outputlen < outputsize) {
-				output[outputlen] = line[i];
+				output[outputlen] =
+					(uint_least32_t)((int_least32_t)
+				                                 line[i] +
+				                         get_mirror_offset(
+								 line[i]));
 			}
 			outputlen++;
 		}
