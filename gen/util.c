@@ -284,6 +284,7 @@ parse_file_with_callback(const char *fname,
 
 	free(line);
 	free(field);
+	fclose(fp);
 }
 
 static int
