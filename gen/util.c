@@ -282,6 +282,14 @@ parse_file_with_callback(const char *fname,
 		}
 	}
 
+	/* close file */
+	if (fclose(fp)) {
+		fprintf(stderr, "parse_file_with_callback: fclose '%s': %s.\n",
+		        fname, strerror(errno));
+		exit(1);
+	}
+
+	/* cleanup */
 	free(line);
 	free(field);
 }
