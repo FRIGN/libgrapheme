@@ -15,7 +15,7 @@ BINSUFFIX =
 
 # flags
 CPPFLAGS = -D_ISOC99_SOURCE
-CFLAGS   = -std=c99 -Os -Wall -Wextra -Wpedantic
+CFLAGS   = -std=c99 -Os -Wall -Wextra -Wpedantic -Wno-overlength-strings
 LDFLAGS  = -s
 
 BUILD_CPPFLAGS = $(CPPFLAGS)
