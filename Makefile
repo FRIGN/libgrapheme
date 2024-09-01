@@ -196,7 +196,7 @@ src/sentence.o: src/sentence.c Makefile config.mk gen/sentence.h grapheme.h src/
 src/utf8.o: src/utf8.c Makefile config.mk grapheme.h
 src/util.o: src/util.c Makefile config.mk gen/types.h grapheme.h src/util.h
 src/word.o: src/word.c Makefile config.mk gen/word.h grapheme.h src/util.h
-test/bidirectional.o: test/bidirectional.c Makefile config.mk gen/bidirectional-test.h grapheme.h test/util.h
+test/bidirectional.o: test/bidirectional.c Makefile config.mk gen/bidirectional.h gen/bidirectional-test.h grapheme.h test/util.h
 test/case.o: test/case.c Makefile config.mk grapheme.h test/util.h
 test/character.o: test/character.c Makefile config.mk gen/character-test.h grapheme.h test/util.h
 test/line.o: test/line.c Makefile config.mk gen/line-test.h grapheme.h test/util.h
@@ -236,7 +236,7 @@ test/word$(BINSUFFIX): test/word.o test/util.o $(ANAME)
 gen/bidirectional.h: data/BidiBrackets.txt data/BidiMirroring.txt data/DerivedBidiClass.txt data/UnicodeData.txt gen/bidirectional$(BINSUFFIX)
 gen/bidirectional-test.h: data/BidiCharacterTest.txt data/BidiTest.txt gen/bidirectional-test$(BINSUFFIX)
 gen/case.h: data/DerivedCoreProperties.txt data/UnicodeData.txt data/SpecialCasing.txt gen/case$(BINSUFFIX)
-gen/character.h: data/emoji-data.txt data/GraphemeBreakProperty.txt gen/character$(BINSUFFIX)
+gen/character.h: data/DerivedCoreProperties.txt data/emoji-data.txt data/GraphemeBreakProperty.txt gen/character$(BINSUFFIX)
 gen/character-test.h: data/GraphemeBreakTest.txt gen/character-test$(BINSUFFIX)
 gen/line.h: data/emoji-data.txt data/EastAsianWidth.txt data/LineBreak.txt gen/line$(BINSUFFIX)
 gen/line-test.h: data/LineBreakTest.txt gen/line-test$(BINSUFFIX)

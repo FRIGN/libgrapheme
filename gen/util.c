@@ -317,7 +317,10 @@ properties_callback(const char *file, char **field, size_t nfields,
 		     (comment != NULL &&
 		      !strncmp(p->spec[i].ucdname, comment,
 		               strlen(p->spec[i].ucdname)) &&
-		      comment[strlen(p->spec[i].ucdname)] == ' '))) {
+		      comment[strlen(p->spec[i].ucdname)] == ' ')) &&
+		    (p->spec[i].ucdsubname == NULL ||
+		     (nfields >= 3 &&
+		      !strcmp(p->spec[i].ucdsubname, field[2])))) {
 			/* parse range in first field */
 			if (range_parse(field[0], &r)) {
 				return 1;

@@ -13,6 +13,7 @@ struct property_spec {
 	const char *enumname;
 	const char *file;
 	const char *ucdname;
+	const char *ucdsubname;
 };
 
 struct properties {

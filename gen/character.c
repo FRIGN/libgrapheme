@@ -1,14 +1,33 @@
 /* See LICENSE file for copyright and license details. */
 #include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "util.h"
 
+#define FILE_DCP      "data/DerivedCoreProperties.txt"
 #define FILE_EMOJI    "data/emoji-data.txt"
 #define FILE_GRAPHEME "data/GraphemeBreakProperty.txt"
 
 static const struct property_spec char_break_property[] = {
 	{
 		.enumname = "OTHER",
+		.file = NULL,
+		.ucdname = NULL,
+	},
+	{
+		.enumname = "BOTH_EXTEND_ICB_EXTEND",
+		.file = NULL,
+		.ucdname = NULL,
+	},
+	{
+		.enumname = "BOTH_EXTEND_ICB_LINKER",
+		.file = NULL,
+		.ucdname = NULL,
+	},
+	{
+		.enumname = "BOTH_ZWJ_ICB_EXTEND",
 		.file = NULL,
 		.ucdname = NULL,
 	},
@@ -58,6 +77,24 @@ static const struct property_spec char_break_property[] = {
 		.ucdname = "LVT",
 	},
 	{
+		.enumname = "ICB_CONSONANT",
+		.file = FILE_DCP,
+		.ucdname = "InCB",
+		.ucdsubname = "Consonant",
+	},
+	{
+		.enumname = "ICB_EXTEND",
+		.file = FILE_DCP,
+		.ucdname = "InCB",
+		.ucdsubname = "Extend",
+	},
+	{
+		.enumname = "ICB_LINKER",
+		.file = FILE_DCP,
+		.ucdname = "InCB",
+		.ucdsubname = "Linker",
+	},
+	{
 		.enumname = "LF",
 		.file = FILE_GRAPHEME,
 		.ucdname = "LF",
@@ -84,14 +121,75 @@ static const struct property_spec char_break_property[] = {
 	},
 };
 
+static uint_least8_t
+handle_conflict(uint_least32_t cp, uint_least8_t prop1, uint_least8_t prop2)
+{
+	uint_least8_t result;
+
+	(void)cp;
+
+	if ((!strcmp(char_break_property[prop1].enumname, "EXTEND") &&
+	     !strcmp(char_break_property[prop2].enumname, "ICB_EXTEND")) ||
+	    (!strcmp(char_break_property[prop1].enumname, "ICB_EXTEND") &&
+	     !strcmp(char_break_property[prop2].enumname, "EXTEND"))) {
+		for (result = 0; result < LEN(char_break_property); result++) {
+			if (!strcmp(char_break_property[result].enumname,
+			            "BOTH_EXTEND_ICB_EXTEND")) {
+				break;
+			}
+		}
+		if (result == LEN(char_break_property)) {
+			fprintf(stderr, "handle_conflict: Internal error.\n");
+			exit(1);
+		}
+	} else if ((!strcmp(char_break_property[prop1].enumname, "EXTEND") &&
+	            !strcmp(char_break_property[prop2].enumname,
+	                    "ICB_LINKER")) ||
+	           (!strcmp(char_break_property[prop1].enumname,
+	                    "ICB_LINKER") &&
+	            !strcmp(char_break_property[prop2].enumname, "EXTEND"))) {
+		for (result = 0; result < LEN(char_break_property); result++) {
+			if (!strcmp(char_break_property[result].enumname,
+			            "BOTH_EXTEND_ICB_LINKER")) {
+				break;
+			}
+		}
+		if (result == LEN(char_break_property)) {
+			fprintf(stderr, "handle_conflict: Internal error.\n");
+			exit(1);
+		}
+	} else if ((!strcmp(char_break_property[prop1].enumname, "ZWJ") &&
+	            !strcmp(char_break_property[prop2].enumname,
+	                    "ICB_EXTEND")) ||
+	           (!strcmp(char_break_property[prop1].enumname,
+	                    "ICB_EXTEND") &&
+	            !strcmp(char_break_property[prop2].enumname, "ZWJ"))) {
+		for (result = 0; result < LEN(char_break_property); result++) {
+			if (!strcmp(char_break_property[result].enumname,
+			            "BOTH_ZWJ_ICB_EXTEND")) {
+				break;
+			}
+		}
+		if (result == LEN(char_break_property)) {
+			fprintf(stderr, "handle_conflict: Internal error.\n");
+			exit(1);
+		}
+	} else {
+		fprintf(stderr, "handle_conflict: Cannot handle conflict.\n");
+		exit(1);
+	}
+
+	return result;
+}
+
 int
 main(int argc, char *argv[])
 {
 	(void)argc;
 
-	properties_generate_break_property(char_break_property,
-	                                   LEN(char_break_property), NULL, NULL,
-	                                   NULL, "char_break", argv[0]);
+	properties_generate_break_property(
+		char_break_property, LEN(char_break_property), NULL,
+		handle_conflict, NULL, "char_break", argv[0]);
 
 	return 0;
 }
