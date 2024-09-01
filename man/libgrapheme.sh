@@ -85,11 +85,11 @@ points are needed as Unicode's goal is to express all writing systems
 of the world.
 To give an example, the abstract character
 .Sq \[u00C4]
-is not expressable in ASCII, given no ASCII codepoint has been assigned
+is not expressible in ASCII, given no ASCII codepoint has been assigned
 to it.
 It can be expressed in Unicode, though, with the codepoint 196 (0xC4).
 .Pp
-One may assume that this process is straightfoward, but as more and
+One may assume that this process is straightforward, but as more and
 more codepoints were assigned to abstract characters, the Unicode
 Consortium (that defines the Unicode standard) was facing a problem:
 Many (mostly non-European) languages have such a large amount of
