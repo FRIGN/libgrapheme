@@ -56,6 +56,9 @@ GEN =\
 	gen/word\
 	gen/word-test\
 
+GEN2 =\
+	gen2/character\
+
 SRC =\
 	src/bidirectional\
 	src/case\
@@ -188,6 +191,8 @@ gen/sentence-test.o: gen/sentence-test.c Makefile config.mk gen/util.h
 gen/word.o: gen/word.c Makefile config.mk gen/util.h
 gen/word-test.o: gen/word-test.c Makefile config.mk gen/util.h
 gen/util.o: gen/util.c Makefile config.mk gen/util.h
+gen2/character.o: gen2/character.c Makefile config.mk gen2/util.h
+gen2/util.o: gen2/util.c Makefile config.mk gen2/util.h
 src/bidirectional.o: src/bidirectional.c Makefile config.mk gen/bidirectional.h grapheme.h src/util.h
 src/case.o: src/case.c Makefile config.mk gen/case.h grapheme.h src/util.h
 src/character.o: src/character.c Makefile config.mk gen/character.h grapheme.h src/util.h
@@ -224,6 +229,7 @@ gen/sentence$(BINSUFFIX): gen/sentence.o gen/util.o
 gen/sentence-test$(BINSUFFIX): gen/sentence-test.o gen/util.o
 gen/word$(BINSUFFIX): gen/word.o gen/util.o
 gen/word-test$(BINSUFFIX): gen/word-test.o gen/util.o
+gen2/character$(BINSUFFIX): gen2/character.o gen2/util.o
 test/bidirectional$(BINSUFFIX): test/bidirectional.o test/util.o $(ANAME)
 test/case$(BINSUFFIX): test/case.o test/util.o $(ANAME)
 test/character$(BINSUFFIX): test/character.o test/util.o $(ANAME)
@@ -244,6 +250,7 @@ gen/sentence.h: data/SentenceBreakProperty.txt gen/sentence$(BINSUFFIX)
 gen/sentence-test.h: data/SentenceBreakTest.txt gen/sentence-test$(BINSUFFIX)
 gen/word.h: data/WordBreakProperty.txt gen/word$(BINSUFFIX)
 gen/word-test.h: data/WordBreakTest.txt gen/word-test$(BINSUFFIX)
+gen2/character.out.h: data/DerivedCoreProperties.txt data/emoji-data.txt data/GraphemeBreakProperty.txt gen2/character$(BINSUFFIX)
 
 man/grapheme_is_character_break.3: man/grapheme_is_character_break.sh Makefile config.mk
 man/grapheme_is_uppercase.3: man/grapheme_is_uppercase.sh man/template/is_case.sh Makefile config.mk
@@ -274,6 +281,9 @@ man/libgrapheme.7: man/libgrapheme.sh Makefile config.mk
 $(GEN:=.o) gen/util.o:
 	$(BUILD_CC) -c -o $@ $(BUILD_CPPFLAGS) $(BUILD_CFLAGS) $(@:.o=.c)
 
+$(GEN2:=.o) gen2/util.o:
+	$(BUILD_CC) -c -o $@ $(BUILD_CPPFLAGS) $(BUILD_CFLAGS) $(@:.o=.c)
+
 $(BENCHMARK:=.o) benchmark/util.o $(TEST:=.o) test/util.o:
 	$(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(@:.o=.c)
 
@@ -286,11 +296,17 @@ $(BENCHMARK:=$(BINSUFFIX)):
 $(GEN:=$(BINSUFFIX)):
 	$(BUILD_CC) -o $@ $(BUILD_LDFLAGS) $(@:$(BINSUFFIX)=.o) gen/util.o
 
+$(GEN2:=$(BINSUFFIX)):
+	$(BUILD_CC) -o $@ $(BUILD_LDFLAGS) $(@:$(BINSUFFIX)=.o) gen2/util.o
+
 $(TEST:=$(BINSUFFIX)):
 	$(CC) -o $@ $(LDFLAGS) $(@:$(BINSUFFIX)=.o) test/util.o $(ANAME)
 
 $(GEN:=.h):
 	$(@:.h=$(BINSUFFIX)) > $@
+
+$(GEN2:=.out.h):
+	$(@:.out.h=$(BINSUFFIX)) > $@
 
 $(ANAME): $(SRC:=.o)
 	$(AR) -rc $@ $?
@@ -342,7 +358,7 @@ uninstall:
 	if ! [ -z "$(PCPREFIX)" ]; then rm -f "$(DESTDIR)$(PCPREFIX)/libgrapheme.pc"; fi
 
 clean:
-	rm -f $(BENCHMARK:=.o) benchmark/util.o $(BENCHMARK:=$(BINSUFFIX)) $(GEN:=.h) $(GEN:=.o) gen/util.o $(GEN:=$(BINSUFFIX)) $(SRC:=.o) src/util.o $(TEST:=.o) test/util.o $(TEST:=$(BINSUFFIX)) $(ANAME) $(SONAME) $(MAN3:=.3) $(MAN7:=.7)
+	rm -f $(BENCHMARK:=.o) benchmark/util.o $(BENCHMARK:=$(BINSUFFIX)) $(GEN:=.h) $(GEN:=.o) gen/util.o $(GEN:=$(BINSUFFIX)) $(GEN2:=.h) $(GEN2:=.o) gen2/util.o $(GEN2:=$(BINSUFFIX)) $(SRC:=.o) src/util.o $(TEST:=.o) test/util.o $(TEST:=$(BINSUFFIX)) $(ANAME) $(SONAME) $(MAN3:=.3) $(MAN7:=.7)
 
 clean-data:
 	rm -f $(DATA)
