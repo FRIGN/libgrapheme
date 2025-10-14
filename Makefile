@@ -250,7 +250,7 @@ gen/sentence.h: data/SentenceBreakProperty.txt gen/sentence$(BINSUFFIX)
 gen/sentence-test.h: data/SentenceBreakTest.txt gen/sentence-test$(BINSUFFIX)
 gen/word.h: data/WordBreakProperty.txt gen/word$(BINSUFFIX)
 gen/word-test.h: data/WordBreakTest.txt gen/word-test$(BINSUFFIX)
-gen2/character.out.h: data/DerivedCoreProperties.txt data/emoji-data.txt data/GraphemeBreakProperty.txt gen2/character$(BINSUFFIX)
+gen2/character.gen.h: data/DerivedCoreProperties.txt data/emoji-data.txt data/GraphemeBreakProperty.txt gen2/character$(BINSUFFIX)
 
 man/grapheme_is_character_break.3: man/grapheme_is_character_break.sh Makefile config.mk
 man/grapheme_is_uppercase.3: man/grapheme_is_uppercase.sh man/template/is_case.sh Makefile config.mk
@@ -305,8 +305,8 @@ $(TEST:=$(BINSUFFIX)):
 $(GEN:=.h):
 	$(@:.h=$(BINSUFFIX)) > $@
 
-$(GEN2:=.out.h):
-	$(@:.out.h=$(BINSUFFIX)) > $@
+$(GEN2:=.gen.h):
+	$(@:.gen.h=$(BINSUFFIX)) > $@
 
 $(ANAME): $(SRC:=.o)
 	$(AR) -rc $@ $?
