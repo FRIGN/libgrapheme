@@ -3,7 +3,7 @@ libgrapheme
 
 libgrapheme is an extremely simple freestanding C99 library providing
 utilities for properly handling strings according to the latest Unicode
-standard 15.0.0. It offers fully Unicode compliant
+standard 17.0.0. It offers fully Unicode compliant
 
  - grapheme cluster (i.e. user-perceived character) segmentation
  - word segmentation
