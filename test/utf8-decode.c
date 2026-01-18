@@ -80,7 +80,7 @@ static const struct {
 	         */
 		.arr = (char *)(unsigned char[]) { 0xC1, 0xBF },
 		.len = 2,
-		.exp_len = 2,
+		.exp_len = 1,
 		.exp_cp = GRAPHEME_INVALID_CODEPOINT,
 	},
 	{
@@ -150,7 +150,7 @@ static const struct {
 	         */
 		.arr = (char *)(unsigned char[]) { 0xE0, 0x9F, 0xBF },
 		.len = 3,
-		.exp_len = 3,
+		.exp_len = 1,
 		.exp_cp = GRAPHEME_INVALID_CODEPOINT,
 	},
 	{
@@ -160,7 +160,7 @@ static const struct {
 	         */
 		.arr = (char *)(unsigned char[]) { 0xED, 0xA0, 0x80 },
 		.len = 3,
-		.exp_len = 3,
+		.exp_len = 1,
 		.exp_cp = GRAPHEME_INVALID_CODEPOINT,
 	},
 	{
@@ -269,7 +269,7 @@ static const struct {
 	         */
 		.arr = (char *)(unsigned char[]) { 0xF0, 0x80, 0x81, 0xBF },
 		.len = 4,
-		.exp_len = 4,
+		.exp_len = 1,
 		.exp_cp = GRAPHEME_INVALID_CODEPOINT,
 	},
 	{
@@ -279,7 +279,7 @@ static const struct {
 	         */
 		.arr = (char *)(unsigned char[]) { 0xF4, 0x90, 0x80, 0x80 },
 		.len = 4,
-		.exp_len = 4,
+		.exp_len = 1,
 		.exp_cp = GRAPHEME_INVALID_CODEPOINT,
 	},
 };
