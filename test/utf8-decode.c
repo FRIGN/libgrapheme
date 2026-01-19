@@ -24,7 +24,17 @@ static const struct {
 		.exp_cp = GRAPHEME_INVALID_CODEPOINT,
 	},
 	{
-		/* invalid lead byte
+		/* invalid lead byte (continuation byte as lead byte)
+	         * [ 10111111 ] ->
+	         * INVALID
+	         */
+		.arr = (char *)(unsigned char[]) { 0xBF },
+		.len = 1,
+		.exp_len = 1,
+		.exp_cp = GRAPHEME_INVALID_CODEPOINT,
+	},
+	{
+		/* invalid lead byte (UTF-16-unrepresentable)
 	         * [ 11111101 ] ->
 	         * INVALID
 	         */
@@ -80,6 +90,16 @@ static const struct {
 	         */
 		.arr = (char *)(unsigned char[]) { 0xC1, 0xBF },
 		.len = 2,
+		.exp_len = 1,
+		.exp_cp = GRAPHEME_INVALID_CODEPOINT,
+	},
+	{
+		/* invalid 2-byte sequence (short string, overlong encoded)
+	         * [ 11000001 ] ->
+	         * INVALID
+	         */
+		.arr = (char *)(unsigned char[]) { 0xC1 },
+		.len = 1,
 		.exp_len = 1,
 		.exp_cp = GRAPHEME_INVALID_CODEPOINT,
 	},
@@ -154,12 +174,32 @@ static const struct {
 		.exp_cp = GRAPHEME_INVALID_CODEPOINT,
 	},
 	{
-		/* invalid 3-byte sequence (UTF-16 surrogate half)
+		/* invalid 3-byte sequence (short string, overlong encoded)
+	         * [ 11100000 10011111 ] ->
+	         * INVALID
+	         */
+		.arr = (char *)(unsigned char[]) { 0xE0, 0x9F },
+		.len = 2,
+		.exp_len = 1,
+		.exp_cp = GRAPHEME_INVALID_CODEPOINT,
+	},
+	{
+		/* invalid 3-byte sequence (UTF-16 surrogate)
 	         * [ 11101101 10100000 10000000 ] ->
 	         * INVALID
 	         */
 		.arr = (char *)(unsigned char[]) { 0xED, 0xA0, 0x80 },
 		.len = 3,
+		.exp_len = 1,
+		.exp_cp = GRAPHEME_INVALID_CODEPOINT,
+	},
+	{
+		/* invalid 3-byte sequence (short string, UTF-16 surrogate)
+	         * [ 11101101 10100000 ] ->
+	         * INVALID
+	         */
+		.arr = (char *)(unsigned char[]) { 0xED, 0xA0 },
+		.len = 2,
 		.exp_len = 1,
 		.exp_cp = GRAPHEME_INVALID_CODEPOINT,
 	},
@@ -273,12 +313,32 @@ static const struct {
 		.exp_cp = GRAPHEME_INVALID_CODEPOINT,
 	},
 	{
+		/* invalid 4-byte sequence (short string, overlong encoded)
+	         * [ 11110000 10000000 ] ->
+	         * INVALID
+	         */
+		.arr = (char *)(unsigned char[]) { 0xF0, 0x80 },
+		.len = 2,
+		.exp_len = 1,
+		.exp_cp = GRAPHEME_INVALID_CODEPOINT,
+	},
+	{
 		/* invalid 4-byte sequence (UTF-16-unrepresentable)
 	         * [ 11110100 10010000 10000000 10000000 ] ->
 	         * INVALID
 	         */
 		.arr = (char *)(unsigned char[]) { 0xF4, 0x90, 0x80, 0x80 },
 		.len = 4,
+		.exp_len = 1,
+		.exp_cp = GRAPHEME_INVALID_CODEPOINT,
+	},
+	{
+		/* invalid 4-byte sequence (short string, UTF-16-unrepresentable)
+	         * [ 11110100 10010000 ] ->
+	         * INVALID
+	         */
+		.arr = (char *)(unsigned char[]) { 0xF4, 0x90 },
+		.len = 2,
 		.exp_len = 1,
 		.exp_cp = GRAPHEME_INVALID_CODEPOINT,
 	},
